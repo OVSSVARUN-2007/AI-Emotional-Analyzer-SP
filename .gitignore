@@ -1,0 +1,219 @@
+# ============================================================
+# Python
+# ============================================================
+
+__pycache__/
+*.py[cod]
+*.so
+
+# Python build / packaging
+build/
+dist/
+*.egg-info/
+.eggs/
+wheels/
+pip-wheel-metadata/
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+
+# ============================================================
+# Environment / Secrets
+# ============================================================
+
+.env
+.env.*
+!.env.example
+
+*.pem
+*.key
+
+secrets/
+credentials/
+credentials.json
+service-account.json
+
+
+# ============================================================
+# Jupyter
+# ============================================================
+
+.ipynb_checkpoints/
+
+
+# ============================================================
+# Datasets - KEEP PRIVATE
+# ============================================================
+
+data/
+datasets/
+
+# Keep empty directory structure
+!data/.gitkeep
+!datasets/.gitkeep
+
+
+# ============================================================
+# Machine Learning
+# ============================================================
+
+models/
+checkpoints/
+weights/
+
+*.pt
+*.pth
+*.ckpt
+*.onnx
+*.safetensors
+
+# Hugging Face / ML caches
+.cache/
+huggingface_cache/
+transformers_cache/
+
+# Experiment tracking
+mlruns/
+wandb/
+runs/
+outputs/
+artifacts/
+
+
+# ============================================================
+# NLP Models / Resources
+# ============================================================
+
+spacy_models/
+nltk_data/
+stanza_resources/
+
+
+# ============================================================
+# Logs
+# ============================================================
+
+*.log
+logs/
+
+
+# ============================================================
+# Testing / Coverage
+# ============================================================
+
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+coverage.xml
+.hypothesis/
+
+
+# ============================================================
+# Type Checking / Linters
+# ============================================================
+
+.mypy_cache/
+.pyre/
+.pytype/
+.ruff_cache/
+
+
+# ============================================================
+# IDE / Editors
+# ============================================================
+
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Eclipse
+.project
+.classpath
+.settings/
+
+
+# ============================================================
+# OS
+# ============================================================
+
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+
+# ============================================================
+# Frontend / Node
+# ============================================================
+
+node_modules/
+
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+.npm/
+.yarn/
+.pnpm-store/
+
+.next/
+.nuxt/
+.output/
+.vercel/
+
+
+# ============================================================
+# Temporary
+# ============================================================
+
+*.tmp
+*.temp
+*.bak
+*.backup
+
+tmp/
+temp/
+
+
+# ============================================================
+# Database
+# ============================================================
+
+*.db
+*.sqlite
+*.sqlite3
+
+postgres_data/
+redis_data/
+
+
+# ============================================================
+# Application-generated files
+# ============================================================
+
+uploads/
+generated/
+static/generated/
+media/
+
+
+# ============================================================
+# Local development
+# ============================================================
+
+.local/
+.localenv/
+.dev/
+
+private-notes/
