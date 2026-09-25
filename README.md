@@ -754,14 +754,19 @@ python training/train_sentiment.py
 python training/train_emotion.py
 ```
 
-### Final local NLP workflow
+### Final NLP Model & Engine Workflow
 
-The reusable NLP layer is deliberately separate from any backend. It provides:
+The reusable NLP layer is deliberately separate from any backend and provides 3 interchangeable model engines:
 
-- Sentiment: TF-IDF + tuned logistic regression trained on student feedback.
-- Emotion: six-class (`sadness`, `joy`, `love`, `anger`, `fear`, `surprise`) TF-IDF + logistic regression.
-- Topics: reviewable, whole-word rules for common student-feedback aspects.
-- Inference: one JSON-producing command, with label confidence and all class scores.
+1. **Local TF-IDF + LogisticRegression**:
+   - Sentiment: TF-IDF n-grams + tuned Logistic Regression trained on clean student feedback splits.
+   - Emotion: Six-class (`sadness`, `joy`, `love`, `anger`, `fear`, `surprise`) TF-IDF classifier.
+2. **HuggingFace BERT Transformer Engine**:
+   - Deep learning transformer pipelines for fine-grained sentiment and emotion detection.
+3. **External Cloud AI Model Engine (Google Gemini / OpenAI)**:
+   - Zero-shot / structured prompt extraction via cloud LLM APIs with automatic `.env` key resolution and offline fallback.
+4. **Aspect-Based Sentiment & Topic Detection**:
+   - Clause decomposition across contrast connectors (`but`, `however`, `although`, `whereas`, `yet`, `while`, `though`, `despite`) and whole-word keyword matching across 11 student feedback categories.
 
 Run the complete local NLP workflow from the command line:
 
