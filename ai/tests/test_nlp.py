@@ -61,3 +61,24 @@ def test_aspect_sentiment_analysis() -> None:
     topics = [a["topic"] for a in res["aspects"]]
     assert "teaching" in topics
     assert "assignments" in topics
+
+
+def test_external_feedback_analyzer() -> None:
+    from nlp.analyzer import ExternalFeedbackAnalyzer
+
+    analyzer = ExternalFeedbackAnalyzer()
+    res = analyzer.analyze("The teaching is excellent, but assignments are extremely difficult.")
+    assert "External" in res["engine"]
+    assert res["sentiment"]["label"] in ("mixed", "negative", "positive", "neutral")
+    assert "topics" in res
+    assert "aspects" in res
+    assert "emotion" in res
+
+
+def test_get_analyzer_factory() -> None:
+    from nlp.analyzer import BertFeedbackAnalyzer, ExternalFeedbackAnalyzer, FeedbackAnalyzer, get_analyzer
+
+    assert isinstance(get_analyzer("tfidf", sentiment_model="dummy"), FeedbackAnalyzer)
+    assert isinstance(get_analyzer("external"), ExternalFeedbackAnalyzer)
+    assert isinstance(get_analyzer("gemini"), ExternalFeedbackAnalyzer)
+

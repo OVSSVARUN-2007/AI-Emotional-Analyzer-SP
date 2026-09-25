@@ -56,6 +56,17 @@ def test_analyze_single_bert_endpoint() -> None:
     assert "emotion" in data
 
 
+def test_analyze_single_external_endpoint() -> None:
+    payload = {"feedback": "The professor explains clearly but the assignment deadline is very short.", "engine": "external"}
+    response = client.post("/api/analyze", json=payload)
+    assert response.status_code == 200
+    data = response.json()
+    assert "External" in data.get("engine", "")
+    assert "sentiment" in data
+    assert "topics" in data
+    assert "emotion" in data
+
+
 def test_analyze_batch_endpoint() -> None:
     payload = {
         "feedbacks": [
@@ -74,3 +85,5 @@ def test_index_ui_endpoint() -> None:
     response = client.get("/")
     assert response.status_code == 200
     assert "Student Emotional Analyzer" in response.text
+    assert "External AI Model" in response.text
+

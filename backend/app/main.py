@@ -17,7 +17,7 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from ai.nlp import BertFeedbackAnalyzer, FeedbackAnalyzer
+from ai.nlp import BertFeedbackAnalyzer, ExternalFeedbackAnalyzer, FeedbackAnalyzer, get_analyzer
 
 # Paths to trained model artifacts
 SENTIMENT_MODEL_PATH = REPO_ROOT / "ai" / "models" / "sentiment" / "sentiment_tfidf_logreg.joblib"
@@ -28,7 +28,7 @@ EMOTION_METRICS_PATH = REPO_ROOT / "ai" / "models" / "emotion" / "emotion_tfidf_
 # Initialize FastAPI application
 app = FastAPI(
     title="Student Feedback Emotional Analyzer — Testing Backend",
-    description="Dedicated backend service for testing trained NLP models (TF-IDF & BERT Transformers).",
+    description="Dedicated backend service for testing trained NLP models (Local TF-IDF, HuggingFace BERT, and External Cloud AI Models).",
     version="1.0.0",
 )
 
@@ -44,6 +44,7 @@ app.add_middleware(
 # Global analyzers
 _tfidf_analyzer: FeedbackAnalyzer | None = None
 _bert_analyzer: BertFeedbackAnalyzer | None = None
+_external_analyzer: ExternalFeedbackAnalyzer | None = None
 
 
 def get_tfidf_analyzer() -> FeedbackAnalyzer:
@@ -66,6 +67,24 @@ def get_bert_analyzer() -> BertFeedbackAnalyzer:
     return _bert_analyzer
 
 
+def get_external_analyzer() -> ExternalFeedbackAnalyzer:
+    global _external_analyzer
+    if _external_analyzer is None:
+        tfidf = get_tfidf_analyzer()
+        _external_analyzer = ExternalFeedbackAnalyzer(fallback_analyzer=tfidf)
+    return _external_analyzer
+
+
+def select_analyzer(engine: str) -> FeedbackAnalyzer | BertFeedbackAnalyzer | ExternalFeedbackAnalyzer:
+    eng = engine.lower().strip()
+    if eng in ("bert", "transformer", "transformers"):
+        return get_bert_analyzer()
+    elif eng in ("external", "gemini", "openai", "cloud", "api"):
+        return get_external_analyzer()
+    else:
+        return get_tfidf_analyzer()
+
+
 # Pydantic Schemas
 class FeedbackRequest(BaseModel):
     feedback: str = Field(
@@ -75,7 +94,7 @@ class FeedbackRequest(BaseModel):
     )
     engine: str = Field(
         default="tfidf",
-        description="Model engine to use: 'tfidf' (Local TF-IDF + LogReg) or 'bert' (HuggingFace BERT Transformer).",
+        description="Model engine to use: 'tfidf' (Local TF-IDF + LogReg), 'bert' (HuggingFace BERT), or 'external' (Google Gemini / Cloud AI Model API).",
         json_schema_extra={"example": "tfidf"},
     )
 
@@ -91,7 +110,7 @@ class BatchFeedbackRequest(BaseModel):
     )
     engine: str = Field(
         default="tfidf",
-        description="Model engine to use: 'tfidf' or 'bert'.",
+        description="Model engine to use: 'tfidf', 'bert', or 'external'.",
         json_schema_extra={"example": "tfidf"},
     )
 
@@ -113,6 +132,7 @@ def health_check() -> dict[str, Any]:
                 "path": str(EMOTION_MODEL_PATH),
             },
             "bert_available": True,
+            "external_available": True,
         },
     }
 
@@ -129,24 +149,20 @@ def get_metrics() -> dict[str, Any]:
 
 @app.post("/api/analyze", summary="Analyze Single Student Feedback")
 def analyze_single(payload: FeedbackRequest) -> dict[str, Any]:
-    analyzer = get_bert_analyzer() if payload.engine.lower() == "bert" else get_tfidf_analyzer()
+    analyzer = select_analyzer(payload.engine)
     try:
-        res = analyzer.analyze(payload.feedback)
-        res["engine"] = "BERT (HuggingFace Transformers)" if payload.engine.lower() == "bert" else "Local TF-IDF + LogisticRegression"
-        return res
+        return analyzer.analyze(payload.feedback)
     except ValueError as err:
         raise HTTPException(status_code=400, detail=str(err)) from err
 
 
 @app.post("/api/analyze/batch", summary="Analyze Batch Student Feedback")
 def analyze_batch(payload: BatchFeedbackRequest) -> dict[str, Any]:
-    analyzer = get_bert_analyzer() if payload.engine.lower() == "bert" else get_tfidf_analyzer()
+    analyzer = select_analyzer(payload.engine)
     results = []
     for text in payload.feedbacks:
         try:
-            res = analyzer.analyze(text)
-            res["engine"] = "BERT (HuggingFace Transformers)" if payload.engine.lower() == "bert" else "Local TF-IDF + LogisticRegression"
-            results.append(res)
+            results.append(analyzer.analyze(text))
         except ValueError as err:
             results.append({"text": text, "error": str(err)})
     return {"total": len(results), "engine": payload.engine, "results": results}
@@ -447,6 +463,7 @@ def index_test_ui() -> str:
           <select id="engineSelect" style="background:rgba(15, 23, 42, 0.8); color:#fff; border:1px solid rgba(255, 255, 255, 0.2); padding:0.6rem 0.8rem; border-radius:0.75rem; font-family:inherit; font-size:0.85rem; outline:none; cursor:pointer;">
             <option value="tfidf">⚡ TF-IDF + LogReg Engine</option>
             <option value="bert">🤖 BERT Transformer Engine</option>
+            <option value="external">🌐 External AI Model (Gemini / Cloud API)</option>
           </select>
           <button class="btn-analyze" onclick="analyzeFeedback()">Analyze Feedback</button>
         </div>

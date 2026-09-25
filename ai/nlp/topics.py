@@ -9,17 +9,54 @@ from collections.abc import Iterable
 # Domain rules are intentionally explicit so that they can be reviewed and
 # extended with institution-specific vocabulary without retraining a model.
 TOPIC_KEYWORDS: dict[str, tuple[str, ...]] = {
-    "teaching": ("teacher", "teachers", "professor", "professors", "instructor", "instructors", "lecture", "lectures", "explain", "explains", "explanation", "teaching", "faculty"),
-    "assignments": ("assignment", "assignments", "homework", "homeworks", "project", "projects", "submission", "submissions", "task", "tasks"),
-    "examinations": ("exam", "exams", "examination", "examinations", "quiz", "quizzes", "test", "tests", "assessment", "assessments"),
-    "workload": ("workload", "workloads", "busy", "overload", "too much work", "heavy workload", "stressful"),
-    "deadlines": ("deadline", "deadlines", "due date", "due dates", "time limit", "time limits", "late submission"),
-    "course_content": ("syllabus", "syllabi", "course content", "curriculum", "module", "modules", "topic", "topics", "subject", "subjects"),
-    "laboratories": ("lab", "labs", "laboratory", "laboratories", "practical", "practicals", "equipment"),
-    "infrastructure": ("wifi", "internet", "classroom", "classrooms", "facility", "facilities", "library", "libraries", "canteen", "canteens", "bench", "benches"),
-    "attendance": ("attendance", "absent", "present", "proxy"),
-    "grading": ("grade", "grades", "grading", "mark", "marks", "marking", "score", "scores", "scoring", "result", "results"),
-    "support": ("doubt", "doubts", "help", "support", "guidance", "feedback", "response", "clearance"),
+    "teaching": (
+        "teacher", "teachers", "professor", "professors", "instructor", "instructors",
+        "lecture", "lectures", "explain", "explains", "explanation", "teaching",
+        "faculty", "pedagogy", "teach", "teaching style", "explanation quality",
+    ),
+    "assignments": (
+        "assignment", "assignments", "homework", "homeworks", "project", "projects",
+        "submission", "submissions", "task", "tasks", "problem set", "problem sets",
+    ),
+    "examinations": (
+        "exam", "exams", "examination", "examinations", "quiz", "quizzes",
+        "test", "tests", "assessment", "assessments", "midterm", "midterms",
+        "final", "finals", "paper", "evaluation",
+    ),
+    "workload": (
+        "workload", "workloads", "busy", "overload", "too much work", "heavy workload",
+        "stressful", "overwhelming", "pressure", "time-consuming",
+    ),
+    "deadlines": (
+        "deadline", "deadlines", "due date", "due dates", "time limit", "time limits",
+        "late submission", "schedule", "timeline",
+    ),
+    "course_content": (
+        "syllabus", "syllabi", "course content", "curriculum", "module", "modules",
+        "topic", "topics", "subject", "subjects", "material", "study material",
+        "notes", "slides",
+    ),
+    "laboratories": (
+        "lab", "labs", "laboratory", "laboratories", "practical", "practicals",
+        "equipment", "lab manual", "experiment", "experiments", "software", "hardware",
+    ),
+    "infrastructure": (
+        "wifi", "internet", "classroom", "classrooms", "facility", "facilities",
+        "library", "libraries", "canteen", "canteens", "bench", "benches",
+        "projector", "ac", "air conditioning", "lab computers", "building",
+    ),
+    "attendance": (
+        "attendance", "absent", "present", "proxy", "mandatory attendance",
+        "attendance policy", "leaves",
+    ),
+    "grading": (
+        "grade", "grades", "grading", "mark", "marks", "marking", "score", "scores",
+        "scoring", "result", "results", "partial marking", "fair grading", "strict grading",
+    ),
+    "support": (
+        "doubt", "doubts", "help", "support", "guidance", "feedback", "response",
+        "clearance", "office hours", "query", "queries", "assistance",
+    ),
 }
 
 
@@ -36,3 +73,4 @@ def extract_topics(text: str, keywords: dict[str, Iterable[str]] | None = None) 
                 detected.append(topic)
                 break
     return detected
+
