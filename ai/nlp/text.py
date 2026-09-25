@@ -3,9 +3,12 @@
 from __future__ import annotations
 
 import html
+import math
 import re
 import unicodedata
 from typing import Any
+
+import pandas as pd
 
 
 def normalize_text(value: Any) -> str:
@@ -14,10 +17,12 @@ def normalize_text(value: Any) -> str:
     Negation, punctuation, and stop words are intentionally retained: all can
     carry useful sentiment information for a TF-IDF model.
     """
-    if value is None:
+    if value is None or pd.isna(value):
+        return ""
+    if isinstance(value, float) and math.isnan(value):
         return ""
     text = html.unescape(str(value))
-    text = unicodedata.normalize("NFKC", text).replace("’", "'")
+    text = unicodedata.normalize("NFKC", text).replace("’", "'").replace("“", '"').replace("”", '"')
     return re.sub(r"\s+", " ", text).strip().lower()
 
 
