@@ -196,6 +196,19 @@ class BertFeedbackAnalyzer:
         return result
 
 
+def _load_env() -> None:
+    """Load environment variables from project .env or ~/.env if available."""
+    try:
+        from dotenv import load_dotenv
+
+        load_dotenv()
+        home_env = Path.home() / ".env"
+        if home_env.exists():
+            load_dotenv(home_env, override=False)
+    except Exception:
+        pass
+
+
 class ExternalFeedbackAnalyzer:
     """External API-based AI model facade (Google Gemini, OpenAI, Hugging Face API, or Custom REST Endpoint)."""
 
@@ -207,6 +220,7 @@ class ExternalFeedbackAnalyzer:
         model_name: str | None = None,
         fallback_analyzer: Any | None = None,
     ) -> None:
+        _load_env()
         self.provider = provider.lower()
         self.api_key = (
             api_key
@@ -221,6 +235,7 @@ class ExternalFeedbackAnalyzer:
         self.fallback_analyzer = fallback_analyzer
 
     def _call_gemini_api(self, text: str) -> dict[str, Any] | None:
+        _load_env()
         key = self.api_key or os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
         if not key:
             return None
