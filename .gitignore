@@ -66,6 +66,8 @@ datasets/
 models/
 checkpoints/
 weights/
+!ai/models/
+!ai/models/**
 
 *.pt
 *.pth
