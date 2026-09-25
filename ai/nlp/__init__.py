@@ -4,6 +4,6 @@ This package deliberately has no web-framework dependency.  It can be used by
 notebooks, a command-line workflow, or a future application layer.
 """
 
-from .analyzer import FeedbackAnalyzer
+from .analyzer import BertFeedbackAnalyzer, FeedbackAnalyzer
 
-__all__ = ["FeedbackAnalyzer"]
+__all__ = ["FeedbackAnalyzer", "BertFeedbackAnalyzer"]

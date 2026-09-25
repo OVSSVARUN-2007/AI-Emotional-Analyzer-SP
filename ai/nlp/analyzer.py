@@ -93,3 +93,81 @@ class FeedbackAnalyzer:
             result["emotion"] = self._prediction(self.emotion_model, text)
 
         return result
+
+
+class BertFeedbackAnalyzer:
+    """HuggingFace BERT/Transformer inference facade for sentiment and emotion analysis."""
+
+    def __init__(
+        self,
+        sentiment_model_name: str = "distilbert-base-uncased-finetuned-sst-2-english",
+        emotion_model_name: str = "bhadresh-savani/distilbert-base-uncased-emotion",
+    ) -> None:
+        try:
+            from transformers import pipeline
+        except ImportError as err:
+            raise ImportError("transformers package is required for BERT analyzer. Run: pip install transformers torch") from err
+
+        self.sentiment_pipe = pipeline("text-classification", model=sentiment_model_name, top_k=None)
+        self.emotion_pipe = pipeline("text-classification", model=emotion_model_name, top_k=None) if emotion_model_name else None
+
+    def _predict_pipe(self, pipe: Any, text: str) -> dict[str, Any]:
+        raw_results = pipe(text)[0]
+        label_map = {
+            "LABEL_0": "negative",
+            "LABEL_1": "neutral",
+            "LABEL_2": "positive",
+            "POSITIVE": "positive",
+            "NEGATIVE": "negative",
+        }
+        scores: dict[str, float] = {}
+        for item in raw_results:
+            raw_label = str(item["label"]).upper()
+            clean_label = label_map.get(raw_label, item["label"].lower())
+            scores[clean_label] = round(float(item["score"]), 4)
+
+        best_label = max(scores, key=scores.get)
+        return {"label": best_label, "confidence": scores[best_label], "scores": scores}
+
+    def analyze(self, feedback: str) -> dict[str, Any]:
+        text = require_text(feedback)
+        sentiment_res = self._predict_pipe(self.sentiment_pipe, text)
+
+        # Clause-based aspects
+        clauses = [c.strip() for c in re.split(r"[.!?;\n]|\b(?:but|however|although|whereas)\b", text, flags=re.IGNORECASE) if c.strip()]
+        aspects: list[dict[str, Any]] = []
+        for clause in clauses:
+            topics = extract_topics(clause)
+            if topics:
+                clause_sent = self._predict_pipe(self.sentiment_pipe, clause)
+                for topic in topics:
+                    aspects.append(
+                        {
+                            "topic": topic,
+                            "sentiment": clause_sent["label"],
+                            "confidence": clause_sent["confidence"],
+                            "segment": clause,
+                        }
+                    )
+
+        aspect_sentiments = {a["sentiment"] for a in aspects}
+        overall_label = sentiment_res["label"]
+        if "positive" in aspect_sentiments and "negative" in aspect_sentiments:
+            overall_label = "mixed"
+
+        result: dict[str, Any] = {
+            "engine": "BERT (HuggingFace Transformers)",
+            "text": text,
+            "sentiment": {
+                "label": overall_label,
+                "confidence": sentiment_res["confidence"],
+                "scores": sentiment_res["scores"],
+            },
+            "topics": extract_topics(text),
+            "aspects": aspects,
+        }
+
+        if self.emotion_pipe is not None:
+            result["emotion"] = self._predict_pipe(self.emotion_pipe, text)
+
+        return result

@@ -34,7 +34,7 @@ def test_metrics_endpoint() -> None:
 
 
 def test_analyze_single_endpoint() -> None:
-    payload = {"feedback": "The professor explains clearly but the assignment deadline is very short."}
+    payload = {"feedback": "The professor explains clearly but the assignment deadline is very short.", "engine": "tfidf"}
     response = client.post("/api/analyze", json=payload)
     assert response.status_code == 200
     data = response.json()
@@ -43,6 +43,17 @@ def test_analyze_single_endpoint() -> None:
     assert "aspects" in data
     assert "emotion" in data
     assert data["sentiment"]["label"] in ("positive", "negative", "neutral", "mixed")
+
+
+def test_analyze_single_bert_endpoint() -> None:
+    payload = {"feedback": "The professor explains clearly but the assignment deadline is very short.", "engine": "bert"}
+    response = client.post("/api/analyze", json=payload)
+    assert response.status_code == 200
+    data = response.json()
+    assert "BERT" in data.get("engine", "")
+    assert "sentiment" in data
+    assert "topics" in data
+    assert "emotion" in data
 
 
 def test_analyze_batch_endpoint() -> None:

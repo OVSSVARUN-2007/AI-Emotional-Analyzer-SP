@@ -17,7 +17,7 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from ai.nlp import FeedbackAnalyzer
+from ai.nlp import BertFeedbackAnalyzer, FeedbackAnalyzer
 
 # Paths to trained model artifacts
 SENTIMENT_MODEL_PATH = REPO_ROOT / "ai" / "models" / "sentiment" / "sentiment_tfidf_logreg.joblib"
@@ -28,7 +28,7 @@ EMOTION_METRICS_PATH = REPO_ROOT / "ai" / "models" / "emotion" / "emotion_tfidf_
 # Initialize FastAPI application
 app = FastAPI(
     title="Student Feedback Emotional Analyzer — Testing Backend",
-    description="Dedicated backend service for testing trained NLP models (Sentiment, Emotion, Aspect Analysis, Topics).",
+    description="Dedicated backend service for testing trained NLP models (TF-IDF & BERT Transformers).",
     version="1.0.0",
 )
 
@@ -41,21 +41,29 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Load analyzer once at startup
-_analyzer: FeedbackAnalyzer | None = None
+# Global analyzers
+_tfidf_analyzer: FeedbackAnalyzer | None = None
+_bert_analyzer: BertFeedbackAnalyzer | None = None
 
 
-def get_analyzer() -> FeedbackAnalyzer:
-    global _analyzer
-    if _analyzer is None:
+def get_tfidf_analyzer() -> FeedbackAnalyzer:
+    global _tfidf_analyzer
+    if _tfidf_analyzer is None:
         if not SENTIMENT_MODEL_PATH.exists():
             raise HTTPException(
                 status_code=500,
                 detail=f"Sentiment model not found at {SENTIMENT_MODEL_PATH}. Please run training first.",
             )
         emotion_path = EMOTION_MODEL_PATH if EMOTION_MODEL_PATH.exists() else None
-        _analyzer = FeedbackAnalyzer(SENTIMENT_MODEL_PATH, emotion_path)
-    return _analyzer
+        _tfidf_analyzer = FeedbackAnalyzer(SENTIMENT_MODEL_PATH, emotion_path)
+    return _tfidf_analyzer
+
+
+def get_bert_analyzer() -> BertFeedbackAnalyzer:
+    global _bert_analyzer
+    if _bert_analyzer is None:
+        _bert_analyzer = BertFeedbackAnalyzer()
+    return _bert_analyzer
 
 
 # Pydantic Schemas
@@ -64,6 +72,11 @@ class FeedbackRequest(BaseModel):
         ...,
         description="Student feedback text to analyze.",
         json_schema_extra={"example": "The professor explains concepts very clearly, but assignments are too difficult."},
+    )
+    engine: str = Field(
+        default="tfidf",
+        description="Model engine to use: 'tfidf' (Local TF-IDF + LogReg) or 'bert' (HuggingFace BERT Transformer).",
+        json_schema_extra={"example": "tfidf"},
     )
 
 
@@ -75,6 +88,11 @@ class BatchFeedbackRequest(BaseModel):
             "Great teaching and supportive faculty.",
             "Workload is way too heavy and exams are stressful.",
         ]},
+    )
+    engine: str = Field(
+        default="tfidf",
+        description="Model engine to use: 'tfidf' or 'bert'.",
+        json_schema_extra={"example": "tfidf"},
     )
 
 
@@ -94,6 +112,7 @@ def health_check() -> dict[str, Any]:
                 "loaded": emotion_exists,
                 "path": str(EMOTION_MODEL_PATH),
             },
+            "bert_available": True,
         },
     }
 
@@ -110,23 +129,27 @@ def get_metrics() -> dict[str, Any]:
 
 @app.post("/api/analyze", summary="Analyze Single Student Feedback")
 def analyze_single(payload: FeedbackRequest) -> dict[str, Any]:
-    analyzer = get_analyzer()
+    analyzer = get_bert_analyzer() if payload.engine.lower() == "bert" else get_tfidf_analyzer()
     try:
-        return analyzer.analyze(payload.feedback)
+        res = analyzer.analyze(payload.feedback)
+        res["engine"] = "BERT (HuggingFace Transformers)" if payload.engine.lower() == "bert" else "Local TF-IDF + LogisticRegression"
+        return res
     except ValueError as err:
         raise HTTPException(status_code=400, detail=str(err)) from err
 
 
 @app.post("/api/analyze/batch", summary="Analyze Batch Student Feedback")
 def analyze_batch(payload: BatchFeedbackRequest) -> dict[str, Any]:
-    analyzer = get_analyzer()
+    analyzer = get_bert_analyzer() if payload.engine.lower() == "bert" else get_tfidf_analyzer()
     results = []
     for text in payload.feedbacks:
         try:
-            results.append(analyzer.analyze(text))
+            res = analyzer.analyze(text)
+            res["engine"] = "BERT (HuggingFace Transformers)" if payload.engine.lower() == "bert" else "Local TF-IDF + LogisticRegression"
+            results.append(res)
         except ValueError as err:
             results.append({"text": text, "error": str(err)})
-    return {"total": len(results), "results": results}
+    return {"total": len(results), "engine": payload.engine, "results": results}
 
 
 @app.get("/", response_class=HTMLResponse, include_in_schema=False)
@@ -420,7 +443,13 @@ def index_test_ui() -> str:
           <button class="btn-preset" onclick="setSample(2)">High Satisfaction</button>
           <button class="btn-preset" onclick="setSample(3)">Exam Stress</button>
         </div>
-        <button class="btn-analyze" onclick="analyzeFeedback()">⚡ Analyze Feedback</button>
+        <div style="display:flex; align-items:center; gap:0.5rem;">
+          <select id="engineSelect" style="background:rgba(15, 23, 42, 0.8); color:#fff; border:1px solid rgba(255, 255, 255, 0.2); padding:0.6rem 0.8rem; border-radius:0.75rem; font-family:inherit; font-size:0.85rem; outline:none; cursor:pointer;">
+            <option value="tfidf">⚡ TF-IDF + LogReg Engine</option>
+            <option value="bert">🤖 BERT Transformer Engine</option>
+          </select>
+          <button class="btn-analyze" onclick="analyzeFeedback()">Analyze Feedback</button>
+        </div>
       </div>
     </div>
 
@@ -482,12 +511,13 @@ def index_test_ui() -> str:
     async function analyzeFeedback() {
       const text = document.getElementById('feedbackInput').value.trim();
       if (!text) return alert('Please enter feedback text to test.');
+      const engine = document.getElementById('engineSelect').value;
 
       try {
         const response = await fetch('/api/analyze', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ feedback: text })
+          body: JSON.stringify({ feedback: text, engine: engine })
         });
         const data = await response.json();
         renderResults(data);
