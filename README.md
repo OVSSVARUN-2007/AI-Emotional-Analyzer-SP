@@ -763,7 +763,7 @@ The reusable NLP layer is deliberately separate from any backend. It provides:
 - Topics: reviewable, whole-word rules for common student-feedback aspects.
 - Inference: one JSON-producing command, with label confidence and all class scores.
 
-Build the deterministic sentiment splits with notebooks `01_dataset_dataexploration.ipynb`, `02_preprocess_sentiment.ipynb`, and `03_train_sentiment_model.ipynb`, or train from the already-generated splits:
+Run the notebooks in order: `01_dataset_dataexploration.ipynb`, `02_preprocess_sentiment.ipynb`, `03_train_sentiment_model.ipynb`, and `04_train_emotion_and_analyze_feedback.ipynb`. The fourth notebook trains the emotion model and demonstrates the final combined sentiment, emotion, and topic analysis. Or train from the command line:
 
 ```bash
 python training/train_sentiment.py
