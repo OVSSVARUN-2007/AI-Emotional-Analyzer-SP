@@ -29,6 +29,12 @@ def test_topics_match_whole_words() -> None:
     assert "laboratories" not in extract_topics("The collaboration was good.")
 
 
+def test_normalize_text_nan_and_quotes() -> None:
+    assert normalize_text(float("nan")) == ""
+    assert normalize_text(None) == ""
+    assert normalize_text("“Good” lectures") == '"good" lectures'
+
+
 def test_training_returns_probability_capable_pipeline() -> None:
     rows = pd.DataFrame({
         "feedback_text": ["great teaching", "excellent class", "bad teaching", "awful course", "okay class", "ordinary lecture"],
@@ -37,3 +43,21 @@ def test_training_returns_probability_capable_pipeline() -> None:
     model, result = train_classifier(rows, rows, rows, tune=False)
     assert set(model.predict_proba(["great course"])[0])
     assert result.test_macro_f1 >= 0
+
+
+def test_aspect_sentiment_analysis() -> None:
+    from nlp.analyzer import FeedbackAnalyzer
+
+    rows = pd.DataFrame({
+        "feedback_text": ["great teaching", "excellent professor", "bad assignment", "awful homework"],
+        "sentiment": ["positive", "positive", "negative", "negative"],
+    })
+    model, _ = train_classifier(rows, rows, rows, tune=False)
+    analyzer = FeedbackAnalyzer(model)
+
+    res = analyzer.analyze("The professor explains clearly, but homework is bad.")
+    assert res["sentiment"]["label"] == "mixed"
+    assert len(res["aspects"]) >= 2
+    topics = [a["topic"] for a in res["aspects"]]
+    assert "teaching" in topics
+    assert "assignments" in topics

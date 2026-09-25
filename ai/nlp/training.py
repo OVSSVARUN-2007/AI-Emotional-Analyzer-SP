@@ -43,7 +43,7 @@ class TrainingResult:
         return asdict(self)
 
 
-def build_classifier(max_features: int | None = 25_000, min_df: int = 2) -> Pipeline:
+def build_classifier(max_features: int | None = 25_000, min_df: int = 1) -> Pipeline:
     return Pipeline(
         [
             (
