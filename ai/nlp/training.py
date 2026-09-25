@@ -43,10 +43,19 @@ class TrainingResult:
         return asdict(self)
 
 
-def build_classifier() -> Pipeline:
+def build_classifier(max_features: int | None = 25_000, min_df: int = 2) -> Pipeline:
     return Pipeline(
         [
-            ("tfidf", TfidfVectorizer(sublinear_tf=True, strip_accents="unicode", ngram_range=(1, 2))),
+            (
+                "tfidf",
+                TfidfVectorizer(
+                    sublinear_tf=True,
+                    strip_accents="unicode",
+                    ngram_range=(1, 2),
+                    max_features=max_features,
+                    min_df=min_df,
+                ),
+            ),
             ("classifier", LogisticRegression(max_iter=2_000, class_weight="balanced", random_state=RANDOM_STATE)),
         ]
     )
