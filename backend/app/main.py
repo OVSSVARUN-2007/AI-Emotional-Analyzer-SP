@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from sqlalchemy import text
 
 from app.database.connection import engine
+from app.api.feedback import router as feedback_router
 
 app = FastAPI(
     title="AI Emotional Sentiment Analyzer",
@@ -9,6 +10,7 @@ app = FastAPI(
     version="1.0.0",
 )
 
+app.include_router(feedback_router)
 
 @app.get("/")
 def root():
