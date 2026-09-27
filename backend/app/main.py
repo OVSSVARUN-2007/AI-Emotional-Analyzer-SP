@@ -6,8 +6,12 @@ import json
 import sys
 from pathlib import Path
 from typing import Any
+from fastapi import FastAPI, HTTPException, Depends
+from sqlalchemy import text
+from sqlalchemy.orm import Session
 
-from fastapi import FastAPI, HTTPException
+from app.database.connection import engine
+from app.api.feedback import router as feedback_router
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel, Field
@@ -40,6 +44,26 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.include_router(feedback_router)
+
+@app.get("/health")
+def health_check() -> dict[str, str]:
+    return {"status": "healthy"}
+
+
+@app.get("/health/database")
+def database_health_check() -> dict[str, str]:
+    try:
+        with engine.connect() as connection:
+            connection.execute(text("SELECT 1"))
+        return {"status": "healthy", "database": "connected"}
+    except Exception as e:
+        return {
+            "status": "unhealthy",
+            "database": "disconnected",
+            "error": str(e),
+        }
 
 # Global analyzers
 _tfidf_analyzer: FeedbackAnalyzer | None = None

@@ -10,9 +10,10 @@ from collections.abc import Iterable
 # extended with institution-specific vocabulary without retraining a model.
 TOPIC_KEYWORDS: dict[str, tuple[str, ...]] = {
     "teaching": (
-        "teacher", "teachers", "professor", "professors", "instructor", "instructors",
-        "lecture", "lectures", "explain", "explains", "explanation", "teaching",
-        "faculty", "pedagogy", "teach", "teaching style", "explanation quality",
+            "teacher", "teachers", "professor", "professors", "instructor", "instructors",
+        "lecture", "lectures", "explain", "explains", "explanation", "explanations",
+        "teaching", "faculty", "pedagogy", "teach", "teaching style",
+        "explanation quality",
     ),
     "assignments": (
         "assignment", "assignments", "homework", "homeworks", "project", "projects",
