@@ -754,11 +754,38 @@ python training/train_sentiment.py
 python training/train_emotion.py
 ```
 
-Evaluate:
+### Final NLP Model & Engine Workflow
+
+The reusable NLP layer is deliberately separate from any backend and provides 3 interchangeable model engines:
+
+1. **Local TF-IDF + LogisticRegression**:
+   - Sentiment: TF-IDF n-grams + tuned Logistic Regression trained on clean student feedback splits.
+   - Emotion: Six-class (`sadness`, `joy`, `love`, `anger`, `fear`, `surprise`) TF-IDF classifier.
+2. **HuggingFace BERT Transformer Engine**:
+   - Deep learning transformer pipelines for fine-grained sentiment and emotion detection.
+3. **External Cloud AI Model Engine (Google Gemini / OpenAI)**:
+   - Zero-shot / structured prompt extraction via cloud LLM APIs with automatic `.env` key resolution and offline fallback.
+4. **Aspect-Based Sentiment & Topic Detection**:
+   - Clause decomposition across contrast connectors (`but`, `however`, `although`, `whereas`, `yet`, `while`, `though`, `despite`) and whole-word keyword matching across 11 student feedback categories.
+
+Run the complete local NLP workflow from the command line:
 
 ```bash
-python evaluation/evaluate.py
+python training/preprocess_sentiment.py
+python training/train_sentiment.py
+python training/train_emotion.py --skip-tuning
+python training/analyze_feedback.py "The lectures are clear but the assignment deadline is too short."
 ```
+
+The emotion script uses a deterministic, stratified 60,000-row cap by default so it runs safely on a normal development machine; use `--max-rows 0` only when resources allow a full-data run. Generated `.joblib` files and metrics are stored under `ai/models/` and remain ignored by Git because they are reproducible artifacts.
+
+Run the fast NLP checks with:
+
+```bash
+python -m pytest tests -q
+```
+
+The sentiment dataset's held-out score is 1.0 macro F1, but it is a small, synthetic-looking dataset. Treat that number as an in-dataset check, not proof of real-world accuracy; validate on newly collected student feedback before deploying it.
 
 ---
 
@@ -870,12 +897,12 @@ The project should include:
 ## Phase 3 — AI
 
 - [ ] Collect datasets
-- [ ] Clean datasets
-- [ ] Preprocess text
-- [ ] Train sentiment model
-- [ ] Train emotion model
-- [ ] Implement topic extraction
-- [ ] Evaluate models
+- [x] Clean sentiment dataset
+- [x] Preprocess sentiment text
+- [x] Train sentiment baseline model
+- [x] Train emotion model
+- [x] Implement topic extraction
+- [x] Add reproducible model evaluation and tests
 
 ## Phase 4 — Backend
 

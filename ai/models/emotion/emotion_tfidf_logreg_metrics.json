@@ -1,0 +1,127 @@
+{
+  "model_name": "TF-IDF + LogisticRegression",
+  "labels": [
+    "anger",
+    "fear",
+    "joy",
+    "love",
+    "sadness",
+    "surprise"
+  ],
+  "train_rows": 47983,
+  "validation_rows": 6000,
+  "test_rows": 5999,
+  "best_cv_macro_f1": 0.8672279255458889,
+  "validation_macro_f1": 0.8507573868355903,
+  "test_macro_f1": 0.8684663357357532,
+  "best_params": {
+    "classifier__C": 2.0,
+    "tfidf__min_df": 2,
+    "tfidf__ngram_range": [
+      1,
+      2
+    ]
+  },
+  "validation_report": {
+    "anger": {
+      "precision": 0.8964285714285715,
+      "recall": 0.9127272727272727,
+      "f1-score": 0.9045045045045045,
+      "support": 825.0
+    },
+    "fear": {
+      "precision": 0.8396501457725948,
+      "recall": 0.8384279475982532,
+      "f1-score": 0.8390386016023307,
+      "support": 687.0
+    },
+    "joy": {
+      "precision": 0.9511802575107297,
+      "recall": 0.8733990147783252,
+      "f1-score": 0.9106317411402157,
+      "support": 2030.0
+    },
+    "love": {
+      "precision": 0.7021604938271605,
+      "recall": 0.9136546184738956,
+      "f1-score": 0.794066317626527,
+      "support": 498.0
+    },
+    "sadness": {
+      "precision": 0.9508393285371702,
+      "recall": 0.9088825214899714,
+      "f1-score": 0.9293876355112805,
+      "support": 1745.0
+    },
+    "surprise": {
+      "precision": 0.6292517006802721,
+      "recall": 0.8604651162790697,
+      "f1-score": 0.7269155206286837,
+      "support": 215.0
+    },
+    "accuracy": 0.888,
+    "macro avg": {
+      "precision": 0.8282517496260832,
+      "recall": 0.884592748557798,
+      "f1-score": 0.8507573868355903,
+      "support": 6000.0
+    },
+    "weighted avg": {
+      "precision": 0.8985781356984452,
+      "recall": 0.888,
+      "f1-score": 0.8907885761853361,
+      "support": 6000.0
+    }
+  },
+  "test_report": {
+    "anger": {
+      "precision": 0.8990384615384616,
+      "recall": 0.9066666666666666,
+      "f1-score": 0.9028364514182257,
+      "support": 825.0
+    },
+    "fear": {
+      "precision": 0.8502139800285307,
+      "recall": 0.8675400291120815,
+      "f1-score": 0.8587896253602305,
+      "support": 687.0
+    },
+    "joy": {
+      "precision": 0.9532808398950131,
+      "recall": 0.8945812807881773,
+      "f1-score": 0.9229987293519695,
+      "support": 2030.0
+    },
+    "love": {
+      "precision": 0.7436305732484076,
+      "recall": 0.9396378269617707,
+      "f1-score": 0.8302222222222222,
+      "support": 497.0
+    },
+    "sadness": {
+      "precision": 0.9668275030156815,
+      "recall": 0.919151376146789,
+      "f1-score": 0.9423868312757202,
+      "support": 1744.0
+    },
+    "surprise": {
+      "precision": 0.6727272727272727,
+      "recall": 0.8564814814814815,
+      "f1-score": 0.7535641547861507,
+      "support": 216.0
+    },
+    "accuracy": 0.9026504417402901,
+    "macro avg": {
+      "precision": 0.8476197717422279,
+      "recall": 0.8973431101928279,
+      "f1-score": 0.8684663357357532,
+      "support": 5999.0
+    },
+    "weighted avg": {
+      "precision": 0.9104858294896825,
+      "recall": 0.9026504417402901,
+      "f1-score": 0.9047222705867847,
+      "support": 5999.0
+    }
+  }
+}
