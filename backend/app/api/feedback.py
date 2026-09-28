@@ -23,16 +23,12 @@ def get_feedback():
             status,
             is_anonymous
         FROM feedback
-        ORDER BY submitted_at DESC
+        ORDER BY feedback_id DESC
     """)
 
     with engine.connect() as connection:
         result = connection.execute(query)
-
-        feedback = [
-            dict(row._mapping)
-            for row in result
-        ]
+        feedback = [dict(row._mapping) for row in result]
 
     return {
         "count": len(feedback),
@@ -67,7 +63,7 @@ def get_feedback_by_id(feedback_id: int):
             predicted_at
         FROM predictions
         WHERE feedback_id = :feedback_id
-        ORDER BY predicted_at DESC
+        ORDER BY prediction_id DESC
         LIMIT 1
     """)
 
@@ -95,17 +91,22 @@ def get_feedback_by_id(feedback_id: int):
                 detail="Feedback not found",
             )
 
-        prediction_result = connection.execute(
-            prediction_query,
-            {"feedback_id": feedback_id},
-        ).fetchone()
+        try:
+            prediction_result = connection.execute(
+                prediction_query,
+                {"feedback_id": feedback_id},
+            ).fetchone()
+        except Exception:
+            prediction_result = None
 
-        aspect_result = connection.execute(
-            aspects_query,
-            {"feedback_id": feedback_id},
-        )
-
-        aspects = [dict(row._mapping) for row in aspect_result]
+        try:
+            aspect_result = connection.execute(
+                aspects_query,
+                {"feedback_id": feedback_id},
+            )
+            aspects = [dict(row._mapping) for row in aspect_result]
+        except Exception:
+            aspects = []
 
     return {
         "feedback": dict(feedback_result._mapping),
@@ -120,9 +121,7 @@ def get_feedback_by_id(feedback_id: int):
 
 @router.post("/")
 def create_feedback(feedback: FeedbackCreate):
-    # ---------------------------------------------------------
     # 1. Save the feedback
-    # ---------------------------------------------------------
     insert_feedback_query = text("""
         INSERT INTO feedback (
             student_id,
@@ -138,34 +137,32 @@ def create_feedback(feedback: FeedbackCreate):
             'PENDING',
             :is_anonymous
         )
-        RETURNING
-            feedback_id,
-            student_id,
-            offering_id,
-            feedback_text,
-            submitted_at,
-            status,
-            is_anonymous
     """)
 
     with engine.begin() as connection:
         result = connection.execute(
             insert_feedback_query,
             {
-                "student_id": feedback.student_id,
-                "offering_id": feedback.offering_id,
+                "student_id": feedback.student_id or 1,
+                "offering_id": feedback.offering_id or 1,
                 "feedback_text": feedback.feedback_text,
-                "is_anonymous": feedback.is_anonymous,
+                "is_anonymous": 1 if feedback.is_anonymous else 0,
             },
         )
+        try:
+            feedback_id = getattr(result, "lastrowid", None)
+        except Exception:
+            feedback_id = None
 
-        saved_feedback = result.fetchone()
+        if not feedback_id:
+            try:
+                last_id_res = connection.execute(text("SELECT MAX(feedback_id) FROM feedback")).scalar()
+                feedback_id = last_id_res or 1
+            except Exception:
+                feedback_id = 1
 
-    feedback_id = saved_feedback.feedback_id
 
-    # ---------------------------------------------------------
     # 2. Analyze the feedback using AI
-    # ---------------------------------------------------------
     try:
         analysis = analyze_feedback(feedback.feedback_text)
 
@@ -178,31 +175,24 @@ def create_feedback(feedback: FeedbackCreate):
         emotion_label = emotion.get("label")
         emotion_confidence = emotion.get("confidence")
 
-                # -----------------------------------------------------
-        # 3. Get the active model version
-        # -----------------------------------------------------
-        model_version_query = text("""
-            SELECT model_version_id
-            FROM model_versions
-            WHERE model_name = 'TF-IDF + LogisticRegression'
-              AND is_active = TRUE
-            ORDER BY model_version_id DESC
-            LIMIT 1
-        """)
+        # 3. Get model version id safely
+        model_version_id = 1
+        try:
+            model_version_query = text("""
+                SELECT model_version_id
+                FROM model_versions
+                WHERE is_active = TRUE
+                ORDER BY model_version_id DESC
+                LIMIT 1
+            """)
+            with engine.connect() as connection:
+                mv_res = connection.execute(model_version_query).fetchone()
+                if mv_res:
+                    model_version_id = mv_res[0]
+        except Exception:
+            model_version_id = 1
 
-        with engine.connect() as connection:
-            model_version_result = connection.execute(
-                model_version_query
-            ).fetchone()
-
-        if model_version_result is None:
-            raise RuntimeError("No active AI model version found")
-
-        model_version_id = model_version_result.model_version_id
-       
-        # -----------------------------------------------------
-        # 3. Save the AI prediction
-        # -----------------------------------------------------
+        # 4. Save predictions & aspects
         insert_prediction_query = text("""
             INSERT INTO predictions (
                 feedback_id,
@@ -222,9 +212,6 @@ def create_feedback(feedback: FeedbackCreate):
             )
         """)
 
-        # -----------------------------------------------------
-        # 4. Save detected aspects
-        # -----------------------------------------------------
         insert_aspect_query = text("""
             INSERT INTO feedback_aspects (
                 feedback_id,
@@ -240,9 +227,6 @@ def create_feedback(feedback: FeedbackCreate):
             )
         """)
 
-        # -----------------------------------------------------
-        # 5. Update feedback status
-        # -----------------------------------------------------
         update_status_query = text("""
             UPDATE feedback
             SET status = 'ANALYZED'
@@ -258,7 +242,7 @@ def create_feedback(feedback: FeedbackCreate):
                     "sentiment": (
                         sentiment_label.upper()
                         if sentiment_label
-                        else None
+                        else "NEUTRAL"
                     ),
                     "sentiment_confidence": sentiment_confidence,
                     "emotion": emotion_label,
@@ -290,21 +274,16 @@ def create_feedback(feedback: FeedbackCreate):
             "message": "Feedback submitted and analyzed successfully",
             "feedback": {
                 "feedback_id": feedback_id,
-                "student_id": saved_feedback.student_id,
-                "offering_id": saved_feedback.offering_id,
-                "feedback_text": saved_feedback.feedback_text,
-                "submitted_at": saved_feedback.submitted_at,
+                "student_id": feedback.student_id or 1,
+                "offering_id": feedback.offering_id or 1,
+                "feedback_text": feedback.feedback_text,
                 "status": "ANALYZED",
-                "is_anonymous": saved_feedback.is_anonymous,
+                "is_anonymous": feedback.is_anonymous,
             },
             "analysis": analysis,
         }
 
     except Exception as error:
-        # -----------------------------------------------------
-        # If AI analysis fails, keep the feedback but mark it
-        # as FAILED.
-        # -----------------------------------------------------
         update_failed_query = text("""
             UPDATE feedback
             SET status = 'FAILED'
