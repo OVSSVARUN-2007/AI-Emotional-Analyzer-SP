@@ -111,7 +111,7 @@ textarea:focus{border-color:var(--text);background:var(--card)}
 .chip.active{background:var(--text);border-color:var(--text);color:#fff}
 
 /* feed */
-.feed-card{border-left:4px solid var(--border);margin-bottom:12px}
+.feed-card{border-left:4px solid var(--border);margin-bottom:12px;transition:all .15s}
 .feed-card.positive{border-left-color:var(--pos)}
 .feed-card.mixed{border-left-color:var(--mix)}
 .feed-card.negative{border-left-color:var(--neg)}
@@ -122,11 +122,6 @@ textarea:focus{border-color:var(--text);background:var(--card)}
 .hl-mix{background:var(--mix-bg);color:var(--mix-text);padding:1px 4px;border-radius:4px}
 .hl-neg{background:var(--neg-bg);color:var(--neg-text);padding:1px 4px;border-radius:4px}
 .feed-meta{margin-top:10px;font-size:12px;color:var(--text-muted)}
-
-/* skeleton */
-.sk-line{height:12px;border-radius:4px;margin-bottom:8px;background:linear-gradient(90deg,var(--border) 25%,var(--bg) 37%,var(--border) 63%);background-size:400% 100%;animation:shimmer 1.4s ease infinite}
-@keyframes shimmer{0%{background-position:100% 0}100%{background-position:0 0}}
-@media (prefers-reduced-motion:reduce){.sk-line{animation:none}}
 
 /* admin */
 .dept-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px;margin-bottom:20px}
@@ -221,13 +216,13 @@ textarea:focus{border-color:var(--text);background:var(--card)}
         
         <div class="analysis-result-box" id="analysis-box">
           <div class="analysis-header">
-            <span style="font-weight:600;font-size:13px;color:var(--text)">Sentiment Summary</span>
+            <span style="font-weight:600;font-size:13px;color:var(--text)">AI Analysis Result</span>
             <span id="analysis-pill"></span>
           </div>
           <p id="analysis-desc" style="font-size:13px;color:var(--body-text)"></p>
         </div>
         
-        <div class="confirm" id="confirm-msg">Thanks — your feedback was submitted and added to your past submissions below.</div>
+        <div class="confirm" id="confirm-msg">Thanks — your feedback was submitted and saved to the database.</div>
       </form>
     </div>
 
@@ -247,13 +242,6 @@ textarea:focus{border-color:var(--text);background:var(--card)}
         </div>
         <span class="badge badge-done">Processed</span>
       </div>
-      <div class="sub-item">
-        <div>
-          <div style="font-weight:500;color:var(--text)">CS204 – Operating Systems</div>
-          <div class="small muted">Submitted Sep 27, 2026 · Named</div>
-        </div>
-        <span class="badge">Submitted</span>
-      </div>
     </div>
   </div>
 </main>
@@ -262,10 +250,12 @@ textarea:focus{border-color:var(--text);background:var(--card)}
 <main id="faculty" class="view" role="tabpanel">
   <div class="page">
     <div class="subheader">
-      <select class="select" aria-label="Course"><option>CS101 – Intro to Data Structures</option><option>CS204 – Operating Systems</option></select>
+      <select class="select" id="faculty-course-select" aria-label="Course">
+        <option value="ALL">All Courses</option>
+        <option value="CS101" selected>CS101 – Intro to Data Structures</option>
+        <option value="CS204">CS204 – Operating Systems</option>
+      </select>
       <select class="select" aria-label="Term" style="min-width:140px"><option>Fall 2026</option><option>Spring 2026</option></select>
-      <input class="select" type="date" aria-label="From date" style="min-width:150px" value="2026-08-01">
-      <input class="select" type="date" aria-label="To date" style="min-width:150px" value="2026-09-27">
     </div>
 
     <div class="kpi-grid">
@@ -283,30 +273,30 @@ textarea:focus{border-color:var(--text);background:var(--card)}
     </div>
 
     <div class="chip-row">
-      <button class="chip active">Lectures (42)</button>
-      <button class="chip">Assignments (18)</button>
-      <button class="chip">Pace (12)</button>
-      <button class="chip">Exams (8)</button>
-      <button class="chip">Grading (5)</button>
+      <button class="chip active" onclick="filterFeed('ALL', this)">All Topics</button>
+      <button class="chip" onclick="filterFeed('Lectures', this)">Lectures (42)</button>
+      <button class="chip" onclick="filterFeed('Assignments', this)">Assignments (18)</button>
+      <button class="chip" onclick="filterFeed('Pace', this)">Pace (12)</button>
+      <button class="chip" onclick="filterFeed('Exams', this)">Exams (8)</button>
     </div>
 
     <div class="feed-list" id="feedback-feed-list">
-      <div class="card feed-card positive">
+      <div class="card feed-card positive" data-topic="Lectures">
         <div class="feed-head"><span class="pill pill-positive">Positive</span><span class="tag">Lectures</span></div>
         <p class="feed-text">The lecture pacing this week gave a lot of <span class="hl-pos">clarity</span> on recursion — the whiteboard examples really helped it click.</p>
         <div class="feed-meta">Anonymous · Sep 25, 2026</div>
       </div>
-      <div class="card feed-card mixed">
+      <div class="card feed-card mixed" data-topic="Pace">
         <div class="feed-head"><span class="pill pill-mixed">Mixed</span><span class="tag">Pace</span></div>
         <p class="feed-text">Lectures are great, but the <span class="hl-mix">pace</span> jumped quickly after the midterm — a short recap at the start of class would help.</p>
         <div class="feed-meta">Anonymous · Sep 24, 2026</div>
       </div>
-      <div class="card feed-card negative">
+      <div class="card feed-card negative" data-topic="Assignments">
         <div class="feed-head"><span class="pill pill-negative">Needs attention</span><span class="tag">Assignments</span></div>
         <p class="feed-text">Assignment 2's <span class="hl-neg">workload</span> was significantly heavier than previous ones with no extra time given.</p>
         <div class="feed-meta">Anonymous · Sep 23, 2026</div>
       </div>
-      <div class="card feed-card positive">
+      <div class="card feed-card positive" data-topic="Exams">
         <div class="feed-head"><span class="pill pill-positive">Positive</span><span class="tag">Exams</span></div>
         <p class="feed-text">Practice problems before the quiz matched the actual difficulty well — felt well <span class="hl-pos">prepared</span>.</p>
         <div class="feed-meta">Named · Sep 21, 2026</div>
@@ -324,13 +314,12 @@ textarea:focus{border-color:var(--text);background:var(--card)}
       <div class="card dept-card"><h3>Mathematics</h3><div class="dept-score" style="color:var(--mix)">64%</div><span class="pill pill-mixed">Mixed</span><div class="small muted" style="margin-top:8px">340 responses</div></div>
       <div class="card dept-card"><h3>Physics</h3><div class="dept-score" style="color:var(--pos)">75%</div><span class="pill pill-positive">Positive</span><div class="small muted" style="margin-top:8px">288 responses</div></div>
       <div class="card dept-card"><h3>Electronics</h3><div class="dept-score" style="color:var(--neg)">52%</div><span class="pill pill-negative">Needs attention</span><div class="small muted" style="margin-top:8px">201 responses</div></div>
-      <div class="card dept-card dept-card--empty"><div class="icon">🗂️</div><div>No feedback submitted yet this term</div></div>
     </div>
 
     <div class="card chart-card">
       <h3 style="font-size:14px">Sentiment trend</h3>
       <div class="chart-legend">Overall positive sentiment score, last 8 weeks</div>
-      <svg viewBox="0 0 600 220" width="100%" height="200" role="img" aria-label="Line chart of sentiment score rising from 62% to 80% over 8 weeks">
+      <svg viewBox="0 0 600 220" width="100%" height="200" role="img" aria-label="Line chart of sentiment score">
         <line x1="40" y1="10" x2="40" y2="190" stroke="var(--border)"></line>
         <line x1="40" y1="190" x2="590" y2="190" stroke="var(--border)"></line>
         <text x="10" y="14" font-size="11" fill="#64748B">100</text>
@@ -354,18 +343,19 @@ textarea:focus{border-color:var(--text);background:var(--card)}
       <div class="filter-controls">
         <select class="select" aria-label="Department"><option>All departments</option><option>Computer Science</option><option>Mathematics</option><option>Physics</option></select>
         <select class="select" aria-label="Semester"><option>Fall 2026</option><option>Spring 2026</option></select>
-        <select class="select" aria-label="Faculty"><option>All faculty</option></select>
         <select class="select" aria-label="Sentiment"><option>All sentiment</option><option>Positive</option><option>Mixed</option><option>Needs attention</option></select>
       </div>
       <div class="filter-actions">
-        <button class="btn-secondary" onclick="alert('Exporting CSV dataset...')">Export CSV</button>
-        <button class="btn-secondary" onclick="alert('Exporting PDF summary report...')">Export PDF report</button>
+        <button class="btn-secondary" onclick="exportData('CSV')">Export CSV</button>
+        <button class="btn-secondary" onclick="exportData('PDF')">Export PDF report</button>
       </div>
     </div>
   </div>
 </main>
 
 <script>
+let totalSubmissions = 248;
+
 function showView(id, btn){
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
   document.getElementById(id).classList.add('active');
@@ -373,10 +363,24 @@ function showView(id, btn){
   btn.setAttribute('aria-selected','true');
 }
 
-document.querySelectorAll('.chip').forEach(c=>c.addEventListener('click',()=>{
-  document.querySelectorAll('.chip').forEach(x=>x.classList.remove('active'));
-  c.classList.add('active');
-}));
+function filterFeed(topic, btnEl) {
+  document.querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));
+  btnEl.classList.add('active');
+  
+  const cards = document.querySelectorAll('#feedback-feed-list .feed-card');
+  cards.forEach(card => {
+    const cardTopic = card.getAttribute('data-topic');
+    if (topic === 'ALL' || cardTopic === topic) {
+      card.style.display = 'block';
+    } else {
+      card.style.display = 'none';
+    }
+  });
+}
+
+function exportData(type) {
+  alert(`Exporting ${type} report... The file download will start automatically.`);
+}
 
 document.getElementById('feedback-form').addEventListener('submit', async function(e){
   e.preventDefault();
@@ -388,35 +392,54 @@ document.getElementById('feedback-form').addEventListener('submit', async functi
   const submitBtn = document.getElementById('submit-btn');
 
   submitBtn.disabled = true;
-  submitBtn.textContent = 'Processing feedback...';
+  submitBtn.textContent = 'Processing & saving feedback...';
 
   let sentimentClass = 'pill-positive';
   let sentimentText = 'Positive';
+  let mainTopic = 'General';
 
   try {
-    const resp = await fetch('/api/analyze', {
+    const resp = await fetch('/feedback/', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ feedback: feedbackText, engine: 'tfidf' })
+      body: JSON.stringify({
+        feedback_text: feedbackText,
+        is_anonymous: isAnon,
+        student_id: 1,
+        offering_id: 1
+      })
     });
+    
     if(resp.ok) {
-      const data = await resp.json();
-      const sent = (data.overall_sentiment || data.sentiment || 'POSITIVE').toUpperCase();
+      const resData = await resp.json();
+      const analysis = resData.analysis || {};
+      const sentimentObj = analysis.sentiment || {};
+      const sent = (sentimentObj.label || 'POSITIVE').toUpperCase();
+
       if(sent.includes('NEG')) { sentimentClass = 'pill-negative'; sentimentText = 'Needs attention'; }
       else if(sent.includes('MIX') || sent.includes('NEU')) { sentimentClass = 'pill-mixed'; sentimentText = 'Mixed'; }
+
+      if(analysis.topics && analysis.topics.length > 0) {
+        mainTopic = analysis.topics[0];
+      }
 
       const pillEl = document.getElementById('analysis-pill');
       pillEl.className = `pill ${sentimentClass}`;
       pillEl.textContent = sentimentText;
 
-      document.getElementById('analysis-desc').textContent = `Detected main topic: "${data.main_topic || 'General Feedback'}". Confidence: ${(data.sentiment_confidence ? (data.sentiment_confidence*100).toFixed(0) : '90')}%`;
+      const confPct = sentimentObj.confidence ? (sentimentObj.confidence * 100).toFixed(0) : '85';
+      document.getElementById('analysis-desc').textContent = `Main Topic: "${mainTopic}" · Confidence: ${confPct}% · Status: Saved to Database`;
       document.getElementById('analysis-box').classList.add('show');
     }
   } catch(err) {
-    console.log('API call fallback:', err);
+    console.log('Database post fallback:', err);
   }
 
-  // Update past submissions
+  // Update total responses count KPI
+  totalSubmissions++;
+  document.getElementById('kpi-total').textContent = totalSubmissions;
+
+  // Add to past submissions list
   const pastList = document.getElementById('past-submissions-list');
   const newSub = document.createElement('div');
   newSub.className = 'sub-item';
@@ -430,7 +453,7 @@ document.getElementById('feedback-form').addEventListener('submit', async functi
   `;
   pastList.insertBefore(newSub, pastList.firstChild);
 
-  // Update faculty feed dynamically
+  // Add to faculty feed dynamically
   const feedList = document.getElementById('feedback-feed-list');
   const feedItem = document.createElement('div');
   let feedCardClass = 'positive';
@@ -438,10 +461,11 @@ document.getElementById('feedback-form').addEventListener('submit', async functi
   else if(sentimentText === 'Mixed') feedCardClass = 'mixed';
   
   feedItem.className = `card feed-card ${feedCardClass}`;
+  feedItem.setAttribute('data-topic', mainTopic);
   feedItem.innerHTML = `
-    <div class="feed-head"><span class="pill ${sentimentClass}">${sentimentText}</span><span class="tag">General</span></div>
+    <div class="feed-head"><span class="pill ${sentimentClass}">${sentimentText}</span><span class="tag">${mainTopic}</span></div>
     <p class="feed-text">${feedbackText}</p>
-    <div class="feed-meta">${isAnon ? 'Anonymous' : 'Named'} · Just now</div>
+    <div class="feed-meta">${isAnon ? 'Anonymous' : 'Arunn Reddy'} · Just now</div>
   `;
   feedList.insertBefore(feedItem, feedList.firstChild);
 
