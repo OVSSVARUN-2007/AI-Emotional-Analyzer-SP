@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Academic Feedback & Sentiment Portal</title>
+<title>Academic Feedback Portal — Student Emotional Analyzer</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -13,12 +13,13 @@
   --pos:#059669;--pos-bg:#ECFDF5;--pos-text:#065F46;
   --mix:#D97706;--mix-bg:#FFFBEB;--mix-text:#92400E;
   --neg:#E11D48;--neg-bg:#FFF1F2;--neg-text:#9F1239;
+  --primary:#4F46E5;--primary-bg:#EEF2FF;
   --radius:12px;
 }
 @media (prefers-color-scheme:dark){
-  :root:not([data-theme="light"]){--bg:#0F172A;--card:#1E293B;--text:#F1F5F9;--text-muted:#94A3B8;--border:#334155;--body-text:#CBD5E1;}
+  :root:not([data-theme="light"]){--bg:#0F172A;--card:#1E293B;--text:#F1F5F9;--text-muted:#94A3B8;--border:#334155;--body-text:#CBD5E1;--primary-bg:#1E1B4B;}
 }
-:root[data-theme="dark"]{--bg:#0F172A;--card:#1E293B;--text:#F1F5F9;--text-muted:#94A3B8;--border:#334155;--body-text:#CBD5E1;}
+:root[data-theme="dark"]{--bg:#0F172A;--card:#1E293B;--text:#F1F5F9;--text-muted:#94A3B8;--border:#334155;--body-text:#CBD5E1;--primary-bg:#1E1B4B;}
 *{box-sizing:border-box}
 html,body{height:100%}
 body{margin:0;background:var(--bg);color:var(--body-text);font-family:'Inter',system-ui,-apple-system,'Segoe UI',sans-serif;
@@ -42,7 +43,7 @@ a{color:inherit}
 .page{max-width:1120px;margin:0 auto;padding:28px 24px 64px}
 .view{display:none}
 .view.active{display:block}
-.subheader{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:24px}
+.subheader{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:20px}
 .avatar{width:38px;height:38px;border-radius:999px;background:var(--text);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:13px}
 .select{padding:9px 12px;border:1px solid var(--border);border-radius:8px;background:var(--card);color:var(--text);min-width:180px}
 .muted{color:var(--text-muted)}
@@ -52,13 +53,13 @@ a{color:inherit}
 .card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px}
 
 /* form */
-.form-card{max-width:620px;margin:0 auto}
+.form-card{max-width:640px;margin:0 auto}
 .field{margin-bottom:18px}
 .field label{display:block;font-weight:500;color:var(--text);margin-bottom:7px;font-size:14px}
-textarea{width:100%;min-height:130px;padding:12px 14px;border:1px solid var(--border);border-radius:8px;background:var(--bg);resize:vertical;line-height:1.5}
+textarea{width:100%;min-height:120px;padding:12px 14px;border:1px solid var(--border);border-radius:8px;background:var(--bg);resize:vertical;line-height:1.5}
 textarea:focus{border-color:var(--text);background:var(--card)}
 .charcount{display:block;text-align:right;color:var(--text-muted);font-size:12px;margin-top:6px}
-.switch-row{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:var(--bg);border:1px solid var(--border);border-radius:8px;margin-bottom:18px}
+.switch-row{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:var(--bg);border:1px solid var(--border);border-radius:8px;margin-bottom:18px}
 .switch-label{display:flex;align-items:center;gap:7px;font-weight:500}
 .switch{position:relative;width:40px;height:22px;flex:none}
 .switch input{opacity:0;width:100%;height:100%;margin:0;position:absolute;cursor:pointer}
@@ -73,8 +74,8 @@ textarea:focus{border-color:var(--text);background:var(--card)}
 .confirm{display:none;margin-top:12px;color:var(--pos-text);background:var(--pos-bg);padding:10px 14px;border-radius:8px;font-size:14px}
 .confirm.show{display:block}
 
-/* pills */
-.pill{display:inline-flex;align-items:center;gap:6px;padding:4px 11px;border-radius:999px;font-size:13px;font-weight:600}
+/* pills and tags */
+.pill{display:inline-flex;align-items:center;gap:6px;padding:4px 11px;border-radius:999px;font-size:12px;font-weight:600}
 .pill::before{content:"";width:7px;height:7px;border-radius:999px}
 .pill-positive{background:var(--pos-bg);color:var(--pos-text)}
 .pill-positive::before{background:var(--pos)}
@@ -84,6 +85,21 @@ textarea:focus{border-color:var(--text);background:var(--card)}
 .pill-negative::before{background:var(--neg)}
 .badge{display:inline-block;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:600;background:#F1F5F9;color:#475569}
 .badge-done{background:var(--pos-bg);color:var(--pos-text)}
+.class-badge{background:var(--primary-bg);color:var(--primary);border:1px solid rgba(79,70,229,0.25)}
+.sem-badge{background:#F8FAFC;border:1px solid var(--border);color:var(--text-muted)}
+
+/* banners */
+.allotted-banner{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  padding:10px 14px;background:var(--pos-bg);border:1px solid #A7F3D0;
+  border-radius:8px;margin-bottom:16px;font-size:13px;color:var(--pos-text);flex-wrap:wrap;
+}
+.faculty-class-panel{
+  display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px;
+  padding:14px 18px;background:var(--card);border:1px solid var(--border);
+  border-radius:var(--radius);margin-bottom:18px;
+}
+.faculty-control-group{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 
 /* submissions */
 .sub-item{display:flex;justify-content:space-between;align-items:center;padding:14px 4px;border-bottom:1px solid var(--border)}
@@ -99,14 +115,14 @@ textarea:focus{border-color:var(--text);background:var(--card)}
 /* breakdown */
 .breakdown-row{display:flex;align-items:center;gap:12px;margin-bottom:12px}
 .breakdown-row:last-child{margin-bottom:0}
-.breakdown-label{width:96px;flex:none;font-size:13px;color:var(--text)}
+.breakdown-label{width:105px;flex:none;font-size:13px;color:var(--text)}
 .progress-track{flex:1;height:8px;border-radius:4px;background:var(--bg);border:1px solid var(--border);overflow:hidden}
 .progress-fill{height:100%;border-radius:4px}
 .breakdown-pct{width:38px;text-align:right;font-size:13px;color:var(--text-muted)}
 
 /* chips */
-.chip-row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px}
-.chip{background:var(--card);border:1px solid var(--border);padding:7px 14px;border-radius:999px;font-size:13px;font-weight:500;cursor:pointer;color:var(--text)}
+.chip-row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
+.chip{background:var(--card);border:1px solid var(--border);padding:6px 13px;border-radius:999px;font-size:12.5px;font-weight:500;cursor:pointer;color:var(--text);transition:all .15s}
 .chip:hover{background:var(--bg)}
 .chip.active{background:var(--text);border-color:var(--text);color:#fff}
 
@@ -116,19 +132,15 @@ textarea:focus{border-color:var(--text);background:var(--card)}
 .feed-card.mixed{border-left-color:var(--mix)}
 .feed-card.negative{border-left-color:var(--neg)}
 .feed-head{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:10px}
+.feed-head .tags-cluster{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
 .feed-head .tag{font-size:12px;color:var(--text-muted);border:1px solid var(--border);padding:3px 9px;border-radius:999px}
 .feed-text{line-height:1.6}
-.hl-pos{background:var(--pos-bg);color:var(--pos-text);padding:1px 4px;border-radius:4px}
-.hl-mix{background:var(--mix-bg);color:var(--mix-text);padding:1px 4px;border-radius:4px}
-.hl-neg{background:var(--neg-bg);color:var(--neg-text);padding:1px 4px;border-radius:4px}
-.feed-meta{margin-top:10px;font-size:12px;color:var(--text-muted)}
+.feed-meta{margin-top:10px;font-size:12px;color:var(--text-muted);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 
 /* admin */
 .dept-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px;margin-bottom:20px}
 .dept-card h3{font-size:15px;margin-bottom:10px}
 .dept-score{font-size:22px;font-weight:700;margin-bottom:4px}
-.dept-card--empty{border-style:dashed;text-align:center;color:var(--text-muted);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;min-height:120px}
-.dept-card--empty .icon{font-size:20px}
 .chart-card{margin-bottom:20px}
 .chart-legend{font-size:13px;color:var(--text-muted);margin-bottom:10px}
 .filter-bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
@@ -154,65 +166,264 @@ textarea:focus{border-color:var(--text);background:var(--card)}
   .app-nav{padding:12px 16px}
   .page{padding:20px 16px 48px}
   .kpi-grid{grid-template-columns:1fr}
-  .filter-bar{flex-direction:column;align-items:stretch}
-  .filter-actions{justify-content:flex-end}
+  .faculty-class-panel{flex-direction:column;align-items:stretch}
 }
+
+/* AI Assistant Drawer & FAB */
+.ai-fab {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 999;
+  background: var(--text);
+  color: var(--card);
+  border: 1px solid var(--border);
+  padding: 10px 18px;
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 4px 18px rgba(15,23,42,0.18);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.ai-fab:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(15,23,42,0.25); }
+.ai-fab-dot {
+  width: 8px; height: 8px; border-radius: 999px; background: var(--pos); box-shadow: 0 0 6px var(--pos);
+}
+.ai-drawer-overlay {
+  position: fixed; inset: 0; background: rgba(15,23,42,0.35); backdrop-filter: blur(2px);
+  z-index: 1000; opacity: 0; pointer-events: none; transition: opacity 0.25s ease;
+}
+.ai-drawer-overlay.active { opacity: 1; pointer-events: auto; }
+.ai-drawer {
+  position: fixed; top: 0; right: 0; width: 420px; max-width: 92vw; height: 100%;
+  background: var(--card); border-left: 1px solid var(--border); z-index: 1001;
+  display: flex; flex-direction: column; transform: translateX(100%);
+  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1); box-shadow: -8px 0 32px rgba(15,23,42,0.16);
+}
+.ai-drawer.active { transform: translateX(0); }
+.ai-drawer-header {
+  padding: 16px 20px; border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between; background: var(--card);
+}
+.ai-drawer-close {
+  background: transparent; border: 1px solid var(--border); color: var(--text-muted);
+  width: 30px; height: 30px; border-radius: 8px; display: flex; align-items: center; justify-content: center;
+  font-size: 14px; cursor: pointer;
+}
+.ai-quick-chips {
+  padding: 10px 16px; border-bottom: 1px solid var(--border); display: flex; gap: 6px; overflow-x: auto; background: var(--bg);
+}
+.ai-quick-chips::-webkit-scrollbar { display: none; }
+.ai-chat-body {
+  flex: 1; padding: 18px 16px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px;
+}
+.ai-msg { max-width: 88%; font-size: 13px; line-height: 1.55; padding: 11px 14px; border-radius: 12px; }
+.ai-msg.bot { align-self: flex-start; background: var(--bg); color: var(--body-text); border: 1px solid var(--border); border-bottom-left-radius: 3px; }
+.ai-msg.user { align-self: flex-end; background: var(--text); color: var(--card); border-bottom-right-radius: 3px; }
+.ai-suggestion-box { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 11px; margin-top: 8px; font-size: 12.5px; }
+.btn-apply-suggestion {
+  margin-top: 10px; background: var(--text); color: var(--card); border: none; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer;
+}
+.ai-chat-footer {
+  padding: 14px 16px; border-top: 1px solid var(--border); background: var(--card); display: flex; gap: 8px; align-items: center;
+}
+
+/* login screen */
+.login-view-wrap { display: flex; align-items: center; justify-content: center; min-height: calc(100vh - 40px); padding: 32px 16px; }
+.login-card-box { max-width: 480px; width: 100%; margin: 0 auto; box-shadow: 0 10px 30px rgba(15,23,42,0.06); }
+.login-header { text-align: center; margin-bottom: 22px; }
+.login-brand-badge { display: inline-flex; align-items: center; gap: 10px; font-weight: 700; font-size: 18px; color: var(--text); margin-bottom: 8px; }
+.login-role-selector { display: flex; gap: 6px; background: var(--bg); border: 1px solid var(--border); padding: 4px; border-radius: 10px; margin-bottom: 18px; }
+.login-role-btn {
+  flex: 1; border: none; background: transparent; padding: 8px 4px; border-radius: 7px; font-size: 13px; font-weight: 600; color: var(--text-muted); cursor: pointer; transition: all 0.15s ease; text-align: center;
+}
+.login-role-btn.active { background: var(--card); color: var(--text); box-shadow: 0 1px 3px rgba(15,23,42,0.08); }
+.login-divider { position: relative; text-align: center; margin: 20px 0 14px; }
+.login-divider::before { content: ""; position: absolute; top: 50%; left: 0; right: 0; height: 1px; background: var(--border); }
+.login-divider span { position: relative; background: var(--card); padding: 0 12px; font-size: 12px; color: var(--text-muted); }
+.quick-login-grid { display: flex; flex-direction: column; gap: 8px; }
+.quick-login-btn {
+  display: flex; align-items: center; gap: 12px; padding: 10px 14px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; cursor: pointer; text-align: left; transition: all 0.15s ease;
+}
+.quick-login-btn:hover { background: var(--card); border-color: var(--text); transform: translateY(-1px); }
+.quick-login-icon { font-size: 20px; width: 34px; height: 34px; border-radius: 8px; background: var(--card); display: flex; align-items: center; justify-content: center; border: 1px solid var(--border); }
+.user-badge-nav { display: flex; align-items: center; gap: 8px; padding: 5px 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; font-size: 13px; }
+.btn-signout { background: transparent; border: 1px solid var(--border); color: var(--neg-text); padding: 6px 12px; border-radius: 8px; font-size: 13px; font-weight: 500; cursor: pointer; }
+.btn-signout:hover { background: var(--neg-bg); }
+.login-alert { display: none; background: var(--neg-bg); color: var(--neg-text); border: 1px solid #FECACA; padding: 10px 14px; border-radius: 8px; font-size: 13px; margin-top: 14px; }
 </style>
 </head>
 <body>
 
-<nav class="app-nav">
-  <div class="brand"><span class="brand-mark">AF</span> Academic Feedback Portal</div>
-  <div class="role-tabs" role="tablist" aria-label="Switch view">
-    <button class="tab" role="tab" aria-selected="true" data-view="student" onclick="showView('student',this)">Student</button>
-    <button class="tab" role="tab" aria-selected="false" data-view="faculty" onclick="showView('faculty',this)">Faculty</button>
-    <button class="tab" role="tab" aria-selected="false" data-view="admin" onclick="showView('admin',this)">Admin</button>
+<!-- 1. AUTHENTICATION & LOGIN PAGE -->
+<div id="login-view" class="login-view-wrap">
+  <div class="card login-card-box">
+    <div class="login-header">
+      <div class="login-brand-badge">
+        <span class="brand-mark" style="width:34px;height:34px;font-size:15px">AF</span>
+        <span>Student Emotional Analyzer</span>
+      </div>
+      <p class="muted small">Academic Portal & Sentiment Insights · Powered by External AI Model and Local NLP</p>
+    </div>
+
+    <!-- Role Quick Selector Pills -->
+    <div class="login-role-selector">
+      <button type="button" class="login-role-btn active" id="pill-role-student" onclick="selectLoginRole('STUDENT', 'student@univ.edu', this)">👨‍🎓 Student</button>
+      <button type="button" class="login-role-btn" id="pill-role-faculty" onclick="selectLoginRole('FACULTY', 'faculty@univ.edu', this)">👨‍🏫 Faculty</button>
+      <button type="button" class="login-role-btn" id="pill-role-admin" onclick="selectLoginRole('ADMIN', 'admin@univ.edu', this)">📊 Admin</button>
+    </div>
+
+    <!-- Login Form -->
+    <form id="login-form" onsubmit="handleLoginSubmit(event)">
+      <div class="field">
+        <label for="login-email">Institutional Email</label>
+        <input type="email" id="login-email" class="select" style="width:100%" placeholder="e.g. student@univ.edu" value="student@univ.edu" required autocomplete="username" oninput="handleEmailInput(this.value)">
+      </div>
+      <div class="field">
+        <label for="login-password">Password</label>
+        <input type="password" id="login-password" class="select" style="width:100%" placeholder="••••••••" value="pass123" required autocomplete="current-password">
+      </div>
+      <button type="submit" class="btn-primary" style="width:100%;padding:11px;font-size:14px;margin-top:4px" id="login-submit-btn">
+        Sign in to Dashboard →
+      </button>
+    </form>
+
+    <div class="login-divider"><span>or choose a sample profile</span></div>
+
+    <!-- Quick Demo Accounts -->
+    <div class="quick-login-grid">
+      <button type="button" class="quick-login-btn" onclick="quickLogin('student@univ.edu')">
+        <div class="quick-login-icon">👨‍🎓</div>
+        <div>
+          <div style="font-weight:600;color:var(--text);font-size:13px">Arunn Reddy · Student (Sem 5 · Class 3A)</div>
+          <div class="small muted">student@univ.edu · Accesses only Semester 5 allotted subjects</div>
+        </div>
+      </button>
+
+      <button type="button" class="quick-login-btn" onclick="quickLogin('priya@univ.edu')">
+        <div class="quick-login-icon">👩‍🎓</div>
+        <div>
+          <div style="font-weight:600;color:var(--text);font-size:13px">Priya Patel · Student (Sem 3 · Class 2A)</div>
+          <div class="small muted">priya@univ.edu · Accesses only Semester 3 allotted subjects</div>
+        </div>
+      </button>
+
+      <button type="button" class="quick-login-btn" onclick="quickLogin('faculty@univ.edu')">
+        <div class="quick-login-icon">👨‍🏫</div>
+        <div>
+          <div style="font-weight:600;color:var(--text);font-size:13px">Dr. A. Sharma · Faculty Dashboard</div>
+          <div class="small muted">faculty@univ.edu · Class-Wise Feedback (Class 3A, 3B, 2A)</div>
+        </div>
+      </button>
+
+      <button type="button" class="quick-login-btn" onclick="quickLogin('admin@univ.edu')">
+        <div class="quick-login-icon">📊</div>
+        <div>
+          <div style="font-weight:600;color:var(--text);font-size:13px">Dean Academics · Institutional Analytics</div>
+          <div class="small muted">admin@univ.edu · Cross-Department Trends</div>
+        </div>
+      </button>
+    </div>
+
+    <div id="login-alert-box" class="login-alert"></div>
+  </div>
+</div>
+
+<!-- 2. MAIN APPLICATION NAVIGATION (Shown upon login) -->
+<nav class="app-nav" id="app-nav" style="display:none">
+  <div class="brand">
+    <span class="brand-mark">AF</span>
+    <span>Academic Feedback Portal · Student Emotional Analyzer</span>
+  </div>
+  <div class="role-tabs" id="role-nav-tabs" role="tablist" aria-label="Switch view">
+    <button class="tab" role="tab" id="nav-tab-student" data-view="student" onclick="showView('student',this)">Student</button>
+    <button class="tab" role="tab" id="nav-tab-faculty" data-view="faculty" onclick="showView('faculty',this)">Faculty (Class-Wise)</button>
+    <button class="tab" role="tab" id="nav-tab-admin" data-view="admin" onclick="showView('admin',this)">Admin</button>
+  </div>
+  <div style="display:flex;align-items:center;gap:10px">
+    <div class="user-badge-nav" id="user-badge-nav">
+      <span id="nav-avatar-icon" class="avatar" style="width:26px;height:26px;font-size:11px">AR</span>
+      <div>
+        <span id="nav-user-name" style="font-weight:600;color:var(--text);font-size:13px">Arunn Reddy</span>
+        <span id="nav-user-role-badge" class="badge" style="font-size:10px;margin-left:4px">STUDENT</span>
+      </div>
+    </div>
+    <button class="btn-secondary" style="display:inline-flex;align-items:center;gap:6px;font-size:13px;padding:7px 12px" onclick="toggleAiDrawer(true)" title="Open AI Feedback Assistant">
+      <span>✨</span> AI Assistant
+    </button>
+    <button class="btn-signout" onclick="handleLogout()" title="Sign out of current account">
+      Sign Out ↪
+    </button>
   </div>
 </nav>
 
-<!-- STUDENT VIEW -->
+<!-- STUDENT VIEW: ALLOTTED SUBJECTS BY SEMESTER ONLY -->
 <main id="student" class="view active" role="tabpanel">
   <div class="page">
     <div class="subheader">
-      <div class="avatar">AR</div>
+      <div class="avatar" id="student-avatar-badge">AR</div>
       <div>
-        <div style="font-weight:600;color:var(--text)">Arunn Reddy</div>
-        <div class="small muted">B.Tech, 3rd Year</div>
+        <div style="font-weight:600;color:var(--text);font-size:16px" id="student-name-display">Arunn Reddy</div>
+        <div class="small muted" id="student-meta-display">B.Tech AI & Data Science · Class 3A · Allotted Semester 5</div>
       </div>
-      <select class="select" style="margin-left:auto" aria-label="Active course">
-        <option>CS101 – Intro to Data Structures</option>
-        <option>CS204 – Operating Systems</option>
-        <option>MA150 – Discrete Mathematics</option>
-      </select>
+      
+      <!-- Semester Switcher / Access Filter -->
+      <div style="margin-left:auto;display:flex;align-items:center;gap:8px">
+        <label for="student-semester-select" class="small muted" style="font-weight:600">Semester Curriculum:</label>
+        <select class="select" id="student-semester-select" onchange="onStudentSemesterChange(this.value)" style="min-width:180px;font-weight:600">
+          <option value="1">Semester 1</option>
+          <option value="3">Semester 3</option>
+          <option value="5" selected>Semester 5 (Allotted)</option>
+          <option value="6">Semester 6</option>
+          <option value="7">Semester 7</option>
+        </select>
+      </div>
     </div>
 
     <div class="card form-card">
       <h2>Share your feedback</h2>
-      <p class="muted small" style="margin-bottom:20px">Your response helps faculty improve the course. It takes about a minute.</p>
+      <p class="muted small" style="margin-bottom:16px">Your responses help faculty enhance lectures, clarify assignments, and calibrate pace.</p>
+      
+      <!-- Allotted Subjects Restriction Banner -->
+      <div class="allotted-banner" id="allotted-indicator-banner">
+        <div>
+          <span>🔒 <strong>Semester Allotted Subjects:</strong> Access restricted to <span id="banner-sem-label">Semester 5</span> subjects allotted to your class.</span>
+        </div>
+        <span class="badge class-badge" id="subject-allotted-count">4 Subjects Available</span>
+      </div>
+
       <form id="feedback-form">
         <div class="field">
-          <label for="course-select">Course & faculty member</label>
-          <select class="select" id="course-select" style="width:100%">
-            <option>CS101 – Intro to Data Structures · Dr. A. Sharma</option>
-            <option>CS204 – Operating Systems · Prof. R. Menon</option>
-            <option>MA150 – Discrete Mathematics · Dr. K. Iyer</option>
+          <label for="course-select">Allotted Subject & Faculty Member</label>
+          <select class="select" id="course-select" style="width:100%" onchange="onSubjectSelectChange(this.value)">
+            <!-- Populated dynamically via /feedback/allotted-subjects -->
           </select>
         </div>
+
         <div class="field">
           <label for="feedback-text">Your feedback</label>
-          <textarea id="feedback-text" maxlength="1000" oninput="document.getElementById('cc').textContent=this.value.length+' / 1000 characters'" placeholder="Share your honest feedback about lectures, assignments, pace, or course material..."></textarea>
+          <textarea id="feedback-text" maxlength="1000" oninput="document.getElementById('cc').textContent=this.value.length+' / 1000 characters'" placeholder="Share constructive thoughts on teaching clarity, assignments, pace, or laboratory practicals..."></textarea>
           <span class="charcount" id="cc">0 / 1000 characters</span>
         </div>
+
         <div class="switch-row">
           <span class="switch-label">Submit anonymously
-            <span class="muted" title="Your name won't be attached to this feedback. Faculty only see the response and its topic." style="cursor:help">ⓘ</span>
+            <span class="muted" title="Your student name will not be shown to faculty. Faculty will only see the aggregated class sentiment and constructive comments." style="cursor:help">ⓘ</span>
           </span>
           <span class="switch">
             <input type="checkbox" id="anonymous-toggle" checked aria-label="Submit anonymously">
             <span class="track"><span class="knob"></span></span>
           </span>
         </div>
-        <button type="submit" class="btn-primary" id="submit-btn">Submit feedback</button>
+
+        <div style="display:flex;gap:10px;align-items:center">
+          <button type="submit" class="btn-primary" id="submit-btn">Submit feedback</button>
+          <button type="button" class="btn-secondary" onclick="polishFeedbackWithAi()" style="display:inline-flex;align-items:center;gap:6px"><span>✨</span> Polish with AI</button>
+        </div>
         
         <div class="analysis-result-box" id="analysis-box">
           <div class="analysis-header">
@@ -226,19 +437,20 @@ textarea:focus{border-color:var(--text);background:var(--card)}
       </form>
     </div>
 
-    <h2 class="section-title" style="font-size:16px">My past submissions</h2>
+    <h2 class="section-title" style="font-size:16px">My past submissions for allotted subjects</h2>
     <div class="card" id="past-submissions-list">
+      <!-- Populated dynamically -->
       <div class="sub-item">
         <div>
-          <div style="font-weight:500;color:var(--text)">CS101 – Intro to Data Structures</div>
-          <div class="small muted">Submitted Sep 22, 2026 · Anonymous</div>
+          <div style="font-weight:500;color:var(--text)">AI501 – Natural Language Processing</div>
+          <div class="small muted">Semester 5 · Class 3A · Anonymous</div>
         </div>
         <span class="badge badge-done">Processed</span>
       </div>
       <div class="sub-item">
         <div>
-          <div style="font-weight:500;color:var(--text)">MA150 – Discrete Mathematics</div>
-          <div class="small muted">Submitted Sep 18, 2026 · Anonymous</div>
+          <div style="font-weight:500;color:var(--text)">AI502 – Machine Learning</div>
+          <div class="small muted">Semester 5 · Class 3A · Anonymous</div>
         </div>
         <span class="badge badge-done">Processed</span>
       </div>
@@ -246,61 +458,102 @@ textarea:focus{border-color:var(--text);background:var(--card)}
   </div>
 </main>
 
-<!-- FACULTY VIEW -->
+<!-- FACULTY VIEW: CLASS-WISE DASHBOARD & FEEDBACK -->
 <main id="faculty" class="view" role="tabpanel">
   <div class="page">
-    <div class="subheader">
-      <select class="select" id="faculty-course-select" aria-label="Course">
-        <option value="ALL">All Courses</option>
-        <option value="CS101" selected>CS101 – Intro to Data Structures</option>
-        <option value="CS204">CS204 – Operating Systems</option>
-      </select>
-      <select class="select" aria-label="Term" style="min-width:140px"><option>Fall 2026</option><option>Spring 2026</option></select>
+    <!-- Class-Wise Filter Control Bar -->
+    <div class="faculty-class-panel">
+      <div class="faculty-control-group">
+        <span style="font-weight:700;font-size:13.5px;color:var(--text);display:flex;align-items:center;gap:6px">
+          <span>🏫</span> Class (Section):
+        </span>
+        <select class="select" id="faculty-class-select" onchange="onFacultyClassFilter(this.value)" style="font-weight:600;min-width:200px">
+          <option value="ALL">All Classes (Consolidated)</option>
+          <option value="Class 3A" selected>Class 3A (Semester 5)</option>
+          <option value="Class 3B">Class 3B (Semester 5)</option>
+          <option value="Class 2A">Class 2A (Semester 3)</option>
+          <option value="Class 1A">Class 1A (Semester 1)</option>
+        </select>
+      </div>
+
+      <div class="faculty-control-group">
+        <span style="font-weight:600;font-size:13px;color:var(--text);display:flex;align-items:center;gap:6px">
+          <span>📚</span> Course / Subject:
+        </span>
+        <select class="select" id="faculty-course-select" onchange="onFacultyCourseFilter(this.value)" style="min-width:200px">
+          <option value="ALL">All Subjects</option>
+        </select>
+      </div>
+
+      <div class="faculty-control-group" style="margin-left:auto">
+        <span class="small muted">Term:</span>
+        <select class="select" style="min-width:130px"><option>Fall 2026</option></select>
+      </div>
     </div>
 
+    <!-- Quick Class Filter Chips -->
+    <div class="chip-row" id="faculty-class-chips">
+      <button class="chip" onclick="selectClassQuick('ALL', this)">All Classes</button>
+      <button class="chip active" onclick="selectClassQuick('Class 3A', this)">Class 3A (Sem 5)</button>
+      <button class="chip" onclick="selectClassQuick('Class 3B', this)">Class 3B (Sem 5)</button>
+      <button class="chip" onclick="selectClassQuick('Class 2A', this)">Class 2A (Sem 3)</button>
+    </div>
+
+    <!-- Class-Wise Dynamic KPIs -->
     <div class="kpi-grid">
-      <div class="card kpi-card"><div class="kpi-label">Total responses</div><div class="kpi-value" id="kpi-total">248</div></div>
-      <div class="card kpi-card"><div class="kpi-label">Overall sentiment</div><div class="kpi-value" style="color:var(--pos)" id="kpi-sentiment">78% Positive</div></div>
-      <div class="card kpi-card"><div class="kpi-label">Primary emotion</div><div class="kpi-value" style="font-size:17px" id="kpi-emotion">Satisfaction / Clarity</div></div>
-      <div class="card kpi-card alert"><div class="kpi-label">Action needed</div><div class="kpi-value" style="font-size:15px;color:var(--neg-text)">High workload flagged — Assignment 2</div></div>
+      <div class="card kpi-card">
+        <div class="kpi-label" id="kpi-total-label">Class 3A Responses</div>
+        <div class="kpi-value" id="kpi-total">3</div>
+      </div>
+      <div class="card kpi-card">
+        <div class="kpi-label">Class Sentiment</div>
+        <div class="kpi-value" style="color:var(--pos)" id="kpi-sentiment">85% Positive</div>
+      </div>
+      <div class="card kpi-card">
+        <div class="kpi-label">Primary Emotion</div>
+        <div class="kpi-value" style="font-size:16px" id="kpi-emotion">Satisfaction / Clarity</div>
+      </div>
+      <div class="card kpi-card alert">
+        <div class="kpi-label">Class Action Item</div>
+        <div class="kpi-value" style="font-size:14px;color:var(--neg-text)" id="kpi-action">Workload flagged — Check Assignment 2</div>
+      </div>
     </div>
 
+    <!-- Class-Wise Emotional Breakdown -->
     <div class="card" style="margin-bottom:20px">
-      <h3 style="font-size:14px;margin-bottom:14px">Emotional breakdown</h3>
-      <div class="breakdown-row"><span class="breakdown-label">Satisfaction</span><span class="progress-track"><span class="progress-fill" style="width:62%;background:var(--pos)"></span></span><span class="breakdown-pct">62%</span></div>
-      <div class="breakdown-row"><span class="breakdown-label">Frustration</span><span class="progress-track"><span class="progress-fill" style="width:18%;background:var(--neg)"></span></span><span class="breakdown-pct">18%</span></div>
-      <div class="breakdown-row"><span class="breakdown-label">Confusion</span><span class="progress-track"><span class="progress-fill" style="width:20%;background:var(--mix)"></span></span><span class="breakdown-pct">20%</span></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+        <h3 style="font-size:14px;margin:0" id="breakdown-title">Emotional Breakdown for Class 3A</h3>
+        <span class="badge class-badge" id="breakdown-class-badge">Class 3A</span>
+      </div>
+      <div class="breakdown-row">
+        <span class="breakdown-label">Satisfaction</span>
+        <span class="progress-track"><span class="progress-fill" id="fill-satisfaction" style="width:65%;background:var(--pos)"></span></span>
+        <span class="breakdown-pct" id="pct-satisfaction">65%</span>
+      </div>
+      <div class="breakdown-row">
+        <span class="breakdown-label">Frustration</span>
+        <span class="progress-track"><span class="progress-fill" id="fill-frustration" style="width:15%;background:var(--neg)"></span></span>
+        <span class="breakdown-pct" id="pct-frustration">15%</span>
+      </div>
+      <div class="breakdown-row">
+        <span class="breakdown-label">Confusion</span>
+        <span class="progress-track"><span class="progress-fill" id="fill-confusion" style="width:20%;background:var(--mix)"></span></span>
+        <span class="breakdown-pct" id="pct-confusion">20%</span>
+      </div>
     </div>
 
+    <!-- Topic Filtering for Current Class -->
     <div class="chip-row">
-      <button class="chip active" onclick="filterFeed('ALL', this)">All Topics</button>
-      <button class="chip" onclick="filterFeed('Lectures', this)">Lectures (42)</button>
-      <button class="chip" onclick="filterFeed('Assignments', this)">Assignments (18)</button>
-      <button class="chip" onclick="filterFeed('Pace', this)">Pace (12)</button>
-      <button class="chip" onclick="filterFeed('Exams', this)">Exams (8)</button>
+      <button class="chip active" onclick="filterFeedTopic('ALL', this)">All Topics</button>
+      <button class="chip" onclick="filterFeedTopic('Lectures', this)">Lectures</button>
+      <button class="chip" onclick="filterFeedTopic('Assignments', this)">Assignments</button>
+      <button class="chip" onclick="filterFeedTopic('Pace', this)">Pace</button>
+      <button class="chip" onclick="filterFeedTopic('Exams', this)">Exams</button>
     </div>
 
+    <!-- Class-Wise Feedback Feed -->
     <div class="feed-list" id="feedback-feed-list">
-      <div class="card feed-card positive" data-topic="Lectures">
-        <div class="feed-head"><span class="pill pill-positive">Positive</span><span class="tag">Lectures</span></div>
-        <p class="feed-text">The lecture pacing this week gave a lot of <span class="hl-pos">clarity</span> on recursion — the whiteboard examples really helped it click.</p>
-        <div class="feed-meta">Anonymous · Sep 25, 2026</div>
-      </div>
-      <div class="card feed-card mixed" data-topic="Pace">
-        <div class="feed-head"><span class="pill pill-mixed">Mixed</span><span class="tag">Pace</span></div>
-        <p class="feed-text">Lectures are great, but the <span class="hl-mix">pace</span> jumped quickly after the midterm — a short recap at the start of class would help.</p>
-        <div class="feed-meta">Anonymous · Sep 24, 2026</div>
-      </div>
-      <div class="card feed-card negative" data-topic="Assignments">
-        <div class="feed-head"><span class="pill pill-negative">Needs attention</span><span class="tag">Assignments</span></div>
-        <p class="feed-text">Assignment 2's <span class="hl-neg">workload</span> was significantly heavier than previous ones with no extra time given.</p>
-        <div class="feed-meta">Anonymous · Sep 23, 2026</div>
-      </div>
-      <div class="card feed-card positive" data-topic="Exams">
-        <div class="feed-head"><span class="pill pill-positive">Positive</span><span class="tag">Exams</span></div>
-        <p class="feed-text">Practice problems before the quiz matched the actual difficulty well — felt well <span class="hl-pos">prepared</span>.</p>
-        <div class="feed-meta">Named · Sep 21, 2026</div>
-      </div>
+      <!-- Dynamically rendered feedback cards with class and semester badges -->
     </div>
   </div>
 </main>
@@ -310,15 +563,15 @@ textarea:focus{border-color:var(--text);background:var(--card)}
   <div class="page">
     <h2 class="section-title" style="margin-top:0">Departments this term</h2>
     <div class="dept-grid">
-      <div class="card dept-card"><h3>Computer Science</h3><div class="dept-score" style="color:var(--pos)">81%</div><span class="pill pill-positive">Positive</span><div class="small muted" style="margin-top:8px">612 responses</div></div>
-      <div class="card dept-card"><h3>Mathematics</h3><div class="dept-score" style="color:var(--mix)">64%</div><span class="pill pill-mixed">Mixed</span><div class="small muted" style="margin-top:8px">340 responses</div></div>
-      <div class="card dept-card"><h3>Physics</h3><div class="dept-score" style="color:var(--pos)">75%</div><span class="pill pill-positive">Positive</span><div class="small muted" style="margin-top:8px">288 responses</div></div>
-      <div class="card dept-card"><h3>Electronics</h3><div class="dept-score" style="color:var(--neg)">52%</div><span class="pill pill-negative">Needs attention</span><div class="small muted" style="margin-top:8px">201 responses</div></div>
+      <div class="card dept-card"><h3>Artificial Intelligence & DS</h3><div class="dept-score" style="color:var(--pos)">84%</div><span class="pill pill-positive">Positive</span><div class="small muted" style="margin-top:8px">Class 3A, 3B, 4A</div></div>
+      <div class="card dept-card"><h3>Computer Science</h3><div class="dept-score" style="color:var(--pos)">81%</div><span class="pill pill-positive">Positive</span><div class="small muted" style="margin-top:8px">Class 1A, 2A, 2B</div></div>
+      <div class="card dept-card"><h3>Mathematics</h3><div class="dept-score" style="color:var(--mix)">64%</div><span class="pill pill-mixed">Mixed</span><div class="small muted" style="margin-top:8px">Classes Sem 1 & Sem 3</div></div>
+      <div class="card dept-card"><h3>Electronics</h3><div class="dept-score" style="color:var(--neg)">52%</div><span class="pill pill-negative">Needs attention</span><div class="small muted" style="margin-top:8px">Class 2C</div></div>
     </div>
 
     <div class="card chart-card">
-      <h3 style="font-size:14px">Sentiment trend</h3>
-      <div class="chart-legend">Overall positive sentiment score, last 8 weeks</div>
+      <h3 style="font-size:14px">Overall Sentiment Trend Across Classes</h3>
+      <div class="chart-legend">Overall positive sentiment score across all classes and semesters</div>
       <svg viewBox="0 0 600 220" width="100%" height="200" role="img" aria-label="Line chart of sentiment score">
         <line x1="40" y1="10" x2="40" y2="190" stroke="var(--border)"></line>
         <line x1="40" y1="190" x2="590" y2="190" stroke="var(--border)"></line>
@@ -341,8 +594,8 @@ textarea:focus{border-color:var(--text);background:var(--card)}
 
     <div class="card filter-bar">
       <div class="filter-controls">
-        <select class="select" aria-label="Department"><option>All departments</option><option>Computer Science</option><option>Mathematics</option><option>Physics</option></select>
-        <select class="select" aria-label="Semester"><option>Fall 2026</option><option>Spring 2026</option></select>
+        <select class="select" aria-label="Department"><option>All departments</option><option>AI & Data Science</option><option>Computer Science</option><option>Mathematics</option></select>
+        <select class="select" aria-label="Class"><option>All classes</option><option>Class 3A</option><option>Class 3B</option><option>Class 2A</option></select>
         <select class="select" aria-label="Sentiment"><option>All sentiment</option><option>Positive</option><option>Mixed</option><option>Needs attention</option></select>
       </div>
       <div class="filter-actions">
@@ -353,46 +606,287 @@ textarea:focus{border-color:var(--text);background:var(--card)}
   </div>
 </main>
 
+<!-- Floating AI Assistant Button -->
+<button class="ai-fab" onclick="toggleAiDrawer(true)" title="Open AI Assistant">
+  <span class="ai-fab-dot"></span>
+  <span>✨</span>
+  <span>AI Assistant</span>
+</button>
+
+<!-- AI Assistant Side Drawer -->
+<div class="ai-drawer-overlay" id="ai-drawer-overlay" onclick="toggleAiDrawer(false)"></div>
+<aside class="ai-drawer" id="ai-drawer">
+  <div class="ai-drawer-header">
+    <div style="display:flex;align-items:center;gap:10px">
+      <div class="brand-mark" style="background:#4F46E5;font-size:13px">✨</div>
+      <div>
+        <div style="font-weight:600;font-size:14px;color:var(--text)">AI Feedback Assistant</div>
+        <div class="small muted">Refine drafts with External AI Model & NLP</div>
+      </div>
+    </div>
+    <button class="ai-drawer-close" onclick="toggleAiDrawer(false)" title="Close Assistant">✕</button>
+  </div>
+
+  <div class="ai-quick-chips">
+    <button class="chip" style="font-size:12px;padding:4px 10px" onclick="askAiAssistant('polish')">✨ Polish my draft</button>
+    <button class="chip" style="font-size:12px;padding:4px 10px" onclick="askAiAssistant('tone')">⚖️ Check tone</button>
+    <button class="chip" style="font-size:12px;padding:4px 10px" onclick="askAiAssistant('suggestions')">💡 Constructive ideas</button>
+    <button class="chip" style="font-size:12px;padding:4px 10px" onclick="askAiAssistant('privacy')">🔒 Privacy info</button>
+  </div>
+
+  <div class="ai-chat-body" id="ai-chat-body">
+    <div class="ai-msg bot">
+      Hi! I'm your <strong>Student Emotional Analyzer AI Assistant</strong>. I help you phrase feedback constructively for your allotted semester subjects while keeping your identity private.
+    </div>
+  </div>
+
+  <form class="ai-chat-footer" onsubmit="handleAiChatSubmit(event)">
+    <input type="text" id="ai-chat-input" class="select" style="flex:1;min-width:0;font-size:13px;padding:8px 12px" placeholder="Ask AI assistant..." autocomplete="off">
+    <button type="submit" class="btn-primary" style="padding:8px 14px;font-size:13px">Send</button>
+  </form>
+</aside>
+
 <script>
-let totalSubmissions = 248;
+let currentUser = null;
+let currentAllottedSubjects = [];
+let facultyCurrentClass = 'Class 3A';
+let facultyCurrentCourse = 'ALL';
+let facultyCurrentTopic = 'ALL';
+let allFacultyFeedbackCache = [];
+
+/* Authentication & Session Management */
+async function checkAuthSession() {
+  const saved = localStorage.getItem('af_user_session');
+  if (saved) {
+    try {
+      currentUser = JSON.parse(saved);
+      applyUserSession(currentUser);
+      return;
+    } catch(e) {
+      localStorage.removeItem('af_user_session');
+    }
+  }
+  showLoginView();
+}
+
+function showLoginView() {
+  document.getElementById('login-view').style.display = 'flex';
+  document.getElementById('app-nav').style.display = 'none';
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+}
+
+function selectLoginRole(role, defaultEmail, btnEl) {
+  document.querySelectorAll('.login-role-btn').forEach(b => b.classList.remove('active'));
+  if (btnEl) btnEl.classList.add('active');
+  const emailInput = document.getElementById('login-email');
+  if (emailInput) emailInput.value = defaultEmail;
+}
+
+function handleEmailInput(val) {
+  const em = val.toLowerCase().trim();
+  document.querySelectorAll('.login-role-btn').forEach(b => b.classList.remove('active'));
+  if (em.includes('admin') || em.includes('dean')) {
+    document.getElementById('pill-role-admin').classList.add('active');
+  } else if (em.includes('faculty') || em.includes('prof') || em.includes('dr.')) {
+    document.getElementById('pill-role-faculty').classList.add('active');
+  } else {
+    document.getElementById('pill-role-student').classList.add('active');
+  }
+}
+
+async function handleLoginSubmit(e) {
+  e.preventDefault();
+  const email = document.getElementById('login-email').value.trim();
+  const password = document.getElementById('login-password').value;
+  await performLogin(email, password);
+}
+
+async function quickLogin(email) {
+  await performLogin(email, 'pass123');
+}
+
+async function performLogin(email, password = 'pass123') {
+  const alertBox = document.getElementById('login-alert-box');
+  alertBox.style.display = 'none';
+  const submitBtn = document.getElementById('login-submit-btn');
+  submitBtn.disabled = true;
+  submitBtn.textContent = 'Verifying credentials...';
+
+  try {
+    const resp = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
+    });
+    const data = await resp.json();
+    if (data.success && data.user) {
+      currentUser = data.user;
+      localStorage.setItem('af_user_session', JSON.stringify(currentUser));
+      applyUserSession(currentUser);
+    } else {
+      alertBox.textContent = data.detail || 'Login failed. Please check your credentials.';
+      alertBox.style.display = 'block';
+    }
+  } catch (err) {
+    let role = 'STUDENT';
+    const emLower = email.toLowerCase();
+    if (emLower.includes('admin')) role = 'ADMIN';
+    else if (emLower.includes('faculty') || emLower.includes('prof')) role = 'FACULTY';
+    
+    currentUser = {
+      email,
+      name: email.split('@')[0].replace('.', ' ').toUpperCase(),
+      role,
+      semester: emLower.includes('priya') ? 3 : 5,
+      class_section: emLower.includes('priya') ? 'Class 2A' : 'Class 3A',
+      program: emLower.includes('priya') ? 'B.Tech Computer Science' : 'B.Tech AI & Data Science'
+    };
+    localStorage.setItem('af_user_session', JSON.stringify(currentUser));
+    applyUserSession(currentUser);
+  } finally {
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Sign in to Dashboard →';
+  }
+}
+
+function applyUserSession(user) {
+  document.getElementById('login-view').style.display = 'none';
+  document.getElementById('app-nav').style.display = 'flex';
+
+  const role = (user.role || 'STUDENT').toUpperCase();
+  const name = user.name || (user.email ? user.email.split('@')[0] : 'User');
+  const initials = name.split(' ').map(n=>n[0]).join('').slice(0, 2).toUpperCase() || 'U';
+
+  document.getElementById('nav-avatar-icon').textContent = initials;
+  document.getElementById('nav-user-name').textContent = name;
+  const roleBadge = document.getElementById('nav-user-role-badge');
+  roleBadge.textContent = role;
+  if (role === 'STUDENT') roleBadge.className = 'badge badge-done';
+  else if (role === 'FACULTY') roleBadge.className = 'badge class-badge';
+  else roleBadge.className = 'badge';
+
+  if (role === 'STUDENT') {
+    initStudentView(user);
+    showView('student', document.getElementById('nav-tab-student'));
+  } else if (role === 'FACULTY') {
+    initFacultyView(user);
+    showView('faculty', document.getElementById('nav-tab-faculty'));
+  } else if (role === 'ADMIN') {
+    showView('admin', document.getElementById('nav-tab-admin'));
+  }
+}
+
+function handleLogout() {
+  localStorage.removeItem('af_user_session');
+  currentUser = null;
+  showLoginView();
+}
 
 function showView(id, btn){
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
+  const target = document.getElementById(id);
+  if (target) target.classList.add('active');
   document.querySelectorAll('.tab').forEach(t=>t.setAttribute('aria-selected','false'));
-  btn.setAttribute('aria-selected','true');
+  if (btn) btn.setAttribute('aria-selected','true');
+
+  if (id === 'faculty') {
+    loadFacultyData();
+  }
 }
 
-function filterFeed(topic, btnEl) {
-  document.querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));
-  btnEl.classList.add('active');
+/* ========================================================
+   1. STUDENT VIEW: ALLOTTED SUBJECTS BY SEMESTER ONLY
+   ======================================================== */
+function initStudentView(user) {
+  const name = user.name || 'Student';
+  const sem = user.semester || 5;
+  const cls = user.class_section || 'Class 3A';
+  const prog = user.program || 'B.Tech AI & Data Science';
+
+  const initials = name.split(' ').map(n=>n[0]).join('').slice(0, 2).toUpperCase() || 'ST';
+  const avEl = document.getElementById('student-avatar-badge');
+  if (avEl) avEl.textContent = initials;
+
+  document.getElementById('student-name-display').textContent = name;
+  document.getElementById('student-meta-display').textContent = `${prog} · ${cls} · Allotted Semester ${sem}`;
+
+  const semSelect = document.getElementById('student-semester-select');
+  if (semSelect) {
+    semSelect.value = String(sem);
+  }
+
+  loadAllottedSubjectsForStudent(sem, cls);
+}
+
+function onStudentSemesterChange(semesterVal) {
+  const sem = parseInt(semesterVal, 10);
+  const cls = currentUser ? (currentUser.class_section || 'Class 3A') : 'Class 3A';
+  loadAllottedSubjectsForStudent(sem, cls);
+}
+
+async function loadAllottedSubjectsForStudent(semester, classSection) {
+  const courseSelect = document.getElementById('course-select');
+  courseSelect.innerHTML = '<option value="">Loading allotted subjects...</option>';
   
-  const cards = document.querySelectorAll('#feedback-feed-list .feed-card');
-  cards.forEach(card => {
-    const cardTopic = card.getAttribute('data-topic');
-    if (topic === 'ALL' || cardTopic === topic) {
-      card.style.display = 'block';
+  document.getElementById('banner-sem-label').textContent = `Semester ${semester}`;
+  const bannerCount = document.getElementById('subject-allotted-count');
+
+  try {
+    const resp = await fetch(`/feedback/allotted-subjects?semester=${semester}&class_section=${encodeURIComponent(classSection)}`);
+    const data = await resp.json();
+    currentAllottedSubjects = data.subjects || [];
+
+    courseSelect.innerHTML = '';
+    if (currentAllottedSubjects.length === 0) {
+      courseSelect.innerHTML = '<option value="">No subjects allotted for this semester</option>';
+      bannerCount.textContent = '0 Subjects Allotted';
     } else {
-      card.style.display = 'none';
+      currentAllottedSubjects.forEach(s => {
+        const opt = document.createElement('option');
+        opt.value = s.offering_id;
+        opt.setAttribute('data-code', s.course_code);
+        opt.setAttribute('data-name', s.course_name);
+        opt.setAttribute('data-credits', s.credits);
+        opt.setAttribute('data-faculty', s.faculty_name);
+        opt.textContent = `${s.course_code} – ${s.course_name} · ${s.faculty_name} (${s.credits} Credits)`;
+        courseSelect.appendChild(opt);
+      });
+      bannerCount.textContent = `${currentAllottedSubjects.length} Subjects Allotted`;
     }
-  });
+  } catch (err) {
+    console.error('Error fetching allotted subjects:', err);
+    courseSelect.innerHTML = `
+      <option value="1" data-code="AI501" data-name="Natural Language Processing">AI501 – Natural Language Processing · Dr. A. Sharma (4 Credits)</option>
+      <option value="2" data-code="AI502" data-name="Machine Learning">AI502 – Machine Learning · Prof. R. Menon (4 Credits)</option>
+      <option value="3" data-code="CS501" data-name="Computer Networks">CS501 – Computer Networks · Dr. S. Nair (4 Credits)</option>
+      <option value="4" data-code="CS502" data-name="Database Management Systems">CS502 – Database Management Systems · Dr. K. Iyer (4 Credits)</option>
+    `;
+    bannerCount.textContent = '4 Subjects Allotted';
+  }
 }
 
-function exportData(type) {
-  alert(`Exporting ${type} report... The file download will start automatically.`);
+function onSubjectSelectChange(val) {
+  // Can trigger subject-specific hints or past feedbacks if desired
 }
 
+/* Submit Feedback */
 document.getElementById('feedback-form').addEventListener('submit', async function(e){
   e.preventDefault();
   const feedbackText = document.getElementById('feedback-text').value.trim();
   if(!feedbackText) return;
 
   const isAnon = document.getElementById('anonymous-toggle').checked;
-  const courseSel = document.getElementById('course-select').value.split('·')[0].trim();
-  const submitBtn = document.getElementById('submit-btn');
+  const courseSelect = document.getElementById('course-select');
+  const selectedOpt = courseSelect.options[courseSelect.selectedIndex];
+  const offeringId = parseInt(courseSelect.value, 10) || 1;
+  const courseCode = selectedOpt ? selectedOpt.getAttribute('data-code') : 'AI501';
+  const courseName = selectedOpt ? selectedOpt.getAttribute('data-name') : 'Natural Language Processing';
+  const semester = parseInt(document.getElementById('student-semester-select').value, 10) || 5;
+  const classSection = currentUser ? (currentUser.class_section || 'Class 3A') : 'Class 3A';
 
+  const submitBtn = document.getElementById('submit-btn');
   submitBtn.disabled = true;
-  submitBtn.textContent = 'Processing & saving feedback...';
+  submitBtn.textContent = 'Analyzing & saving feedback...';
 
   let sentimentClass = 'pill-positive';
   let sentimentText = 'Positive';
@@ -405,8 +899,12 @@ document.getElementById('feedback-form').addEventListener('submit', async functi
       body: JSON.stringify({
         feedback_text: feedbackText,
         is_anonymous: isAnon,
-        student_id: 1,
-        offering_id: 1
+        student_id: currentUser ? currentUser.user_id : 1,
+        offering_id: offeringId,
+        semester: semester,
+        class_section: classSection,
+        course_code: courseCode,
+        course_name: courseName
       })
     });
     
@@ -419,7 +917,9 @@ document.getElementById('feedback-form').addEventListener('submit', async functi
       if(sent.includes('NEG')) { sentimentClass = 'pill-negative'; sentimentText = 'Needs attention'; }
       else if(sent.includes('MIX') || sent.includes('NEU')) { sentimentClass = 'pill-mixed'; sentimentText = 'Mixed'; }
 
-      if(analysis.topics && analysis.topics.length > 0) {
+      if(analysis.aspects && analysis.aspects.length > 0) {
+        mainTopic = analysis.aspects[0].topic || analysis.aspects[0].aspect || 'Lectures';
+      } else if(analysis.topics && analysis.topics.length > 0) {
         mainTopic = analysis.topics[0];
       }
 
@@ -427,17 +927,13 @@ document.getElementById('feedback-form').addEventListener('submit', async functi
       pillEl.className = `pill ${sentimentClass}`;
       pillEl.textContent = sentimentText;
 
-      const confPct = sentimentObj.confidence ? (sentimentObj.confidence * 100).toFixed(0) : '85';
-      document.getElementById('analysis-desc').textContent = `Main Topic: "${mainTopic}" · Confidence: ${confPct}% · Status: Saved to Database`;
+      const confPct = sentimentObj.confidence ? (sentimentObj.confidence * 100).toFixed(0) : '88';
+      document.getElementById('analysis-desc').textContent = `Main Topic: "${mainTopic}" · Confidence: ${confPct}% · Saved to Class ${classSection} Feed`;
       document.getElementById('analysis-box').classList.add('show');
     }
   } catch(err) {
-    console.log('Database post fallback:', err);
+    console.log('Submission fallback:', err);
   }
-
-  // Update total responses count KPI
-  totalSubmissions++;
-  document.getElementById('kpi-total').textContent = totalSubmissions;
 
   // Add to past submissions list
   const pastList = document.getElementById('past-submissions-list');
@@ -446,28 +942,12 @@ document.getElementById('feedback-form').addEventListener('submit', async functi
   const today = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
   newSub.innerHTML = `
     <div>
-      <div style="font-weight:500;color:var(--text)">${courseSel}</div>
-      <div class="small muted">Submitted ${today} · ${isAnon ? 'Anonymous' : 'Named'}</div>
+      <div style="font-weight:500;color:var(--text)">${courseCode} – ${courseName}</div>
+      <div class="small muted">Semester ${semester} · ${classSection} · Submitted ${today} · ${isAnon ? 'Anonymous' : (currentUser ? currentUser.name : 'Student')}</div>
     </div>
     <span class="badge badge-done">Processed</span>
   `;
   pastList.insertBefore(newSub, pastList.firstChild);
-
-  // Add to faculty feed dynamically
-  const feedList = document.getElementById('feedback-feed-list');
-  const feedItem = document.createElement('div');
-  let feedCardClass = 'positive';
-  if(sentimentText === 'Needs attention') feedCardClass = 'negative';
-  else if(sentimentText === 'Mixed') feedCardClass = 'mixed';
-  
-  feedItem.className = `card feed-card ${feedCardClass}`;
-  feedItem.setAttribute('data-topic', mainTopic);
-  feedItem.innerHTML = `
-    <div class="feed-head"><span class="pill ${sentimentClass}">${sentimentText}</span><span class="tag">${mainTopic}</span></div>
-    <p class="feed-text">${feedbackText}</p>
-    <div class="feed-meta">${isAnon ? 'Anonymous' : 'Arunn Reddy'} · Just now</div>
-  `;
-  feedList.insertBefore(feedItem, feedList.firstChild);
 
   submitBtn.disabled = false;
   submitBtn.textContent = 'Submit feedback';
@@ -475,6 +955,386 @@ document.getElementById('feedback-form').addEventListener('submit', async functi
   document.getElementById('feedback-text').value = '';
   document.getElementById('cc').textContent = '0 / 1000 characters';
 });
+
+/* ========================================================
+   2. FACULTY VIEW: KEEP CLASS WISE
+   ======================================================== */
+function initFacultyView(user) {
+  loadFacultyClasses();
+  loadFacultyData();
+}
+
+async function loadFacultyClasses() {
+  try {
+    const resp = await fetch('/feedback/faculty-classes');
+    const data = await resp.json();
+    const classList = data.classes || [];
+
+    const classSelect = document.getElementById('faculty-class-select');
+    classSelect.innerHTML = '<option value="ALL">All Classes (Consolidated)</option>';
+    
+    const chipContainer = document.getElementById('faculty-class-chips');
+    chipContainer.innerHTML = '<button class="chip" onclick="selectClassQuick(\'ALL\', this)">All Classes</button>';
+
+    classList.forEach((c, idx) => {
+      const opt = document.createElement('option');
+      opt.value = c.class_section;
+      opt.textContent = `${c.class_section} (Semester ${c.semester})`;
+      if (c.class_section === facultyCurrentClass) opt.selected = true;
+      classSelect.appendChild(opt);
+
+      const btn = document.createElement('button');
+      btn.className = `chip ${c.class_section === facultyCurrentClass ? 'active' : ''}`;
+      btn.textContent = `${c.class_section} (Sem ${c.semester})`;
+      btn.onclick = () => selectClassQuick(c.class_section, btn);
+      chipContainer.appendChild(btn);
+    });
+  } catch(e) {
+    console.warn('Could not load faculty classes dynamically:', e);
+  }
+}
+
+function onFacultyClassFilter(clsVal) {
+  facultyCurrentClass = clsVal;
+  
+  // Sync quick chips
+  document.querySelectorAll('#faculty-class-chips .chip').forEach(btn => {
+    if (btn.textContent.includes(clsVal) || (clsVal === 'ALL' && btn.textContent === 'All Classes')) {
+      btn.classList.add('active');
+    } else {
+      btn.classList.remove('active');
+    }
+  });
+
+  updateFacultyCourseDropdownForClass(clsVal);
+  loadFacultyData();
+}
+
+function selectClassQuick(clsVal, btnEl) {
+  document.querySelectorAll('#faculty-class-chips .chip').forEach(c => c.classList.remove('active'));
+  btnEl.classList.add('active');
+  const classSelect = document.getElementById('faculty-class-select');
+  if (classSelect) classSelect.value = clsVal;
+  facultyCurrentClass = clsVal;
+
+  updateFacultyCourseDropdownForClass(clsVal);
+  loadFacultyData();
+}
+
+function updateFacultyCourseDropdownForClass(cls) {
+  const courseSel = document.getElementById('faculty-course-select');
+  courseSel.innerHTML = '<option value="ALL">All Subjects</option>';
+
+  if (cls === 'Class 3A' || cls === 'Class 3B') {
+    courseSel.innerHTML += '<option value="AI501">AI501 – Natural Language Processing</option>';
+    courseSel.innerHTML += '<option value="AI502">AI502 – Machine Learning</option>';
+    courseSel.innerHTML += '<option value="CS501">CS501 – Computer Networks</option>';
+  } else if (cls === 'Class 2A' || cls === 'Class 2B') {
+    courseSel.innerHTML += '<option value="CS201">CS201 – Data Structures & Algorithms</option>';
+    courseSel.innerHTML += '<option value="CS204">CS204 – Operating Systems</option>';
+  } else if (cls === 'Class 1A') {
+    courseSel.innerHTML += '<option value="CS101">CS101 – Intro to Programming</option>';
+    courseSel.innerHTML += '<option value="MA101">MA101 – Engineering Mathematics I</option>';
+  }
+  facultyCurrentCourse = 'ALL';
+}
+
+function onFacultyCourseFilter(courseVal) {
+  facultyCurrentCourse = courseVal;
+  renderFilteredFacultyFeed();
+}
+
+function filterFeedTopic(topic, btnEl) {
+  document.querySelectorAll('.chip-row .chip').forEach(c => {
+    if (['All Topics','Lectures','Assignments','Pace','Exams'].includes(c.textContent.trim())) {
+      c.classList.remove('active');
+    }
+  });
+  btnEl.classList.add('active');
+  facultyCurrentTopic = topic;
+  renderFilteredFacultyFeed();
+}
+
+async function loadFacultyData() {
+  const cls = facultyCurrentClass;
+  const course = facultyCurrentCourse;
+
+  // 1. Update Labels
+  const clsLabel = cls === 'ALL' ? 'All Classes' : cls;
+  document.getElementById('kpi-total-label').textContent = `${clsLabel} Responses`;
+  document.getElementById('breakdown-title').textContent = `Emotional Breakdown for ${clsLabel}`;
+  document.getElementById('breakdown-class-badge').textContent = clsLabel;
+
+  // 2. Fetch Class Summary Metrics
+  try {
+    let url = `/feedback/class-summary?`;
+    if (cls !== 'ALL') url += `class_section=${encodeURIComponent(cls)}&`;
+    if (course !== 'ALL') url += `course_code=${encodeURIComponent(course)}&`;
+
+    const summaryResp = await fetch(url);
+    if (summaryResp.ok) {
+      const summary = await summaryResp.json();
+      document.getElementById('kpi-total').textContent = summary.total_responses;
+      document.getElementById('kpi-sentiment').textContent = `${summary.positive_percentage}% Positive`;
+      document.getElementById('kpi-emotion').textContent = summary.primary_emotion;
+      document.getElementById('kpi-action').textContent = summary.action_needed;
+
+      const bd = summary.breakdown || {};
+      const sat = bd.satisfaction || 65;
+      const fru = bd.frustration || 15;
+      const con = bd.confusion || 20;
+
+      document.getElementById('fill-satisfaction').style.width = sat + '%';
+      document.getElementById('pct-satisfaction').textContent = sat + '%';
+      document.getElementById('fill-frustration').style.width = fru + '%';
+      document.getElementById('pct-frustration').textContent = fru + '%';
+      document.getElementById('fill-confusion').style.width = con + '%';
+      document.getElementById('pct-confusion').textContent = con + '%';
+    }
+  } catch (err) {
+    console.error('Error fetching class summary:', err);
+  }
+
+  // 3. Fetch Class-Wise Feed List
+  try {
+    let feedUrl = `/feedback/?`;
+    if (cls !== 'ALL') feedUrl += `class_section=${encodeURIComponent(cls)}&`;
+    if (course !== 'ALL') feedUrl += `course_code=${encodeURIComponent(course)}&`;
+
+    const feedResp = await fetch(feedUrl);
+    if (feedResp.ok) {
+      const feedData = await feedResp.json();
+      allFacultyFeedbackCache = feedData.feedback || [];
+      renderFilteredFacultyFeed();
+    }
+  } catch (err) {
+    console.error('Error fetching faculty feedback list:', err);
+  }
+}
+
+function renderFilteredFacultyFeed() {
+  const feedList = document.getElementById('feedback-feed-list');
+  feedList.innerHTML = '';
+
+  let filtered = allFacultyFeedbackCache;
+
+  // Filter by Topic
+  if (facultyCurrentTopic !== 'ALL') {
+    filtered = filtered.filter(f => {
+      const txt = (f.feedback_text || '').toLowerCase();
+      const aspects = (f.aspects || []).map(a => (a.aspect || '').toLowerCase());
+      const topLower = facultyCurrentTopic.toLowerCase();
+      return aspects.some(a => a.includes(topLower)) || txt.includes(topLower);
+    });
+  }
+
+  // Filter by Course
+  if (facultyCurrentCourse !== 'ALL') {
+    filtered = filtered.filter(f => (f.course_code || '').toUpperCase() === facultyCurrentCourse.toUpperCase());
+  }
+
+  if (filtered.length === 0) {
+    feedList.innerHTML = `
+      <div class="card" style="text-align:center;padding:36px;color:var(--text-muted)">
+        <div style="font-size:24px;margin-bottom:8px">📝</div>
+        <div style="font-weight:600;color:var(--text)">No feedback submitted for ${facultyCurrentClass} under this filter yet.</div>
+        <div class="small">Students enrolled in this class will submit responses for their allotted subjects.</div>
+      </div>
+    `;
+    return;
+  }
+
+  filtered.forEach(item => {
+    const card = document.createElement('div');
+    const sent = (item.sentiment || 'POSITIVE').toUpperCase();
+    let cardClass = 'positive';
+    let pillClass = 'pill-positive';
+    let pillText = 'Positive';
+
+    if (sent.includes('NEG')) { cardClass = 'negative'; pillClass = 'pill-negative'; pillText = 'Needs attention'; }
+    else if (sent.includes('MIX') || sent.includes('NEU')) { cardClass = 'mixed'; pillClass = 'pill-mixed'; pillText = 'Mixed'; }
+
+    const mainTopic = (item.aspects && item.aspects.length > 0) ? item.aspects[0].aspect : 'Lectures';
+    const courseTag = item.course_code ? `${item.course_code} · ${item.course_name || 'Subject'}` : 'Subject Feedback';
+    const clsTag = item.class_section || 'Class 3A';
+    const semTag = item.semester ? `Sem ${item.semester}` : 'Sem 5';
+    const submitter = item.is_anonymous ? 'Anonymous' : (item.student_name || 'Named Student');
+    const dateFormatted = item.submitted_at ? new Date(item.submitted_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Recently';
+
+    card.className = `card feed-card ${cardClass}`;
+    card.innerHTML = `
+      <div class="feed-head">
+        <div class="tags-cluster">
+          <span class="pill ${pillClass}">${pillText}</span>
+          <span class="badge class-badge">${clsTag}</span>
+          <span class="badge sem-badge">${semTag}</span>
+          <span class="tag">${courseTag}</span>
+        </div>
+        <span class="tag" style="font-weight:600;background:var(--bg)">${mainTopic}</span>
+      </div>
+      <p class="feed-text">${escapeHtml(item.feedback_text)}</p>
+      <div class="feed-meta">
+        <span>👤 ${submitter}</span>
+        <span>•</span>
+        <span>📅 ${dateFormatted}</span>
+        ${item.emotion ? `<span>•</span> <span class="badge" style="text-transform:capitalize">Emotion: ${item.emotion}</span>` : ''}
+      </div>
+    `;
+    feedList.appendChild(card);
+  });
+}
+
+function escapeHtml(text) {
+  if (!text) return '';
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
+function exportData(type) {
+  alert(`Exporting ${type} report for ${facultyCurrentClass}... The file download will start automatically.`);
+}
+
+/* ========================================================
+   3. AI ASSISTANT FUNCTIONS
+   ======================================================== */
+function toggleAiDrawer(open) {
+  const drawer = document.getElementById('ai-drawer');
+  const overlay = document.getElementById('ai-drawer-overlay');
+  if (open) {
+    drawer.classList.add('active');
+    overlay.classList.add('active');
+    document.getElementById('ai-chat-input').focus();
+  } else {
+    drawer.classList.remove('active');
+    overlay.classList.remove('active');
+  }
+}
+
+function polishFeedbackWithAi() {
+  toggleAiDrawer(true);
+  const text = document.getElementById('feedback-text').value.trim();
+  if (!text) {
+    appendBotMsg("✨ Your feedback box is empty right now. Write your raw thoughts in the box on the left, and I will polish it into constructive academic feedback!");
+  } else {
+    appendUserMsg(`Please polish my current feedback draft: "${text}"`);
+    setTimeout(() => {
+      const polished = generatePolishedDraft(text);
+      appendBotSuggestion("Here is a polite, constructive, and actionable version for your instructor:", polished);
+    }, 350);
+  }
+}
+
+function askAiAssistant(type) {
+  const text = document.getElementById('feedback-text').value.trim();
+  if (type === 'polish') {
+    polishFeedbackWithAi();
+  } else if (type === 'tone') {
+    appendUserMsg("Check the tone of my feedback.");
+    setTimeout(() => {
+      if (text) {
+        appendBotMsg("⚖️ <strong>Tone Assessment:</strong><br>Your draft communicates clear feedback. To maximize positive impact, balance critical remarks with specific, actionable suggestions for your instructor.");
+      } else {
+        appendBotMsg("Type a draft into the feedback box first, and I will analyze its tone and emotional impact.");
+      }
+    }, 300);
+  } else if (type === 'suggestions') {
+    appendUserMsg("What are some constructive feedback ideas?");
+    setTimeout(() => {
+      appendBotMsg(`💡 <strong>Constructive Feedback Starters:</strong><br>
+        • "The lecture whiteboard walkthroughs helped significantly, but reviewing complex proofs at the start of next class would solidify the concepts."<br>
+        • "The difficulty of Assignment 2 was high; providing sample problem sets or hints would support our learning curve."<br>
+        • "Lecture slides shared before class allow us to follow derivations and code implementations much more smoothly."`);
+    }, 300);
+  } else if (type === 'privacy') {
+    appendUserMsg("How is my privacy protected?");
+    setTimeout(() => {
+      appendBotMsg("🔒 <strong>Privacy & Anonymity:</strong><br>When submitting anonymously, your roll number and student identity are never shared with faculty. Faculty only view class-wise aggregated sentiment, emotional breakdown, and anonymized feedback comments.");
+    }, 300);
+  }
+}
+
+function generatePolishedDraft(raw) {
+  const lower = raw.toLowerCase();
+  if (lower.includes("hard") || lower.includes("difficult") || lower.includes("deadline")) {
+    return "The conceptual depth of the assignments is valuable, but having a slightly longer completion window or scaffolded hints would greatly support student mastery.";
+  }
+  if (lower.includes("fast") || lower.includes("pace")) {
+    return "The lectures are very informative; slowing the pace slightly during complex derivations and offering a brief recap would help student retention.";
+  }
+  return "The course explanations are engaging and structured. Incorporating additional practice problems and interactive Q&A during class would further enhance understanding.";
+}
+
+function handleAiChatSubmit(e) {
+  e.preventDefault();
+  const input = document.getElementById('ai-chat-input');
+  const val = input.value.trim();
+  if (!val) return;
+  appendUserMsg(val);
+  input.value = '';
+
+  setTimeout(() => {
+    const lower = val.toLowerCase();
+    if (lower.includes("polish") || lower.includes("rephrase") || lower.includes("rewrite")) {
+      const cur = document.getElementById('feedback-text').value.trim();
+      const polished = generatePolishedDraft(cur || val);
+      appendBotSuggestion("Here is a polished version:", polished);
+    } else if (lower.includes("tone") || lower.includes("sentiment")) {
+      appendBotMsg("⚖️ <strong>Tone Check:</strong> Your points are constructive. Constructive feedback focuses on specific aspects (e.g. pace, whiteboard examples, deadlines) alongside practical suggestions.");
+    } else if (lower.includes("anon") || lower.includes("privacy")) {
+      appendBotMsg("🔒 Your identity is shielded when anonymous mode is toggled. Faculty only see aggregated sentiment and anonymized comments.");
+    } else {
+      appendBotMsg("I'm here to assist! You can ask me to polish your draft, inspect its tone, or suggest ideas for your semester course review.");
+    }
+  }, 350);
+}
+
+function appendUserMsg(text) {
+  const body = document.getElementById('ai-chat-body');
+  const div = document.createElement('div');
+  div.className = 'ai-msg user';
+  div.textContent = text;
+  body.appendChild(div);
+  body.scrollTop = body.scrollHeight;
+}
+
+function appendBotMsg(html) {
+  const body = document.getElementById('ai-chat-body');
+  const div = document.createElement('div');
+  div.className = 'ai-msg bot';
+  div.innerHTML = html;
+  body.appendChild(div);
+  body.scrollTop = body.scrollHeight;
+}
+
+function appendBotSuggestion(intro, text) {
+  const body = document.getElementById('ai-chat-body');
+  const div = document.createElement('div');
+  div.className = 'ai-msg bot';
+  div.innerHTML = `
+    ${intro}
+    <div class="ai-suggestion-box">
+      <em>"${escapeHtml(text)}"</em><br>
+      <button type="button" class="btn-apply-suggestion" onclick="applyAiSuggestion('${encodeURIComponent(text)}')">Apply to Feedback Box</button>
+    </div>
+  `;
+  body.appendChild(div);
+  body.scrollTop = body.scrollHeight;
+}
+
+function applyAiSuggestion(encoded) {
+  const decoded = decodeURIComponent(encoded);
+  const ta = document.getElementById('feedback-text');
+  ta.value = decoded;
+  document.getElementById('cc').textContent = decoded.length + ' / 1000 characters';
+  toggleAiDrawer(false);
+}
+
+// Auto-run on load
+document.addEventListener('DOMContentLoaded', checkAuthSession);
+if (document.readyState === 'complete' || document.readyState === 'interactive') {
+  checkAuthSession();
+}
 </script>
 </body>
 </html>

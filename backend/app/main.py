@@ -23,6 +23,7 @@ from sqlalchemy.orm import Session
 
 from app.database.connection import engine
 from app.api.feedback import router as feedback_router
+from app.api.auth import router as auth_router
 from ai.nlp import BertFeedbackAnalyzer, ExternalFeedbackAnalyzer, FeedbackAnalyzer, get_analyzer
 
 
@@ -49,6 +50,7 @@ app.add_middleware(
 )
 
 app.include_router(feedback_router)
+app.include_router(auth_router)
 
 @app.get("/health")
 def health_check() -> dict[str, str]:
