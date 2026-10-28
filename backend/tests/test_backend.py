@@ -46,6 +46,11 @@ def test_analyze_single_endpoint() -> None:
 
 
 def test_analyze_single_bert_endpoint() -> None:
+    import pytest
+    try:
+        from transformers import pipeline  # noqa: F401
+    except (ImportError, Exception):
+        pytest.skip("transformers pipeline not available")
     payload = {"feedback": "The professor explains clearly but the assignment deadline is very short.", "engine": "bert"}
     response = client.post("/api/analyze", json=payload)
     assert response.status_code == 200
