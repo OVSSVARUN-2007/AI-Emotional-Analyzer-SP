@@ -1,10 +1,24 @@
+import sys
+from pathlib import Path
 from typing import Optional, Any
 from fastapi import APIRouter, HTTPException, Query
 from sqlalchemy import text
 
-from app.database.connection import engine
-from app.schemas.feedback import FeedbackCreate
-from app.services.ai_service import analyze_feedback
+# Ensure repository root and backend directory are on Python path
+REPO_ROOT = Path(__file__).resolve().parents[3]
+BACKEND_DIR = Path(__file__).resolve().parents[2]
+for p in [str(REPO_ROOT), str(BACKEND_DIR)]:
+    if p not in sys.path:
+        sys.path.insert(0, p)
+
+try:
+    from app.database.connection import engine
+    from app.schemas.feedback import FeedbackCreate
+    from app.services.ai_service import analyze_feedback
+except ImportError:
+    from backend.app.database.connection import engine
+    from backend.app.schemas.feedback import FeedbackCreate
+    from backend.app.services.ai_service import analyze_feedback
 
 router = APIRouter(
     prefix="/feedback",

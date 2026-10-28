@@ -1,9 +1,22 @@
+import sys
+from pathlib import Path
+from typing import Any
 from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy import text
-from typing import Any
 
-from app.database.connection import engine
-from app.schemas.auth import LoginRequest, UserResponse
+# Ensure repository root and backend directory are on Python path
+REPO_ROOT = Path(__file__).resolve().parents[3]
+BACKEND_DIR = Path(__file__).resolve().parents[2]
+for p in [str(REPO_ROOT), str(BACKEND_DIR)]:
+    if p not in sys.path:
+        sys.path.insert(0, p)
+
+try:
+    from app.database.connection import engine
+    from app.schemas.auth import LoginRequest, UserResponse
+except ImportError:
+    from backend.app.database.connection import engine
+    from backend.app.schemas.auth import LoginRequest, UserResponse
 
 router = APIRouter(
     prefix="/api/auth",
