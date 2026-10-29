@@ -1561,7 +1561,11 @@ img{display:block;max-width:100%}
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
         Analytics
       </div>
-      <div class="nav-item" data-view="model-lab" id="nav-item-model-lab" onclick="switchView('model-lab')">
+            <div class="nav-item" data-view="courses" id="nav-item-courses" onclick="switchView('courses')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+        Courses & Faculty
+      </div>
+<div class="nav-item" data-view="model-lab" id="nav-item-model-lab" onclick="switchView('model-lab')">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
         AI Models
       </div>
@@ -1862,7 +1866,52 @@ img{display:block;max-width:100%}
         </div>
       </div>
 
-      <!-- ── SUBMIT FEEDBACK VIEW (For Students & Testing) ── -->
+            <!-- ── COURSES & FACULTY DIRECTORY ── -->
+      <div class="view" id="view-courses">
+        <div class="page-header">
+          <h1>Courses & Faculty Directory</h1>
+          <p>Official subjects, course codes, instructor in-charges (ICs), and sections (A to K) from the Faculty of Science & Technology.</p>
+        </div>
+
+        <div class="filter-bar" style="display:flex;gap:.75rem;flex-wrap:wrap;align-items:center;margin-bottom:1.5rem;">
+          <input type="text" id="course-search-input" placeholder="Search subject, code, or faculty..." style="padding:.6rem 1rem;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--card-solid);color:var(--text);flex:1;min-width:240px;" oninput="renderCourseDirectory()">
+          <select class="filter-select" id="course-program-filter" onchange="renderCourseDirectory()">
+            <option value="ALL">All Programs (B.Tech, BCA, BSC)</option>
+            <option value="B.Tech">B.Tech</option>
+            <option value="BCA">BCA</option>
+            <option value="BSC">B.Sc</option>
+          </select>
+          <select class="filter-select" id="course-sem-filter" onchange="renderCourseDirectory()">
+            <option value="ALL">All Semesters</option>
+            <option value="3">Semester 3 (2nd Year)</option>
+            <option value="5">Semester 5 (3rd Year)</option>
+            <option value="7">Semester 7 (4th Year)</option>
+          </select>
+          <span style="font-size:.82rem;font-weight:600;padding:.5rem .9rem;border-radius:999px;background:var(--primary-bg);color:var(--primary);">
+            Sections A through K Active
+          </span>
+        </div>
+
+        <div class="panel" style="overflow-x:auto;">
+          <table style="width:100%;border-collapse:collapse;font-size:.9rem;text-align:left;">
+            <thead>
+              <tr style="border-bottom:2px solid var(--border);color:var(--muted);font-size:.78rem;text-transform:uppercase;letter-spacing:.6px;">
+                <th style="padding:.85rem 1rem;">Code</th>
+                <th style="padding:.85rem 1rem;">Subject Name</th>
+                <th style="padding:.85rem 1rem;">Program</th>
+                <th style="padding:.85rem 1rem;">Semester</th>
+                <th style="padding:.85rem 1rem;">Instructor In-Charge (IC)</th>
+                <th style="padding:.85rem 1rem;">Exam Slot</th>
+              </tr>
+            </thead>
+            <tbody id="course-directory-tbody">
+              <!-- Dynamically rendered -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+<!-- ── SUBMIT FEEDBACK VIEW (For Students & Testing) ── -->
       <div class="view" id="view-submit-feedback">
         <div class="page-header">
           <h1>Submit Course Feedback</h1>
@@ -1871,18 +1920,43 @@ img{display:block;max-width:100%}
 
         <div class="panel" style="max-width:700px;margin:0 auto;">
           <form id="student-submit-form" onsubmit="handleFeedbackSubmission(event)">
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem;">
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;margin-bottom:1rem;">
               <div class="form-group" style="margin:0">
-                <label for="submit-course">Course Code</label>
-                <input type="text" id="submit-course" value="AI501" required placeholder="e.g. AI501">
+                <label for="submit-program">Program / Branch</label>
+                <select id="submit-program" onchange="filterSubmitCourseDropdown()">
+                  <option value="ALL">All Programs</option>
+                  <option value="B.Tech" selected>B.Tech</option>
+                  <option value="BCA">BCA</option>
+                  <option value="BSC">B.Sc</option>
+                </select>
               </div>
               <div class="form-group" style="margin:0">
-                <label for="submit-class">Class Section</label>
-                <select id="submit-class">
-                  <option value="Class 3A">Class 3A</option>
-                  <option value="Class 3B">Class 3B</option>
-                  <option value="Class 2A">Class 2A</option>
+                <label for="submit-semester">Semester</label>
+                <select id="submit-semester" onchange="filterSubmitCourseDropdown()">
+                  <option value="ALL">All Semesters</option>
+                  <option value="3">Semester 3 (2nd Year)</option>
+                  <option value="5" selected>Semester 5 (3rd Year)</option>
+                  <option value="7">Semester 7 (4th Year)</option>
                 </select>
+              </div>
+              <div class="form-group" style="margin:0">
+                <label for="submit-class">Section (A to K)</label>
+                <select id="submit-class">
+                  <option value="Section A">Section A</option><option value="Section B">Section B</option><option value="Section C">Section C</option><option value="Section D">Section D</option><option value="Section E">Section E</option><option value="Section F">Section F</option><option value="Section G">Section G</option><option value="Section H">Section H</option><option value="Section I">Section I</option><option value="Section J">Section J</option><option value="Section K">Section K</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-group" style="margin-bottom:1.25rem;">
+              <label for="submit-course-select">Select Subject & Faculty (From Timetable)</label>
+              <select id="submit-course-select" onchange="onCourseSelected(this.value)" style="width:100%;padding:.75rem 1rem;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--card-solid);color:var(--text);font-size:.9rem;">
+                <!-- Populated dynamically from timetable -->
+              </select>
+              <input type="hidden" id="submit-course" value="CS305">
+              <div id="submit-course-info" style="margin-top:.5rem;font-size:.82rem;color:var(--muted);display:flex;align-items:center;gap:.5rem;">
+                <span id="submit-course-badge" style="font-weight:600;color:var(--primary);">[CS305] SOFTWARE ENGINEERING</span>
+                <span>&bull;</span>
+                <span id="submit-faculty-badge">IC: Dr Sandeep Kumar Panda</span>
               </div>
             </div>
 
@@ -3045,6 +3119,122 @@ if (document.readyState === 'loading') {
 } else {
   Bixi.init();
 }
+
+
+/* ═══════════════════════════════════════════════════════
+   OFFICIAL TIMETABLE & SECTIONS (A to K) INTEGRATION
+   ═══════════════════════════════════════════════════════ */
+const CURRICULUM_DATA = [{"course_code": "ES201", "course_name": "OBJECT ORIENTED PROGRAMMING CONCEPTS", "program": "B.Tech", "department": "Computer Science", "semester": 3, "year_sem": "2nd Year (Sem 3)", "faculty_name": "Dr Ramesh Ponnala", "exam_date": "16-Sep-2026 (Morning)"}, {"course_code": "DS401", "course_name": "HUMAN COMPUTER INTERACTION", "program": "B.Tech", "department": "Data Science", "semester": 7, "year_sem": "4th Year (Sem 7)", "faculty_name": "Dr. Surya Samantha. B", "exam_date": "16-Sep-2026 (Morning)"}, {"course_code": "BCA408", "course_name": "ARTIFICIAL INTELLIGENCE", "program": "BCA", "department": "Computer Applications (BCA)", "semester": 5, "year_sem": "3rd Year (Sem 5)", "faculty_name": "Dr.K.Bhargavi", "exam_date": "16-Sep-2026 (Morning)"}, {"course_code": "BSCS302/BSDA302", "course_name": "Computer Networks", "program": "BSC", "department": "B.Sc Computer Science", "semester": 5, "year_sem": "3rd Year (Sem 5)", "faculty_name": "Mr Girish Kulkarni", "exam_date": "16-Sep-2026 (Morning)"}, {"course_code": "EC410", "course_name": "LOW POWER VLSI DESIGN", "program": "B.Tech", "department": "Electronics & Communication", "semester": 7, "year_sem": "4th Year (Sem 7)", "faculty_name": "Dr. Akhendra Kumar P", "exam_date": "16-Sep-2026 (Morning)"}, {"course_code": "ME401", "course_name": "ADDITIVE MANUFACTURING", "program": "B.Tech", "department": "Mechanical Engineering", "semester": 7, "year_sem": "4th Year (Sem 7)", "faculty_name": "Ms. PRIYANKA CHATTORAJ", "exam_date": "16-Sep-2026 (Morning)"}, {"course_code": "BSPH303", "course_name": "ADVANCED MATHEMATICAL METHODS FOR PHYSICS", "program": "BSC", "department": "B.Sc Physics", "semester": 5, "year_sem": "3rd Year (Sem 5)", "faculty_name": "Dr. THOKALA SOLOMAN RAJU", "exam_date": "16-Sep-2026 (Morning)"}, {"course_code": "CS305", "course_name": "SOFTWARE ENGINEERING", "program": "B.Tech", "department": "Computer Science", "semester": 5, "year_sem": "3rd Year (Sem 5)", "faculty_name": "Dr Sandeep Kumar Panda", "exam_date": "16-Sep-2026 (Afternoon)"}, {"course_code": "BCA102", "course_name": "PROBABILITY & STATISTICS", "program": "BCA", "department": "Computer Applications (BCA)", "semester": 3, "year_sem": "2nd Year (Sem 3)", "faculty_name": "Dr. Sunil", "exam_date": "16-Sep-2026 (Afternoon)"}, {"course_code": "DS307", "course_name": "COMPUTER VISION", "program": "B.Tech", "department": "Data Science", "semester": 5, "year_sem": "3rd Year (Sem 5)", "faculty_name": "Dr Suresh N", "exam_date": "16-Sep-2026 (Afternoon)"}, {"course_code": "AI301", "course_name": "PREDICTIVE ANALYTICS", "program": "B.Tech", "department": "Artificial Intelligence & Data Science", "semester": 5, "year_sem": "3rd Year (Sem 5)", "faculty_name": "Mr Madhav", "exam_date": "16-Sep-2026 (Afternoon)"}, {"course_code": "AIM301", "course_name": "SOFT COMPUTING", "program": "B.Tech", "department": "Artificial Intelligence & Data Science", "semester": 5, "year_sem": "3rd Year (Sem 5)", "faculty_name": "Dr Pallavi Mishra", "exam_date": "16-Sep-2026 (Afternoon)"}, {"course_code": "AEC103", "course_name": "ACADEMIC READING AND WRITING", "program": "BSC", "department": "Electronics & Communication", "semester": 3, "year_sem": "2nd Year (Sem 3)", "faculty_name": "Dr. Swathi", "exam_date": "16-Sep-2026 (Afternoon)"}, {"course_code": "EC321", "course_name": "ANALOG AND DIGITAL COMMUNICATION", "program": "B.Tech", "department": "Electronics & Communication", "semester": 5, "year_sem": "3rd Year (Sem 5)", "faculty_name": "Dr. Syed Shakeel H", "exam_date": "16-Sep-2026 (Afternoon)"}, {"course_code": "ME305", "course_name": "CAD/CAM", "program": "B.Tech", "department": "Mechanical Engineering", "semester": 5, "year_sem": "3rd Year (Sem 5)", "faculty_name": "Dr. A MANMADHA CHARY", "exam_date": "16-Sep-2026 (Afternoon)"}, {"course_code": "BS105", "course_name": "PROBABILITY & STATISTICS", "program": "B.Tech", "department": "Computer Science", "semester": 3, "year_sem": "2nd Year (Sem 3)", "faculty_name": "Dr. Divya", "exam_date": "17-Sep-2026 (Morning)"}, {"course_code": "MG401", "course_name": "INTRODUCTION TO ENTREPRENEURSHIP", "program": "B.Tech", "department": "Computer Science", "semester": 7, "year_sem": "4th Year (Sem 7)", "faculty_name": "Dr H Sudheer", "exam_date": "17-Sep-2026 (Morning)"}, {"course_code": "HS206", "course_name": "PROFESSIONAL ETHICS", "program": "B.Tech", "department": "Computer Science", "semester": 7, "year_sem": "4th Year (Sem 7)", "faculty_name": "Dr. SOMDATTA MUKHERJEE", "exam_date": "17-Sep-2026 (Morning)"}, {"course_code": "BCA409", "course_name": "BIG DATA SYSTEMS", "program": "BCA", "department": "Computer Applications (BCA)", "semester": 5, "year_sem": "3rd Year (Sem 5)", "faculty_name": "Mr Arram Sriram", "exam_date": "17-Sep-2026 (Morning)"}, {"course_code": "BSCS305", "course_name": "Software Engineering", "program": "BSC", "department": "B.Sc Computer Science", "semester": 5, "year_sem": "3rd Year (Sem 5)", "faculty_name": "Dr S Jayanthi", "exam_date": "17-Sep-2026 (Morning)"}, {"course_code": "BSPH302", "course_name": "ELECTRONICS-I", "program": "BSC", "department": "B.Sc Physics", "semester": 5, "year_sem": "3rd Year (Sem 5)", "faculty_name": "Dr.Ashwin Kumar", "exam_date": "17-Sep-2026 (Morning)"}, {"course_code": "CR301", "course_name": "POWER SKILLS-III", "program": "B.Tech", "department": "Computer Science", "semester": 5, "year_sem": "3rd Year (Sem 5)", "faculty_name": "Ms. Sai Prasanna", "exam_date": "17-Sep-2026 (Afternoon)"}, {"course_code": "BCA224", "course_name": "SOFTWARE ENGINEERING", "program": "BCA", "department": "Computer Applications (BCA)", "semester": 3, "year_sem": "2nd Year (Sem 3)", "faculty_name": "Dr S Jayanthi", "exam_date": "17-Sep-2026 (Afternoon)"}, {"course_code": "SEC103", "course_name": "IMPACTFUL PRESENTATIONS", "program": "BSC", "department": "Electronics & Communication", "semester": 3, "year_sem": "2nd Year (Sem 3)", "faculty_name": "Dr Madhupama", "exam_date": "17-Sep-2026 (Afternoon)"}, {"course_code": "CR201", "course_name": "POWER SKILLS - I", "program": "B.Tech", "department": "Computer Science", "semester": 3, "year_sem": "2nd Year (Sem 3)", "faculty_name": "Dr K Ramesh", "exam_date": "18-Sep-2026 (Morning)"}, {"course_code": "CS307", "course_name": "CLOUD COMPUTING", "program": "B.Tech", "department": "Computer Science", "semester": 7, "year_sem": "4th Year (Sem 7)", "faculty_name": "Dr K Vara Prasada Rao", "exam_date": "18-Sep-2026 (Morning)"}, {"course_code": "DS311", "course_name": "NATURAL LANGUAGE PROCESSING", "program": "B.Tech", "department": "Data Science", "semester": 7, "year_sem": "4th Year (Sem 7)", "faculty_name": "Dr Kuncham Sreenivasa Rao", "exam_date": "18-Sep-2026 (Morning)"}, {"course_code": "BCA424", "course_name": "INFORMATION SECURITY", "program": "BCA", "department": "Computer Applications (BCA)", "semester": 5, "year_sem": "3rd Year (Sem 5)", "faculty_name": "Dr.T.Bharath Kumar", "exam_date": "18-Sep-2026 (Morning)"}, {"course_code": "BSDA309", "course_name": "DATA VISUALISATION", "program": "BSC", "department": "B.Sc Data Analytics", "semester": 5, "year_sem": "3rd Year (Sem 5)", "faculty_name": "Mr. Abhiram D", "exam_date": "18-Sep-2026 (Morning)"}, {"course_code": "BSDA304", "course_name": "Cryptography and Network Security", "program": "BSC", "department": "B.Sc Data Analytics", "semester": 5, "year_sem": "3rd Year (Sem 5)", "faculty_name": "Mr Girish Kulkarni", "exam_date": "18-Sep-2026 (Morning)"}, {"course_code": "EC409", "course_name": "SMART ANTENNAS FOR MOBILE COMMUNICATION", "program": "B.Tech", "department": "Electronics & Communication", "semester": 7, "year_sem": "4th Year (Sem 7)", "faculty_name": "Dr. Sankar Ponnapalli", "exam_date": "18-Sep-2026 (Morning)"}, {"course_code": "MT403", "course_name": "ADVANCES IN ROBOTICS", "program": "B.Tech", "department": "Computer Science", "semester": 7, "year_sem": "4th Year (Sem 7)", "faculty_name": "Dr. CHANDRA SHEKHAR A", "exam_date": "18-Sep-2026 (Morning)"}, {"course_code": "BCA223 - ACC", "course_name": "COMPUTER NETWORKS", "program": "BCA", "department": "Computer Applications (BCA)", "semester": 5, "year_sem": "3rd Year (Sem 5)", "faculty_name": "JOYDEEP ROY", "exam_date": "18-Sep-2026 (Morning)"}, {"course_code": "HS301", "course_name": "CONSTITUTION OF INDIA", "program": "B.Tech", "department": "Computer Science", "semester": 5, "year_sem": "3rd Year (Sem 5)", "faculty_name": "Dr. GURSINGA LAKSHMAN KUMAR", "exam_date": "18-Sep-2026 (Afternoon)"}, {"course_code": "SHAE401", "course_name": "ACADEMIC READING AND WRITING", "program": "BCA", "department": "Computer Applications (BCA)", "semester": 3, "year_sem": "2nd Year (Sem 3)", "faculty_name": "Dr Swathi", "exam_date": "18-Sep-2026 (Afternoon)"}, {"course_code": "IDSC113", "course_name": "FOUNDATIONS OF ENTREPRENEURAL THINKING AND PRACTICE", "program": "BSC", "department": "Data Science", "semester": 3, "year_sem": "2nd Year (Sem 3)", "faculty_name": "Dr Isha Jha", "exam_date": "18-Sep-2026 (Afternoon)"}, {"course_code": "BSRA202", "course_name": "BASIC ELECTRICAL AND ELECTRONICS ENGINEERING", "program": "BSC", "department": "B.Sc Robotics", "semester": 3, "year_sem": "2nd Year (Sem 3)", "faculty_name": "Dr. Akhendra Kumar P", "exam_date": "18-Sep-2026 (Afternoon)"}, {"course_code": "AI203/AIM203/CS203/DS203", "course_name": "ARTIFICIAL INTELLIGENCE", "program": "B.Tech", "department": "Artificial Intelligence & Data Science", "semester": 3, "year_sem": "2nd Year (Sem 3)", "faculty_name": "Dr R Balamurali", "exam_date": "21-Sep-2026 (Morning)"}, {"course_code": "DS408", "course_name": "GENERATIVE AI", "program": "B.Tech", "department": "Data Science", "semester": 7, "year_sem": "4th Year (Sem 7)", "faculty_name": "Dr Sarit Chanda", "exam_date": "21-Sep-2026 (Morning)"}, {"course_code": "BCA311", "course_name": "MACHINE LEARNING", "program": "BCA", "department": "Computer Applications (BCA)", "semester": 5, "year_sem": "3rd Year (Sem 5)", "faculty_name": "Dr.T.Aruna Sri", "exam_date": "21-Sep-2026 (Morning)"}, {"course_code": "BSCS301", "course_name": "Design and Analysis of Algorithms", "program": "BSC", "department": "B.Sc Computer Science", "semester": 5, "year_sem": "3rd Year (Sem 5)", "faculty_name": "Dr B Deevena Raju", "exam_date": "21-Sep-2026 (Morning)"}, {"course_code": "BSDA301", "course_name": "Data Wrangling", "program": "BSC", "department": "B.Sc Data Analytics", "semester": 5, "year_sem": "3rd Year (Sem 5)", "faculty_name": "Mr. Abhiram D", "exam_date": "21-Sep-2026 (Morning)"}, {"course_code": "EC224", "course_name": "ELECTRONIC DEVICES", "program": "B.Tech", "department": "Electronics & Communication", "semester": 3, "year_sem": "2nd Year (Sem 3)", "faculty_name": "Dr. Kousik Midya", "exam_date": "21-Sep-2026 (Morning)"}, {"course_code": "ME202", "course_name": "ENGINEERING MATERIALS", "program": "B.Tech", "department": "Mechanical Engineering", "semester": 3, "year_sem": "2nd Year (Sem 3)", "faculty_name": "Dr. AVINASH MALLADI", "exam_date": "21-Sep-2026 (Morning)"}, {"course_code": "EC407", "course_name": "RADAR SYSTEMS", "program": "B.Tech", "department": "Electronics & Communication", "semester": 7, "year_sem": "4th Year (Sem 7)", "faculty_name": "Dr.Mallavarapu Sandhya", "exam_date": "21-Sep-2026 (Morning)"}, {"course_code": "ME408", "course_name": "COMPUTATIONAL FLUID DYNAMICS", "program": "B.Tech", "department": "Mechanical Engineering", "semester": 7, "year_sem": "4th Year (Sem 7)", "faculty_name": "Dr. M L PAVAN KISHORE", "exam_date": "21-Sep-2026 (Morning)"}, {"course_code": "BSPH410", "course_name": "MATERIAL PHYSICS", "program": "BSC", "department": "B.Sc Physics", "semester": 5, "year_sem": "3rd Year (Sem 5)", "faculty_name": "Dr. Elizabeth Zacharias", "exam_date": "21-Sep-2026 (Morning)"}, {"course_code": "BCA211", "course_name": "OBJECT ORIENTED ANALYSIS AND DESIGN", "program": "BCA", "department": "Computer Applications (BCA)", "semester": 5, "year_sem": "3rd Year (Sem 5)", "faculty_name": "Mr. Mohammed Kaleem", "exam_date": "21-Sep-2026 (Morning)"}, {"course_code": "AI302/AIM302/CS302/DS302", "course_name": "COMPUTER NETWORKS", "program": "B.Tech", "department": "Artificial Intelligence & Data Science", "semester": 5, "year_sem": "3rd Year (Sem 5)", "faculty_name": "Dr. K. Sridevi", "exam_date": "21-Sep-2026 (Afternoon)"}, {"course_code": "BCA214", "course_name": "DATA STRUCTURES AND ALGORITHMS", "program": "BCA", "department": "Computer Applications (BCA)", "semester": 3, "year_sem": "2nd Year (Sem 3)", "faculty_name": "Dr. P. Chakradhar", "exam_date": "21-Sep-2026 (Afternoon)"}, {"course_code": "BSCS201", "course_name": "OBJECT ORIENTED ANALYSIS AND DESIGN", "program": "BSC", "department": "B.Sc Computer Science", "semester": 3, "year_sem": "2nd Year (Sem 3)", "faculty_name": "Mr. Mohammed Kaleem", "exam_date": "21-Sep-2026 (Afternoon)"}, {"course_code": "EC323", "course_name": "DIGITAL VLSI DESIGN", "program": "B.Tech", "department": "Electronics & Communication", "semester": 5, "year_sem": "3rd Year (Sem 5)", "faculty_name": "Dr. Rajesh Kumar Jha", "exam_date": "21-Sep-2026 (Afternoon)"}, {"course_code": "BSRA201", "course_name": "ENGINEERING MECHANICS", "program": "BSC", "department": "B.Sc Robotics", "semester": 3, "year_sem": "2nd Year (Sem 3)", "faculty_name": "Dr. M L Pavan Kishore", "exam_date": "21-Sep-2026 (Afternoon)"}, {"course_code": "BSPH202", "course_name": "INTRODUCTORY MATHEMATICAL METHODS FOR PHYSICS", "program": "BSC", "department": "B.Sc Physics", "semester": 3, "year_sem": "2nd Year (Sem 3)", "faculty_name": "Dr. Shreecharan", "exam_date": "21-Sep-2026 (Afternoon)"}, {"course_code": "ME302", "course_name": "DESIGN OF MACHINE ELEMENTS", "program": "B.Tech", "department": "Mechanical Engineering", "semester": 5, "year_sem": "3rd Year (Sem 5)", "faculty_name": "Dr. M L Pavan Kishore", "exam_date": "21-Sep-2026 (Afternoon)"}, {"course_code": "BSMA202", "course_name": "DISCRETE MATHEMATICS", "program": "BSC", "department": "B.Sc Mathematics", "semester": 3, "year_sem": "2nd Year (Sem 3)", "faculty_name": "Dr. Ramesh", "exam_date": "21-Sep-2026 (Afternoon)"}, {"course_code": "AI204/AIM204/CS204/DS204", "course_name": "DESIGN AND ANALYSIS OF ALGORITHMS", "program": "B.Tech", "department": "Artificial Intelligence & Data Science", "semester": 3, "year_sem": "2nd Year (Sem 3)", "faculty_name": "Dr Dileep Kumar Murala", "exam_date": "22-Sep-2026 (Morning)"}, {"course_code": "CS305", "course_name": "COMPUTER VISION", "program": "B.Tech", "department": "Computer Science", "semester": 7, "year_sem": "4th Year (Sem 7)", "faculty_name": "Dr. E.L.N. Kiran Kumar", "exam_date": "22-Sep-2026 (Morning)"}, {"course_code": "BSCS304", "course_name": "Theory of Computation", "program": "BSC", "department": "B.Sc Computer Science", "semester": 5, "year_sem": "3rd Year (Sem 5)", "faculty_name": "Dr.Pradosh Kumar Gantayat", "exam_date": "22-Sep-2026 (Morning)"}, {"course_code": "BSDA303", "course_name": "Machine Learning", "program": "BSC", "department": "B.Sc Data Analytics", "semester": 5, "year_sem": "3rd Year (Sem 5)", "faculty_name": "Dr. Nafis Uddin Khan", "exam_date": "22-Sep-2026 (Morning)"}, {"course_code": "EC222", "course_name": "CIRCUIT THEORY", "program": "B.Tech", "department": "Electronics & Communication", "semester": 3, "year_sem": "2nd Year (Sem 3)", "faculty_name": "Dr. D. V. Nair", "exam_date": "22-Sep-2026 (Morning)"}, {"course_code": "ME201", "course_name": "ENGINEERING MECHANICS", "program": "B.Tech", "department": "Mechanical Engineering", "semester": 3, "year_sem": "2nd Year (Sem 3)", "faculty_name": "Dr. M L Pavan Kishore", "exam_date": "22-Sep-2026 (Morning)"}, {"course_code": "EC414", "course_name": "VLSI TESTING AND TESTABILITY", "program": "B.Tech", "department": "Electronics & Communication", "semester": 7, "year_sem": "4th Year (Sem 7)", "faculty_name": "Dr. Rajesh Kumar Jha", "exam_date": "22-Sep-2026 (Morning)"}, {"course_code": "ME414", "course_name": "NON CONVENTIONAL SOURCES OF ENERGY", "program": "B.Tech", "department": "Mechanical Engineering", "semester": 7, "year_sem": "4th Year (Sem 7)", "faculty_name": "Dr Suresh Kumar Grandhi", "exam_date": "22-Sep-2026 (Morning)"}, {"course_code": "BSPH301", "course_name": "MODERN PHYSICS", "program": "BSC", "department": "B.Sc Physics", "semester": 5, "year_sem": "3rd Year (Sem 5)", "faculty_name": "Dr. Shreecharan", "exam_date": "22-Sep-2026 (Morning)"}, {"course_code": "BCA222", "course_name": "WEB ENABLED TECHNOLOGIES", "program": "BCA", "department": "Computer Applications (BCA)", "semester": 5, "year_sem": "3rd Year (Sem 5)", "faculty_name": "A SRIRAM", "exam_date": "22-Sep-2026 (Morning)"}, {"course_code": "AI303/AIM303/DS303", "course_name": "BLOCKCHAIN TECHNOLOGY", "program": "B.Tech", "department": "Artificial Intelligence & Data Science", "semester": 5, "year_sem": "3rd Year (Sem 5)", "faculty_name": "Dr.TAMMINEEDI VENKATA SATYA VIVEK", "exam_date": "22-Sep-2026 (Afternoon)"}, {"course_code": "BCA212", "course_name": "DATABASE MANAGEMENT SYSTEMS", "program": "BCA", "department": "Computer Applications (BCA)", "semester": 3, "year_sem": "2nd Year (Sem 3)", "faculty_name": "K LOKESH REDDY", "exam_date": "22-Sep-2026 (Afternoon)"}, {"course_code": "BSDA301", "course_name": "DATA WRANGLING", "program": "BSC", "department": "B.Sc Data Analytics", "semester": 3, "year_sem": "2nd Year (Sem 3)", "faculty_name": "Mr. Abhiram D", "exam_date": "22-Sep-2026 (Afternoon)"}, {"course_code": "BSCS206", "course_name": "DATABASE MANAGEMENT SYSTEMS", "program": "BSC", "department": "B.Sc Computer Science", "semester": 3, "year_sem": "2nd Year (Sem 3)", "faculty_name": "Dr Suresh Kumar Grandhi", "exam_date": "22-Sep-2026 (Afternoon)"}, {"course_code": "EC322", "course_name": "MICROPROCESSOR PROGRAMMING AND INTERFACING", "program": "B.Tech", "department": "Electronics & Communication", "semester": 5, "year_sem": "3rd Year (Sem 5)", "faculty_name": "Dr. D. V. Nair", "exam_date": "22-Sep-2026 (Afternoon)"}, {"course_code": "BSRA203", "course_name": "MACHINE LEARNING", "program": "BSC", "department": "B.Sc Robotics", "semester": 3, "year_sem": "2nd Year (Sem 3)", "faculty_name": "Dr. A MANMADHA CHARY", "exam_date": "22-Sep-2026 (Afternoon)"}, {"course_code": "ME304", "course_name": "HEAT AND MASS TRANSFER", "program": "B.Tech", "department": "Mechanical Engineering", "semester": 5, "year_sem": "3rd Year (Sem 5)", "faculty_name": "Mr. VENUGOPAL CHITTEMSETTY", "exam_date": "22-Sep-2026 (Afternoon)"}, {"course_code": "CS201/EC201", "course_name": "INTRODUCTION TO IOT", "program": "B.Tech", "department": "Electronics & Communication", "semester": 3, "year_sem": "2nd Year (Sem 3)", "faculty_name": "Dr. V. A. Sankar Ponnapalli", "exam_date": "23-Sep-2026 (Morning)"}, {"course_code": "CS415", "course_name": "ETHICAL HACKING", "program": "B.Tech", "department": "Computer Science", "semester": 7, "year_sem": "4th Year (Sem 7)", "faculty_name": "Dr Sowjanya Ramisetty", "exam_date": "23-Sep-2026 (Morning)"}, {"course_code": "ES202", "course_name": "INDUSTRY CODING PRACTICES", "program": "B.Tech", "department": "Computer Science", "semester": 3, "year_sem": "2nd Year (Sem 3)", "faculty_name": "Dr.Sathya AR", "exam_date": "23-Sep-2026 (Morning)"}, {"course_code": "BSCS303", "course_name": "Web Enabled Technologies", "program": "BSC", "department": "B.Sc Computer Science", "semester": 5, "year_sem": "3rd Year (Sem 5)", "faculty_name": "Mr Arram Sriram", "exam_date": "23-Sep-2026 (Morning)"}, {"course_code": "BSDA305", "course_name": "Predictive Analytics", "program": "BSC", "department": "B.Sc Data Analytics", "semester": 5, "year_sem": "3rd Year (Sem 5)", "faculty_name": "Dr Kuncham Sreenivasa Rao", "exam_date": "23-Sep-2026 (Morning)"}, {"course_code": "EC308", "course_name": "EMBEDDED SYSTEMS", "program": "B.Tech", "department": "Electronics & Communication", "semester": 7, "year_sem": "4th Year (Sem 7)", "faculty_name": "Dr.Rajesh Jha", "exam_date": "23-Sep-2026 (Morning)"}, {"course_code": "ME204", "course_name": "FLUID MECHANICS", "program": "B.Tech", "department": "Mechanical Engineering", "semester": 3, "year_sem": "2nd Year (Sem 3)", "faculty_name": "Ms. PRIYANKA CHATTORAJ", "exam_date": "23-Sep-2026 (Morning)"}, {"course_code": "AI305/AIM305/DS305", "course_name": "DATA WRANGLING AND VISUALIZATION", "program": "B.Tech", "department": "Artificial Intelligence & Data Science", "semester": 5, "year_sem": "3rd Year (Sem 5)", "faculty_name": "Mr.Senthil Raja", "exam_date": "23-Sep-2026 (Afternoon)"}, {"course_code": "CS301", "course_name": "PRINCIPLE OF CRYPTOGRAPHY", "program": "B.Tech", "department": "Computer Science", "semester": 5, "year_sem": "3rd Year (Sem 5)", "faculty_name": "Dr. K. Adi Narayana Reddy", "exam_date": "23-Sep-2026 (Afternoon)"}, {"course_code": "SHIM407", "course_name": "IMPACTFUL PRESENTATIONS", "program": "BCA", "department": "Computer Applications (BCA)", "semester": 3, "year_sem": "2nd Year (Sem 3)", "faculty_name": "Dr Madhupama", "exam_date": "23-Sep-2026 (Afternoon)"}, {"course_code": "BSCS202", "course_name": "DATA STRUCTURES", "program": "BSC", "department": "B.Sc Computer Science", "semester": 3, "year_sem": "2nd Year (Sem 3)", "faculty_name": "Dr. Priyanka Parimi", "exam_date": "23-Sep-2026 (Afternoon)"}, {"course_code": "BSCS205", "course_name": "COMPUTER ORGANIZATION & ARCHITECTURE", "program": "BSC", "department": "B.Sc Computer Science", "semester": 3, "year_sem": "2nd Year (Sem 3)", "faculty_name": "Dr. Santosh Kumar Sahoo", "exam_date": "23-Sep-2026 (Afternoon)"}, {"course_code": "EC325", "course_name": "RF AND MICROWAVE ENGINEERING", "program": "B.Tech", "department": "Electronics & Communication", "semester": 5, "year_sem": "3rd Year (Sem 5)", "faculty_name": "Dr. Soumit Samadder Chaudhury", "exam_date": "23-Sep-2026 (Afternoon)"}, {"course_code": "BSRA204", "course_name": "MICROPROCESSOR AND MICROCONTROLLER", "program": "BSC", "department": "B.Sc Robotics", "semester": 3, "year_sem": "2nd Year (Sem 3)", "faculty_name": "Dr. BARLA MADHAVI", "exam_date": "23-Sep-2026 (Afternoon)"}, {"course_code": "BSPH201", "course_name": "WAVES AND OSCILLATIONS", "program": "BSC", "department": "B.Sc Physics", "semester": 3, "year_sem": "2nd Year (Sem 3)", "faculty_name": "Dr. THOKALA SOLOMAN RAJU", "exam_date": "23-Sep-2026 (Afternoon)"}, {"course_code": "ME303", "course_name": "INDUSTRIAL INTERNET OF THINGS", "program": "B.Tech", "department": "Mechanical Engineering", "semester": 5, "year_sem": "3rd Year (Sem 5)", "faculty_name": "Dr. CHANDRA SHEKHAR A", "exam_date": "23-Sep-2026 (Afternoon)"}, {"course_code": "BSMA201", "course_name": "GROUP THEORY", "program": "BSC", "department": "B.Sc Mathematics", "semester": 3, "year_sem": "2nd Year (Sem 3)", "faculty_name": "Dr. Rakesh Reddy", "exam_date": "23-Sep-2026 (Afternoon)"}, {"course_code": "AIM206/DS206", "course_name": "COMPUTER ORGANIZATION AND ARCHITECTURE", "program": "B.Tech", "department": "Artificial Intelligence & Data Science", "semester": 3, "year_sem": "2nd Year (Sem 3)", "faculty_name": "Dr. Sukanta Das", "exam_date": "24-Sep-2026 (Morning)"}, {"course_code": "MG201", "course_name": "ENGINEERING ECONOMICS AND MANAGEMENT", "program": "B.Tech", "department": "Computer Science", "semester": 3, "year_sem": "2nd Year (Sem 3)", "faculty_name": "Dr Balaji Vejju", "exam_date": "24-Sep-2026 (Morning)"}, {"course_code": "DS306", "course_name": "DEEP LEARNING", "program": "B.Tech", "department": "Data Science", "semester": 7, "year_sem": "4th Year (Sem 7)", "faculty_name": "Dr. Srinivasa Rao Kongara", "exam_date": "24-Sep-2026 (Morning)"}, {"course_code": "CS413", "course_name": "QUANTUM COMPUTING", "program": "B.Tech", "department": "Computer Science", "semester": 7, "year_sem": "4th Year (Sem 7)", "faculty_name": "Dr.B.SEETHARAMULU", "exam_date": "24-Sep-2026 (Morning)"}, {"course_code": "AI304/CS304", "course_name": "MACHINE LEARNING", "program": "B.Tech", "department": "Artificial Intelligence & Data Science", "semester": 5, "year_sem": "3rd Year (Sem 5)", "faculty_name": "Dr. Nafis Uddin Khan", "exam_date": "24-Sep-2026 (Afternoon)"}, {"course_code": "DS301", "course_name": "METAHEURISTIC OPTIMIZATION TECHNIQUES", "program": "B.Tech", "department": "Data Science", "semester": 5, "year_sem": "3rd Year (Sem 5)", "faculty_name": "Dr Upendar Mendu", "exam_date": "24-Sep-2026 (Afternoon)"}, {"course_code": "BCA311", "course_name": "MACHINE LEARNING", "program": "BCA", "department": "Computer Applications (BCA)", "semester": 3, "year_sem": "2nd Year (Sem 3)", "faculty_name": "Dr.T.Aruna Sri", "exam_date": "24-Sep-2026 (Afternoon)"}, {"course_code": "AIM306", "course_name": "NATURAL LANGUAGE PROCESSING", "program": "B.Tech", "department": "Artificial Intelligence & Data Science", "semester": 5, "year_sem": "3rd Year (Sem 5)", "faculty_name": "Dr. B. Srinivas", "exam_date": "24-Sep-2026 (Afternoon)"}, {"course_code": "BCA442", "course_name": "DATA VISUALIZATION", "program": "BCA", "department": "Computer Applications (BCA)", "semester": 3, "year_sem": "2nd Year (Sem 3)", "faculty_name": "Dr.Srinivasa Rao Dhanikonda", "exam_date": "24-Sep-2026 (Afternoon)"}, {"course_code": "EC324", "course_name": "SPEECH PROCESSING", "program": "B.Tech", "department": "Electronics & Communication", "semester": 5, "year_sem": "3rd Year (Sem 5)", "faculty_name": "Dr. N. Prasad", "exam_date": "24-Sep-2026 (Afternoon)"}, {"course_code": "ME301", "course_name": "MACHINE TOOLS AND METROLOGY", "program": "B.Tech", "department": "Mechanical Engineering", "semester": 5, "year_sem": "3rd Year (Sem 5)", "faculty_name": "Dr. AVINASH MALLADI", "exam_date": "24-Sep-2026 (Afternoon)"}, {"course_code": "AI202/CS202/AIM202/DS202", "course_name": "DATABASE MANAGEMENT SYSTEM", "program": "B.Tech", "department": "Artificial Intelligence & Data Science", "semester": 3, "year_sem": "2nd Year (Sem 3)", "faculty_name": "Dr Ramakrishna Reddy K", "exam_date": "25-Sep-2026 (Morning)"}, {"course_code": "EC203", "course_name": "DIGITAL SYSTEM DESIGN", "program": "B.Tech", "department": "Electronics & Communication", "semester": 3, "year_sem": "2nd Year (Sem 3)", "faculty_name": "Dr. Soumit Samadder Chaudhury", "exam_date": "25-Sep-2026 (Morning)"}, {"course_code": "ME203", "course_name": "THERMODYNAMICS", "program": "B.Tech", "department": "Mechanical Engineering", "semester": 3, "year_sem": "2nd Year (Sem 3)", "faculty_name": "Mr. VENUGOPAL CHITTEMSETTY", "exam_date": "25-Sep-2026 (Morning)"}, {"course_code": "CS303", "course_name": "PROGRAMMING LANGUAGE AND COMPLIER CONSTRUCTION", "program": "B.Tech", "department": "Computer Science", "semester": 5, "year_sem": "3rd Year (Sem 5)", "faculty_name": "Dr B Deevena Raju", "exam_date": "25-Sep-2026 (Afternoon)"}];
+const SECTIONS_A_TO_K = ["Section A", "Section B", "Section C", "Section D", "Section E", "Section F", "Section G", "Section H", "Section I", "Section J", "Section K"];
+
+function filterSubmitCourseDropdown() {
+  const prog = document.getElementById('submit-program')?.value || 'ALL';
+  const sem = document.getElementById('submit-semester')?.value || 'ALL';
+  const sel = document.getElementById('submit-course-select');
+  if (!sel) return;
+
+  const filtered = CURRICULUM_DATA.filter(c => {
+    const matchProg = prog === 'ALL' || c.program === prog;
+    const matchSem = sem === 'ALL' || c.semester.toString() === sem.toString();
+    return matchProg && matchSem;
+  });
+
+  sel.innerHTML = '';
+  filtered.forEach(c => {
+    const opt = document.createElement('option');
+    opt.value = c.course_code;
+    opt.textContent = `[${c.course_code}] ${c.course_name} — ${c.faculty_name} (${c.program}, Sem ${c.semester})`;
+    opt.dataset.courseName = c.course_name;
+    opt.dataset.facultyName = c.faculty_name;
+    opt.dataset.examSlot = c.exam_date || '';
+    sel.appendChild(opt);
+  });
+
+  if (filtered.length > 0) {
+    onCourseSelected(filtered[0].course_code);
+  } else {
+    sel.innerHTML = '<option value="">No courses matching filter</option>';
+  }
+}
+
+function onCourseSelected(code) {
+  const sel = document.getElementById('submit-course-select');
+  const hiddenInput = document.getElementById('submit-course');
+  const badgeEl = document.getElementById('submit-course-badge');
+  const facEl = document.getElementById('submit-faculty-badge');
+  
+  if (!sel || !code) return;
+  if (hiddenInput) hiddenInput.value = code;
+
+  const match = CURRICULUM_DATA.find(c => c.course_code === code);
+  if (match) {
+    if (badgeEl) badgeEl.textContent = `[${match.course_code}] ${match.course_name}`;
+    if (facEl) facEl.textContent = `IC: ${match.faculty_name} • ${match.program} (Sem ${match.semester})`;
+  }
+}
+
+function renderCourseDirectory() {
+  const tbody = document.getElementById('course-directory-tbody');
+  if (!tbody) return;
+
+  const search = (document.getElementById('course-search-input')?.value || '').toLowerCase().trim();
+  const prog = document.getElementById('course-program-filter')?.value || 'ALL';
+  const sem = document.getElementById('course-sem-filter')?.value || 'ALL';
+
+  const filtered = CURRICULUM_DATA.filter(c => {
+    const matchSearch = !search || 
+      c.course_code.toLowerCase().includes(search) || 
+      c.course_name.toLowerCase().includes(search) || 
+      c.faculty_name.toLowerCase().includes(search) ||
+      (c.department && c.department.toLowerCase().includes(search));
+    const matchProg = prog === 'ALL' || c.program === prog;
+    const matchSem = sem === 'ALL' || c.semester.toString() === sem.toString();
+    return matchSearch && matchProg && matchSem;
+  });
+
+  if (filtered.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="6" style="padding:2rem;text-align:center;color:var(--muted);">No matching subjects found.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = filtered.map(c => `
+    <tr style="border-bottom:1px solid var(--border);transition:background .15s ease;" onmouseover="this.style.background='var(--primary-bg)'" onmouseout="this.style.background='transparent'">
+      <td style="padding:.75rem 1rem;font-weight:700;color:var(--primary);">${c.course_code}</td>
+      <td style="padding:.75rem 1rem;font-weight:600;color:var(--text);">${c.course_name}</td>
+      <td style="padding:.75rem 1rem;"><span style="font-size:.78rem;padding:3px 8px;border-radius:6px;background:var(--bg-subtle);font-weight:600;">${c.program}</span></td>
+      <td style="padding:.75rem 1rem;">Sem ${c.semester}</td>
+      <td style="padding:.75rem 1rem;font-weight:500;">${c.faculty_name}</td>
+      <td style="padding:.75rem 1rem;color:var(--muted);font-size:.82rem;">${c.exam_date || 'Scheduled'}</td>
+    </tr>
+  `).join('');
+}
+
+// Override/enhance populateClassFilters to guarantee Sections A to K in all dropdowns
+const originalPopulateClassFilters = typeof populateClassFilters === 'function' ? populateClassFilters : null;
+populateClassFilters = async function() {
+  ['filter-class', 'analytics-class', 'submit-class'].forEach(id => {
+    const sel = document.getElementById(id);
+    if (!sel) return;
+
+    const currentVal = sel.value;
+    const isFilter = id !== 'submit-class';
+    sel.innerHTML = isFilter ? '<option value="ALL">All Classes / Sections</option>' : '';
+
+    SECTIONS_A_TO_K.forEach(sec => {
+      const opt = document.createElement('option');
+      opt.value = sec;
+      opt.textContent = sec;
+      sel.appendChild(opt);
+    });
+
+    if (currentVal && currentVal !== 'ALL') {
+      sel.value = currentVal;
+    }
+  });
+
+  filterSubmitCourseDropdown();
+  renderCourseDirectory();
+};
 
 </script>
 </body>

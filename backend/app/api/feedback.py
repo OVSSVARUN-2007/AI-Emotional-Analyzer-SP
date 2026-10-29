@@ -201,6 +201,49 @@ def get_allotted_subjects(
     }
 
 
+
+@router.get("/courses", summary="Get all subjects, course codes, departments, and faculty ICs")
+def get_all_courses(
+    program: Optional[str] = Query(None, description="Filter by program: B.Tech, BCA, BSC"),
+    semester: Optional[int] = Query(None, description="Filter by semester: 3, 5, 7"),
+):
+    with engine.connect() as conn:
+        query = "SELECT course_id, course_code, course_name, credits, department_name, program, semester, exam_slot FROM courses WHERE 1=1"
+        params = {}
+        if program and program != "ALL":
+            query += " AND program = :prog"
+            params["prog"] = program
+        if semester:
+            query += " AND semester = :sem"
+            params["sem"] = semester
+        query += " ORDER BY semester ASC, program ASC, course_code ASC"
+        
+        rows = conn.execute(text(query), params).fetchall()
+        
+        # Also get faculty mapping from course_offerings
+        fac_rows = conn.execute(text("SELECT course_id, faculty_name FROM course_offerings GROUP BY course_id, faculty_name")).fetchall()
+        fac_map = {}
+        for r in fac_rows:
+            fac_map[r[0]] = r[1]
+
+        results = []
+        for r in rows:
+            cid = r[0]
+            results.append({
+                "course_id": cid,
+                "course_code": r[1],
+                "course_name": r[2],
+                "credits": r[3],
+                "department_name": r[4],
+                "program": r[5] or "B.Tech",
+                "semester": r[6],
+                "exam_slot": r[7],
+                "faculty_name": fac_map.get(cid, "Faculty Member"),
+                "display_label": f"[{r[1]}] {r[2]} ({fac_map.get(cid, 'Faculty')})"
+            })
+    return {"courses": results}
+
+
 @router.get("/faculty-classes", summary="Get classes taught by faculty for class-wise view")
 def get_faculty_classes(
     faculty_name: Optional[str] = Query(None, description="Faculty member name"),
