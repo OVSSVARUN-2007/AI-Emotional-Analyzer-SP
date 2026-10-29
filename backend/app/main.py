@@ -17,6 +17,7 @@ for p in [str(REPO_ROOT), str(BACKEND_DIR)]:
 from fastapi import FastAPI, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 from sqlalchemy import text
 from sqlalchemy.orm import Session
@@ -51,6 +52,11 @@ app.add_middleware(
 
 app.include_router(feedback_router)
 app.include_router(auth_router)
+
+# Mount frontend directory for static assets
+FRONTEND_DIR = REPO_ROOT / "frontend"
+if FRONTEND_DIR.exists():
+    app.mount("/static", StaticFiles(directory=str(FRONTEND_DIR)), name="static")
 
 @app.get("/health")
 def health_check() -> dict[str, str]:
