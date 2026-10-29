@@ -54,9 +54,9 @@ def login(payload: LoginRequest) -> dict[str, Any]:
         if row:
             user = dict(row._mapping)
         else:
-            # Auto-provision new user based on email heuristic
-            role = detect_role_from_email(email)
-            name_part = email.split("@")[0].replace(".", " ").title()
+            # Auto-provision new user based on requested role or email heuristic
+            role = (payload.role or detect_role_from_email(email)).upper()
+            name_part = payload.name or email.split("@")[0].replace(".", " ").title()
             default_sem = 5 if role == "STUDENT" else None
             default_cls = "Class 3A" if role == "STUDENT" else None
             insert_query = text("""
@@ -82,6 +82,20 @@ def login(payload: LoginRequest) -> dict[str, Any]:
         user["semester"] = user.get("semester") or 5
         user["class_section"] = user.get("class_section") or "Class 3A"
         user["program"] = "B.Tech AI & Data Science"
+        with engine.connect() as check_conn:
+            stud_row = check_conn.execute(
+                text("SELECT student_id, semester, class_section FROM students WHERE LOWER(email) = :email OR user_id = :uid LIMIT 1"),
+                {"email": email, "uid": user.get("user_id")}
+            ).fetchone()
+            if stud_row:
+                s_map = dict(stud_row._mapping)
+                user["student_id"] = s_map.get("student_id")
+                if s_map.get("semester"):
+                    user["semester"] = s_map.get("semester")
+                if s_map.get("class_section"):
+                    user["class_section"] = s_map.get("class_section")
+            else:
+                user["student_id"] = user.get("user_id")
     elif user.get("role") == "FACULTY":
         user["assigned_classes"] = ["Class 3A", "Class 3B", "Class 2A"]
         user["department"] = "AI & Data Science"
