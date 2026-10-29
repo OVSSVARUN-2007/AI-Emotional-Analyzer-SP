@@ -944,7 +944,13 @@ img{display:block;max-width:100%}
       <h1>Welcome back</h1>
       <p class="subtitle">Sign in to your dashboard</p>
 
-      <div class="auth-error" id="login-error"></div>
+            <div class="auth-error" id="login-error"></div>
+
+      <div style="display:flex;gap:8px;margin-bottom:1.25rem;">
+        <button type="button" class="btn" style="flex:1;padding:7px;font-size:12px;background:var(--bg-subtle);border:1px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;" onclick="quickFillLogin('student@univ.edu','pass123')">🎓 Student</button>
+        <button type="button" class="btn" style="flex:1;padding:7px;font-size:12px;background:var(--bg-subtle);border:1px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;" onclick="quickFillLogin('faculty@univ.edu','pass123')">👨‍🏫 Faculty</button>
+        <button type="button" class="btn" style="flex:1;padding:7px;font-size:12px;background:var(--bg-subtle);border:1px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;" onclick="quickFillLogin('admin@univ.edu','pass123')">🛡️ Admin</button>
+      </div>
 
       <form id="login-form" autocomplete="off">
         <div class="form-group">
@@ -1029,23 +1035,23 @@ img{display:block;max-width:100%}
 
     <nav class="sidebar-nav" id="sidebar-nav">
       <div class="sidebar-nav-group">Main</div>
-      <div class="nav-item active" data-view="overview" onclick="switchView('overview')">
+      <div class="nav-item active" data-view="overview" id="nav-item-overview" onclick="switchView('overview')">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
         Dashboard
       </div>
-      <div class="nav-item" data-view="feedback-list" onclick="switchView('feedback-list')">
+      <div class="nav-item" data-view="feedback-list" id="nav-item-feedback-list" onclick="switchView('feedback-list')">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
         Feedback
       </div>
-      <div class="nav-item" data-view="analytics" onclick="switchView('analytics')">
+      <div class="nav-item" data-view="analytics" id="nav-item-analytics" onclick="switchView('analytics')">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
         Analytics
       </div>
-      <div class="nav-item" data-view="model-lab" onclick="switchView('model-lab')">
+      <div class="nav-item" data-view="model-lab" id="nav-item-model-lab" onclick="switchView('model-lab')">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
         AI Models
       </div>
-      <div class="nav-item" data-view="submit-feedback" onclick="switchView('submit-feedback')">
+      <div class="nav-item" data-view="submit-feedback" id="nav-item-submit-feedback" onclick="switchView('submit-feedback')">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
         Submit Feedback
       </div>
@@ -1205,7 +1211,7 @@ img{display:block;max-width:100%}
         <!-- Recent feedback -->
         <div class="panel">
           <div class="panel-header">
-            <span class="panel-title">Recent Feedback</span>
+            <span class="panel-title" id="dash-feedback-title">Recent Feedback</span>
             <span class="panel-badge" id="feed-count-badge">0</span>
           </div>
           <div id="recent-feed-list">
@@ -1527,6 +1533,12 @@ document.getElementById('signup-form').addEventListener('submit', async e => {
   document.getElementById('signup-btn').textContent = 'Create Account';
 });
 
+function quickFillLogin(email, password) {
+  document.getElementById('login-email').value = email;
+  document.getElementById('login-password').value = password;
+  document.getElementById('login-form').dispatchEvent(new Event('submit'));
+}
+
 /* ═══════════════════════════════════════════════════════
    ENTER DASHBOARD
    ═══════════════════════════════════════════════════════ */
@@ -1535,6 +1547,8 @@ function enterDashboard() {
   document.getElementById('app-shell').classList.add('active');
 
   const role = (currentUser.role || '').toUpperCase();
+  const isStudent = role === 'STUDENT';
+  const isAdmin = role === 'ADMIN';
   const initials = (currentUser.name || 'U').split(' ').map(w => w[0]).join('').substring(0,2).toUpperCase();
 
   document.getElementById('sidebar-avatar').textContent = initials;
@@ -1542,12 +1556,31 @@ function enterDashboard() {
   document.getElementById('sidebar-user-role').textContent = role;
   document.getElementById('dash-greeting').textContent = `Welcome, ${(currentUser.name || 'User').split(' ')[0]}`;
 
-  // Show admin nav
-  if (role === 'ADMIN') {
-    document.getElementById('nav-admin-group').style.display = 'block';
-    document.getElementById('nav-departments').style.display = 'flex';
+  // Role-based navigation visibility: Restrict AI Models and Feedback list from students
+  const navFeedback = document.getElementById('nav-item-feedback-list');
+  const navModelLab = document.getElementById('nav-item-model-lab');
+  const navAnalytics = document.getElementById('nav-item-analytics');
+  const navSubmit = document.getElementById('nav-item-submit-feedback');
+
+  if (isStudent) {
+    if (navFeedback) navFeedback.style.display = 'none';
+    if (navModelLab) navModelLab.style.display = 'none';
+    if (navAnalytics) navAnalytics.style.display = 'none';
+    if (navSubmit) navSubmit.style.display = 'flex';
+  } else {
+    if (navFeedback) navFeedback.style.display = 'flex';
+    if (navModelLab) navModelLab.style.display = 'flex';
+    if (navAnalytics) navAnalytics.style.display = 'flex';
+    if (navSubmit) navSubmit.style.display = 'flex';
   }
 
+  // Show admin nav
+  const adminGroup = document.getElementById('nav-admin-group');
+  const navDept = document.getElementById('nav-departments');
+  if (adminGroup) adminGroup.style.display = isAdmin ? 'block' : 'none';
+  if (navDept) navDept.style.display = isAdmin ? 'flex' : 'none';
+
+  switchView('overview');
   loadOverview();
 }
 
@@ -1563,6 +1596,16 @@ function logout() {
    VIEW SWITCHING
    ═══════════════════════════════════════════════════════ */
 function switchView(name) {
+  const role = (currentUser && currentUser.role || '').toUpperCase();
+  const isStudent = role === 'STUDENT';
+
+  // Role access guard: Restrict AI Models and Feedback browsing to Faculty/Admin only
+  if (isStudent && (name === 'model-lab' || name === 'feedback-list' || name === 'analytics' || name === 'departments')) {
+    toast('Access restricted: AI Models and Full Feedback browsing are reserved for Faculty and Administrators.');
+    switchView('overview');
+    return;
+  }
+
   document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
   const targetView = document.getElementById('view-' + name);
   if (targetView) targetView.classList.add('active');
@@ -1741,9 +1784,10 @@ async function handleFeedbackSubmission(e) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         course_code,
-        course_name: course_code === 'AI501' ? 'Artificial Intelligence' : 'Computer Science',
+        course_name: course_code === 'AI501' ? 'Natural Language Processing' : 'Computer Science',
         class_section,
-        semester: 5,
+        semester: (currentUser && currentUser.semester) || 5,
+        student_id: (currentUser && (currentUser.student_id || currentUser.user_id)) || 1,
         feedback_text,
         is_anonymous
       })
@@ -1754,7 +1798,12 @@ async function handleFeedbackSubmission(e) {
       document.getElementById('submit-text').value = '';
       document.getElementById('submit-preview-box').style.display = 'none';
       loadOverview();
-      setTimeout(() => switchView('feedback-list'), 1000);
+      const role = (currentUser && currentUser.role || '').toUpperCase();
+      if (role === 'STUDENT') {
+        setTimeout(() => switchView('overview'), 800);
+      } else {
+        setTimeout(() => switchView('feedback-list'), 800);
+      }
     } else {
       const err = await res.json();
       toast('Submission failed: ' + (err.detail || 'Server error'));
@@ -1771,77 +1820,218 @@ async function handleFeedbackSubmission(e) {
    DATA LOADERS
    ═══════════════════════════════════════════════════════ */
 async function loadOverview() {
-  try {
-    const res = await fetch(API + '/feedback/class-summary');
-    const d = await res.json();
+  const role = (currentUser && currentUser.role || '').toUpperCase();
+  const isStudent = role === 'STUDENT';
 
-    document.getElementById('kpi-total').textContent = d.total_responses.toLocaleString();
-    document.getElementById('kpi-total-change').textContent = `${d.total_responses} collected`;
-    document.getElementById('kpi-positive').textContent = d.positive_percentage + '%';
-    document.getElementById('kpi-emotion').textContent = d.primary_emotion;
-    document.getElementById('kpi-action').textContent = d.action_needed;
-
-    // Donut
-    const C = 2 * Math.PI * 14;
-    const posLen = (d.positive_percentage / 100) * C;
-    const mixLen = (d.neutral_percentage / 100) * C;
-    const negLen = (d.negative_percentage / 100) * C;
-    document.getElementById('donut-pos').setAttribute('stroke-dasharray', `${posLen} ${C - posLen}`);
-    document.getElementById('donut-mix').setAttribute('stroke-dasharray', `${mixLen} ${C - mixLen}`);
-    document.getElementById('donut-mix').setAttribute('stroke-dashoffset', 25 - posLen);
-    document.getElementById('donut-neg').setAttribute('stroke-dasharray', `${negLen} ${C - negLen}`);
-    document.getElementById('donut-neg').setAttribute('stroke-dashoffset', 25 - posLen - mixLen);
-    document.getElementById('donut-center-val').textContent = d.positive_percentage + '%';
-
-    // Progress bars
-    document.getElementById('prog-pos').style.width = d.positive_percentage + '%';
-    document.getElementById('pct-pos').textContent = d.positive_percentage + '%';
-    document.getElementById('prog-mix').style.width = d.neutral_percentage + '%';
-    document.getElementById('pct-mix').textContent = d.neutral_percentage + '%';
-    document.getElementById('prog-neg').style.width = d.negative_percentage + '%';
-    document.getElementById('pct-neg').textContent = d.negative_percentage + '%';
-
-    // Emotions
-    document.getElementById('emo-sat').style.width = d.breakdown.satisfaction + '%';
-    document.getElementById('emo-sat-pct').textContent = d.breakdown.satisfaction + '%';
-    document.getElementById('emo-frust').style.width = d.breakdown.frustration + '%';
-    document.getElementById('emo-frust-pct').textContent = d.breakdown.frustration + '%';
-    document.getElementById('emo-conf').style.width = d.breakdown.confusion + '%';
-    document.getElementById('emo-conf-pct').textContent = d.breakdown.confusion + '%';
-
-    // Topics
-    const chipRow = document.getElementById('topic-chips');
-    chipRow.innerHTML = '';
-    Object.entries(d.topics || {}).forEach(([topic, count]) => {
-      const ch = document.createElement('div');
-      ch.className = 'chip';
-      ch.textContent = `${topic} (${count})`;
-      chipRow.appendChild(ch);
-    });
-
-  } catch (err) {
-    console.error('Overview load error:', err);
+  const subEl = document.getElementById('dash-subtitle');
+  if (subEl) {
+    subEl.textContent = isStudent
+      ? 'View your personal feedback records, emotional sentiment analysis, and submission history.'
+      : 'Smart sentiment distribution across feedback, emotions, and teaching performance.';
   }
 
-  // Load recent feedback
+  if (isStudent) {
+    const studentId = (currentUser && (currentUser.student_id || currentUser.user_id)) || 1;
+    try {
+      const res = await fetch(API + `/feedback/?student_id=${studentId}`);
+      const d = await res.json();
+      const feedbacks = d.feedback || [];
+      const total = feedbacks.length;
+
+      let posCount = 0;
+      let negCount = 0;
+      let neuCount = 0;
+      const emotions = {};
+      const topics = {};
+
+      feedbacks.forEach(fb => {
+        const s = (fb.sentiment || '').toUpperCase();
+        if (s === 'POSITIVE') posCount++;
+        else if (s === 'NEGATIVE') negCount++;
+        else neuCount++;
+
+        const e = (fb.emotion || '').toLowerCase();
+        if (e) emotions[e] = (emotions[e] || 0) + 1;
+
+        (fb.aspects || []).forEach(a => {
+          const t = a.aspect;
+          if (t) topics[t] = (topics[t] || 0) + 1;
+        });
+      });
+
+      const posPct = total > 0 ? Math.round((posCount / total) * 100) : 0;
+      const neuPct = total > 0 ? Math.round((neuCount / total) * 100) : 0;
+      const negPct = total > 0 ? Math.round((negCount / total) * 100) : 0;
+
+      let topEmo = 'None';
+      let maxEmoCount = 0;
+      for (const [emo, cnt] of Object.entries(emotions)) {
+        if (cnt > maxEmoCount) {
+          maxEmoCount = cnt;
+          topEmo = emo.charAt(0).toUpperCase() + emo.slice(1);
+        }
+      }
+
+      document.getElementById('kpi-total').textContent = total.toLocaleString();
+      document.getElementById('kpi-total-change').textContent = `${total} submitted`;
+      document.getElementById('kpi-positive').textContent = posPct + '%';
+      document.getElementById('kpi-emotion').textContent = topEmo;
+      document.getElementById('kpi-action').textContent = total > 0 ? 'All feedback recorded & analyzed' : 'Submit feedback to see insights';
+
+      // Badge
+      const classBadge = document.getElementById('panel-class-badge');
+      if (classBadge) classBadge.textContent = currentUser.class_section || 'My Submissions';
+
+      // Donut
+      const C = 2 * Math.PI * 14;
+      const posLen = (posPct / 100) * C;
+      const mixLen = (neuPct / 100) * C;
+      const negLen = (negPct / 100) * C;
+      document.getElementById('donut-pos').setAttribute('stroke-dasharray', `${posLen} ${C - posLen}`);
+      document.getElementById('donut-mix').setAttribute('stroke-dasharray', `${mixLen} ${C - mixLen}`);
+      document.getElementById('donut-mix').setAttribute('stroke-dashoffset', 25 - posLen);
+      document.getElementById('donut-neg').setAttribute('stroke-dasharray', `${negLen} ${C - negLen}`);
+      document.getElementById('donut-neg').setAttribute('stroke-dashoffset', 25 - posLen - mixLen);
+      document.getElementById('donut-center-val').textContent = posPct + '%';
+
+      // Progress bars
+      document.getElementById('prog-pos').style.width = posPct + '%';
+      document.getElementById('pct-pos').textContent = posPct + '%';
+      document.getElementById('prog-mix').style.width = neuPct + '%';
+      document.getElementById('pct-mix').textContent = neuPct + '%';
+      document.getElementById('prog-neg').style.width = negPct + '%';
+      document.getElementById('pct-neg').textContent = negPct + '%';
+
+      // Emotions
+      const satCount = emotions['satisfaction'] || emotions['joy'] || 0;
+      const frustCount = emotions['frustration'] || emotions['anger'] || 0;
+      const confCount = emotions['confusion'] || emotions['surprise'] || 0;
+      const satPct = total > 0 ? Math.round((satCount / total) * 100) : 0;
+      const frustPct = total > 0 ? Math.round((frustCount / total) * 100) : 0;
+      const confPct = total > 0 ? Math.round((confCount / total) * 100) : 0;
+
+      document.getElementById('emo-sat').style.width = satPct + '%';
+      document.getElementById('emo-sat-pct').textContent = satPct + '%';
+      document.getElementById('emo-frust').style.width = frustPct + '%';
+      document.getElementById('emo-frust-pct').textContent = frustPct + '%';
+      document.getElementById('emo-conf').style.width = confPct + '%';
+      document.getElementById('emo-conf-pct').textContent = confPct + '%';
+
+      // Topics
+      const chipRow = document.getElementById('topic-chips');
+      chipRow.innerHTML = '';
+      const topicEntries = Object.entries(topics);
+      if (topicEntries.length === 0) {
+        chipRow.innerHTML = '<span style="color:var(--muted);font-size:.85rem">No topics extracted yet</span>';
+      } else {
+        topicEntries.forEach(([topic, count]) => {
+          const ch = document.createElement('div');
+          ch.className = 'chip';
+          ch.textContent = `${topic} (${count})`;
+          chipRow.appendChild(ch);
+        });
+      }
+    } catch (err) {
+      console.error('Student overview load error:', err);
+    }
+  } else {
+    // Faculty / Admin
+    try {
+      const res = await fetch(API + '/feedback/class-summary');
+      const d = await res.json();
+
+      document.getElementById('kpi-total').textContent = d.total_responses.toLocaleString();
+      document.getElementById('kpi-total-change').textContent = `${d.total_responses} collected`;
+      document.getElementById('kpi-positive').textContent = d.positive_percentage + '%';
+      document.getElementById('kpi-emotion').textContent = d.primary_emotion;
+      document.getElementById('kpi-action').textContent = d.action_needed;
+
+      const classBadge = document.getElementById('panel-class-badge');
+      if (classBadge) classBadge.textContent = 'All Classes';
+
+      // Donut
+      const C = 2 * Math.PI * 14;
+      const posLen = (d.positive_percentage / 100) * C;
+      const mixLen = (d.neutral_percentage / 100) * C;
+      const negLen = (d.negative_percentage / 100) * C;
+      document.getElementById('donut-pos').setAttribute('stroke-dasharray', `${posLen} ${C - posLen}`);
+      document.getElementById('donut-mix').setAttribute('stroke-dasharray', `${mixLen} ${C - mixLen}`);
+      document.getElementById('donut-mix').setAttribute('stroke-dashoffset', 25 - posLen);
+      document.getElementById('donut-neg').setAttribute('stroke-dasharray', `${negLen} ${C - negLen}`);
+      document.getElementById('donut-neg').setAttribute('stroke-dashoffset', 25 - posLen - mixLen);
+      document.getElementById('donut-center-val').textContent = d.positive_percentage + '%';
+
+      // Progress bars
+      document.getElementById('prog-pos').style.width = d.positive_percentage + '%';
+      document.getElementById('pct-pos').textContent = d.positive_percentage + '%';
+      document.getElementById('prog-mix').style.width = d.neutral_percentage + '%';
+      document.getElementById('pct-mix').textContent = d.neutral_percentage + '%';
+      document.getElementById('prog-neg').style.width = d.negative_percentage + '%';
+      document.getElementById('pct-neg').textContent = d.negative_percentage + '%';
+
+      // Emotions
+      document.getElementById('emo-sat').style.width = d.breakdown.satisfaction + '%';
+      document.getElementById('emo-sat-pct').textContent = d.breakdown.satisfaction + '%';
+      document.getElementById('emo-frust').style.width = d.breakdown.frustration + '%';
+      document.getElementById('emo-frust-pct').textContent = d.breakdown.frustration + '%';
+      document.getElementById('emo-conf').style.width = d.breakdown.confusion + '%';
+      document.getElementById('emo-conf-pct').textContent = d.breakdown.confusion + '%';
+
+      // Topics
+      const chipRow = document.getElementById('topic-chips');
+      chipRow.innerHTML = '';
+      Object.entries(d.topics || {}).forEach(([topic, count]) => {
+        const ch = document.createElement('div');
+        ch.className = 'chip';
+        ch.textContent = `${topic} (${count})`;
+        chipRow.appendChild(ch);
+      });
+    } catch (err) {
+      console.error('Faculty overview load error:', err);
+    }
+  }
+
+  // Load recent feedback into dashboard
   loadRecentFeedback();
 }
 
 async function loadRecentFeedback() {
   const container = document.getElementById('recent-feed-list');
+  const role = (currentUser && currentUser.role || '').toUpperCase();
+  const isStudent = role === 'STUDENT';
+
+  const titleEl = document.getElementById('dash-feedback-title');
+  if (titleEl) {
+    titleEl.textContent = isStudent ? 'My Feedback History' : 'Recent Feedback';
+  }
+
   try {
-    const res = await fetch(API + '/feedback/?class_section=ALL');
+    let url;
+    if (isStudent) {
+      const studentId = (currentUser && (currentUser.student_id || currentUser.user_id)) || 1;
+      url = API + `/feedback/?student_id=${studentId}`;
+    } else {
+      url = API + '/feedback/?class_section=ALL';
+    }
+
+    const res = await fetch(url);
     const d = await res.json();
-    const items = (d.feedback || []).slice(0, 8);
-    document.getElementById('feed-count-badge').textContent = d.count || 0;
+    const items = d.feedback || [];
+    document.getElementById('feed-count-badge').textContent = d.count || items.length || 0;
     container.innerHTML = '';
 
     if (items.length === 0) {
-      container.innerHTML = '<p style="text-align:center;color:var(--muted);padding:2rem">No feedback yet.</p>';
+      container.innerHTML = isStudent
+        ? `<div style="text-align:center;padding:2.5rem 1rem;color:var(--muted);">
+             <p style="font-weight:600;font-size:1rem;color:var(--text);margin-bottom:6px;">No Feedback History Yet</p>
+             <p style="font-size:0.875rem;">You have not submitted any feedback yet. Click "Submit Feedback" in the sidebar to share your course experience!</p>
+           </div>`
+        : '<p style="text-align:center;color:var(--muted);padding:2rem">No feedback yet.</p>';
       return;
     }
 
-    items.forEach(fb => {
+    const displayItems = isStudent ? items : items.slice(0, 8);
+    displayItems.forEach(fb => {
       container.innerHTML += feedItemHTML(fb);
     });
   } catch (err) {

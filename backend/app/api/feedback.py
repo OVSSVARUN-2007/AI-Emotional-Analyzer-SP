@@ -51,7 +51,7 @@ def get_feedback(
         where_clauses.append("f.offering_id = :offering_id")
         params["offering_id"] = offering_id
     if student_id:
-        where_clauses.append("f.student_id = :student_id")
+        where_clauses.append("(f.student_id = :student_id OR f.student_id IN (SELECT student_id FROM students WHERE user_id = :student_id))")
         params["student_id"] = student_id
 
     where_sql = f"WHERE {' AND '.join(where_clauses)}" if where_clauses else ""
