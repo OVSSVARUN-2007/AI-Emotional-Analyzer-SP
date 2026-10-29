@@ -284,6 +284,24 @@ if engine is None:
         """))
 
 
+        
+        # Ensure feedback_requests table exists
+        conn.execute(text("""
+            CREATE TABLE IF NOT EXISTS feedback_requests (
+                request_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                faculty_id INTEGER DEFAULT 1,
+                faculty_name VARCHAR(100) NOT NULL,
+                course_code VARCHAR(50) NOT NULL,
+                course_name VARCHAR(150) NOT NULL,
+                target_section VARCHAR(50) NOT NULL DEFAULT 'ALL',
+                allow_text BOOLEAN DEFAULT 1,
+                allow_rating BOOLEAN DEFAULT 1,
+                queries_json TEXT DEFAULT '[]',
+                status VARCHAR(20) DEFAULT 'ACTIVE',
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            );
+        """))
+
         # Ensure faculty table exists
         conn.execute(text("""
             CREATE TABLE IF NOT EXISTS faculty (

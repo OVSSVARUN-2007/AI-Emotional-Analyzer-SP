@@ -1,3 +1,5 @@
+import json
+from pydantic import BaseModel
 import sys
 from pathlib import Path
 from typing import Optional, Any
@@ -688,3 +690,122 @@ def create_feedback(feedback: FeedbackCreate):
             "status": "FAILED",
             "error": str(error),
         }
+
+
+# ═══════════════════════════════════════════════════════
+# FEEDBACK REQUESTS & NOTIFICATIONS API
+# ═══════════════════════════════════════════════════════
+
+class FeedbackRequestPayload(BaseModel):
+    faculty_name: str
+    course_code: str
+    course_name: str
+    target_section: str = "ALL"
+    allow_text: bool = True
+    allow_rating: bool = True
+    queries: list[str] = []
+
+@router.get("/requests", summary="Get active feedback requests sent to students")
+def get_feedback_requests(
+    section: Optional[str] = None,
+    status: Optional[str] = "ACTIVE"
+):
+    if hasattr(section, 'default'): section = section.default
+    if hasattr(status, 'default'): status = status.default
+    with engine.connect() as conn:
+        q = "SELECT request_id, faculty_name, course_code, course_name, target_section, allow_text, allow_rating, queries_json, status, created_at FROM feedback_requests WHERE 1=1"
+        params = {}
+        if status and status != "ALL":
+            q += " AND status = :status"
+            params["status"] = status
+        if section and section != "ALL":
+            q += " AND (target_section = 'ALL' OR target_section = :sec)"
+            params["sec"] = section
+        q += " ORDER BY request_id DESC"
+        
+        rows = conn.execute(text(q), params).fetchall()
+        reqs = []
+        for r in rows:
+            q_list = []
+            try:
+                q_list = json.loads(r[7]) if r[7] else []
+            except Exception:
+                q_list = []
+            reqs.append({
+                "request_id": r[0],
+                "faculty_name": r[1],
+                "course_code": r[2],
+                "course_name": r[3],
+                "target_section": r[4],
+                "allow_text": bool(r[5]),
+                "allow_rating": bool(r[6]),
+                "queries": q_list,
+                "status": r[8],
+                "created_at": str(r[9]) if r[9] else ""
+            })
+    return {"requests": reqs}
+
+@router.post("/requests", summary="Create and broadcast a feedback request to students")
+def create_feedback_request(payload: FeedbackRequestPayload):
+    with engine.begin() as conn:
+        q = text("""
+            INSERT INTO feedback_requests (
+                faculty_name, course_code, course_name, target_section,
+                allow_text, allow_rating, queries_json, status
+            ) VALUES (
+                :fac, :code, :name, :sec, :allow_txt, :allow_rat, :queries, 'ACTIVE'
+            )
+        """)
+        conn.execute(q, {
+            "fac": payload.faculty_name,
+            "code": payload.course_code,
+            "name": payload.course_name,
+            "sec": payload.target_section,
+            "allow_txt": 1 if payload.allow_text else 0,
+            "allow_rat": 1 if payload.allow_rating else 0,
+            "queries": json.dumps(payload.queries)
+        })
+    return {"message": "Feedback request shared with students successfully", "status": "SUCCESS"}
+
+@router.get("/notifications", summary="Fetch notifications for students or faculty")
+def get_notifications(
+    role: Optional[str] = "STUDENT",
+    section: Optional[str] = "ALL"
+):
+    if hasattr(role, 'default'): role = role.default
+    if hasattr(section, 'default'): section = section.default
+    with engine.connect() as conn:
+        notifs = []
+        # Active feedback requests
+        q = "SELECT request_id, faculty_name, course_code, course_name, target_section, created_at FROM feedback_requests WHERE status = 'ACTIVE'"
+        params = {}
+        if role == "STUDENT" and section and section != "ALL":
+            q += " AND (target_section = 'ALL' OR target_section = :sec)"
+            params["sec"] = section
+        q += " ORDER BY request_id DESC LIMIT 5"
+        
+        req_rows = conn.execute(text(q), params).fetchall()
+        for r in req_rows:
+            notifs.append({
+                "id": f"req-{r[0]}",
+                "type": "FEEDBACK_REQUEST",
+                "title": f"Feedback Requested: {r[2]}",
+                "message": f"{r[1]} requested your feedback for {r[3]} ({r[4]}).",
+                "course_code": r[2],
+                "course_name": r[3],
+                "faculty_name": r[1],
+                "target_section": r[4],
+                "time": str(r[5])[:16] if r[5] else "Just now",
+                "request_id": r[0]
+            })
+
+        # General System Notification
+        notifs.append({
+            "id": "alert-workload",
+            "type": "ALERT",
+            "title": "Action Needed: High Workload",
+            "message": "Review Assignment 2 pacing across All Classes.",
+            "time": "Today",
+            "request_id": None
+        })
+    return {"notifications": notifs, "unread_count": len(notifs)}
