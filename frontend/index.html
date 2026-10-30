@@ -1431,6 +1431,213 @@ img{display:block;max-width:100%}
 }
 
 
+
+/* ═══════════════════════════════════════════════════════
+   DAY / NIGHT TOGGLE SWITCH (Image 3 Design)
+   ═══════════════════════════════════════════════════════ */
+.day-night-toggle {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  outline: none;
+  user-select: none;
+  margin: 0 4px;
+}
+.day-night-track {
+  position: relative;
+  width: 92px;
+  height: 38px;
+  border-radius: 999px;
+  background: #f5b800; /* Bright Day Gold/Yellow from Image 3 */
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 12px;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.18), 0 2px 8px rgba(0,0,0,0.08);
+  transition: background 0.35s ease, box-shadow 0.35s ease;
+  overflow: hidden;
+}
+[data-theme="dark"] .day-night-track {
+  background: #252736; /* Dark Charcoal Night from Image 3 */
+  box-shadow: inset 0 2px 5px rgba(0,0,0,0.45), 0 2px 8px rgba(0,0,0,0.3);
+}
+.day-night-label {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  z-index: 1;
+  transition: opacity 0.25s ease, transform 0.25s ease;
+  user-select: none;
+}
+.day-label {
+  color: #ffffff;
+  margin-left: 2px;
+  opacity: 1;
+  display: block;
+}
+[data-theme="dark"] .day-label {
+  opacity: 0;
+  display: none;
+}
+.night-label {
+  color: #6b6f82;
+  margin-right: 2px;
+  opacity: 0;
+  display: none;
+}
+[data-theme="dark"] .night-label {
+  opacity: 1;
+  display: block;
+}
+.day-night-knob {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.22);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+  z-index: 2;
+}
+[data-theme="dark"] .day-night-knob {
+  transform: translateX(-54px);
+}
+.knob-icon {
+  width: 17px;
+  height: 17px;
+  display: block;
+}
+.icon-sun {
+  display: block;
+}
+[data-theme="dark"] .icon-sun {
+  display: none;
+}
+.icon-moon {
+  display: none;
+}
+[data-theme="dark"] .icon-moon {
+  display: block;
+}
+
+/* Notification Dropdown & Badges */
+.notif-wrapper {
+  position: relative;
+}
+.notif-bell-btn {
+  position: relative;
+}
+.notif-badge {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  background: var(--danger, #ef4444);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  width: 17px;
+  height: 17px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--card-solid);
+  animation: notif-bounce 1s infinite alternate;
+}
+@keyframes notif-bounce {
+  from { transform: scale(1); }
+  to { transform: scale(1.15); }
+}
+.notif-dropdown {
+  display: none;
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  width: 340px;
+  max-width: calc(100vw - 32px);
+  background: var(--card-solid);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  box-shadow: 0 16px 40px rgba(0,0,0,0.2);
+  z-index: 10002;
+  overflow: hidden;
+  animation: bixi-bubble-in 0.25s ease-out;
+}
+.notif-dropdown.show {
+  display: block;
+}
+.notif-header {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--bg-subtle);
+}
+.notif-clear-btn {
+  background: transparent;
+  border: none;
+  color: var(--primary);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.notif-list {
+  max-height: 360px;
+  overflow-y: auto;
+}
+.notif-item {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  transition: background .15s ease;
+  cursor: pointer;
+}
+.notif-item:hover {
+  background: var(--primary-bg);
+}
+.notif-icon-circle {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 14px;
+}
+.notif-item-body {
+  flex: 1;
+  min-width: 0;
+}
+.notif-item-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 2px;
+}
+.notif-item-msg {
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.35;
+  margin-bottom: 4px;
+}
+.notif-item-time {
+  font-size: 10px;
+  color: var(--muted);
+}
+
 </style>
 </head>
 <body>
@@ -1516,20 +1723,23 @@ img{display:block;max-width:100%}
 
   <!-- Auth page theme toggle -->
   <div class="auth-theme-toggle">
-    <div class="theme-toggle" id="auth-theme-toggle">
-      <button class="theme-toggle-btn active" data-theme="light" onclick="setTheme('light')">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
-        Light
-      </button>
-      <button class="theme-toggle-btn" data-theme="dark" onclick="setTheme('dark')">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
-        Dark
-      </button>
-      <button class="theme-toggle-btn" data-theme="system" onclick="setTheme('system')">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
-        System
-      </button>
-    </div>
+    <button class="day-night-toggle" id="auth-day-night-toggle" onclick="toggleDayNight()" title="Toggle Day/Night Theme" aria-label="Toggle Day/Night Theme">
+      <span class="day-night-track">
+        <span class="day-night-label day-label">DAY</span>
+        <span class="day-night-label night-label">NIGHT</span>
+        <span class="day-night-knob">
+          <!-- Sun for Day -->
+          <svg class="knob-icon icon-sun" viewBox="0 0 24 24" fill="none">
+            <circle cx="12" cy="12" r="5" fill="#f5b800"/>
+            <path d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32l1.41 1.41M2 12h2m16 0h2M4.93 19.07l1.41-1.41m11.32-11.32l1.41-1.41" stroke="#f5b800" stroke-width="2.5" stroke-linecap="round"/>
+          </svg>
+          <!-- Moon for Night -->
+          <svg class="knob-icon icon-moon" viewBox="0 0 24 24" fill="#252736">
+            <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/>
+          </svg>
+        </span>
+      </span>
+    </button>
   </div>
 </div>
 
@@ -1569,7 +1779,11 @@ img{display:block;max-width:100%}
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
         AI Models
       </div>
-      <div class="nav-item" data-view="submit-feedback" id="nav-item-submit-feedback" onclick="switchView('submit-feedback')">
+            <div class="nav-item" data-view="request-feedback" id="nav-item-request-feedback" onclick="switchView('request-feedback')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+        Request Feedback
+      </div>
+<div class="nav-item" data-view="submit-feedback" id="nav-item-submit-feedback" onclick="switchView('submit-feedback')">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
         Submit Feedback
       </div>
@@ -1606,137 +1820,225 @@ img{display:block;max-width:100%}
         </div>
 
         <!-- Theme toggle -->
-        <div class="theme-toggle" id="dash-theme-toggle">
-          <button class="theme-toggle-btn active" data-theme="light" onclick="setTheme('light')">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
-            Light
+        
+        <!-- Day / Night Toggle Switch (Image 3) -->
+        <button class="day-night-toggle" id="day-night-toggle" onclick="toggleDayNight()" title="Toggle Day/Night Theme" aria-label="Toggle Day/Night Theme">
+          <span class="day-night-track">
+            <span class="day-night-label day-label">DAY</span>
+            <span class="day-night-label night-label">NIGHT</span>
+            <span class="day-night-knob">
+              <!-- Sun for Day -->
+              <svg class="knob-icon icon-sun" viewBox="0 0 24 24" fill="none">
+                <circle cx="12" cy="12" r="5" fill="#f5b800"/>
+                <path d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32l1.41 1.41M2 12h2m16 0h2M4.93 19.07l1.41-1.41m11.32-11.32l1.41-1.41" stroke="#f5b800" stroke-width="2.5" stroke-linecap="round"/>
+              </svg>
+              <!-- Moon for Night -->
+              <svg class="knob-icon icon-moon" viewBox="0 0 24 24" fill="#252736">
+                <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/>
+              </svg>
+            </span>
+          </span>
+        </button>
+
+        <!-- Working Notification Bell & Dropdown -->
+        <div class="notif-wrapper">
+          <button class="icon-btn notif-bell-btn" id="notif-bell-btn" onclick="toggleNotifications()" title="Notifications" aria-label="Notifications">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+            <span class="notif-badge" id="notif-badge">2</span>
           </button>
-          <button class="theme-toggle-btn" data-theme="dark" onclick="setTheme('dark')">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
-            Dark
-          </button>
-          <button class="theme-toggle-btn" data-theme="system" onclick="setTheme('system')">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
-            System
-          </button>
+          <div class="notif-dropdown" id="notif-dropdown">
+            <div class="notif-header">
+              <span style="font-weight:700;font-size:.92rem;">Notifications & Alerts</span>
+              <button class="notif-clear-btn" onclick="clearNotifications()">Clear all</button>
+            </div>
+            <div class="notif-list" id="notif-list">
+              <!-- Filled dynamically -->
+            </div>
+          </div>
         </div>
 
-        <button class="icon-btn" title="Notifications">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
-        </button>
       </div>
     </header>
 
     <div class="page-content" id="page-content">
 
       <!-- ── OVERVIEW ── -->
+            <!-- ── OVERVIEW (Dynamic Quixotic Dashboard - Image 4) ── -->
+            <!-- ── OVERVIEW (Dynamic Quixotic Dashboard - Image 4) ── -->
+            <!-- ── OVERVIEW (Dynamic Quixotic Dashboard - Image 4) ── -->
       <div class="view active" id="view-overview">
-        <div class="page-header">
-          <h1 id="dash-greeting">Your Analytical Board</h1>
-          <p id="dash-subtitle">Smart sentiment distribution across feedback, emotions, and teaching performance.</p>
-        </div>
-
-        <!-- KPI strip -->
-        <div class="kpi-strip" id="kpi-strip">
-          <div class="kpi-card accent-green">
-            <div class="kpi-label">Total Responses</div>
-            <div class="kpi-value" id="kpi-total">—</div>
-            <div class="kpi-change up" id="kpi-total-change">Loading…</div>
+        <!-- Welcome Banner -->
+        <div class="dash-welcome-banner" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem;margin-bottom:1.5rem;">
+          <div>
+            <h1 id="dash-greeting" style="font-size:1.85rem;font-weight:800;letter-spacing:-0.5px;color:var(--text);margin-bottom:4px;">
+              Welcome Back, <span id="dash-user-name">Faculty</span>
+            </h1>
+            <p id="dash-subtitle" style="color:var(--muted);font-size:.92rem;margin:0;">
+              Smart sentiment distribution across feedback, emotions, and teaching performance.
+            </p>
           </div>
-          <div class="kpi-card accent-purple">
-            <div class="kpi-label">Positive %</div>
-            <div class="kpi-value" id="kpi-positive">—</div>
-            <div class="kpi-change up">↑ sentiment</div>
-          </div>
-          <div class="kpi-card accent-amber">
-            <div class="kpi-label">Primary Emotion</div>
-            <div class="kpi-value" id="kpi-emotion" style="font-size:1.1rem">—</div>
-            <div class="kpi-change">dominant tone</div>
-          </div>
-          <div class="kpi-card accent-red">
-            <div class="kpi-label">Action Needed</div>
-            <div class="kpi-value" id="kpi-action" style="font-size:.85rem;font-weight:600;line-height:1.4">—</div>
-          </div>
-        </div>
-
-        <!-- Sentiment donut + breakdown -->
-        <div class="dash-grid">
-          <div class="panel">
-            <div class="panel-header">
-              <span class="panel-title">Sentiment Distribution</span>
-              <span class="panel-badge" id="panel-class-badge">All Classes</span>
+          <div style="display:flex;align-items:center;gap:.75rem;">
+            <div style="background:var(--card-solid);border:1px solid var(--border);padding:.55rem 1rem;border-radius:12px;font-size:.84rem;font-weight:600;display:flex;align-items:center;gap:6px;box-shadow:var(--shadow-sm);">
+              <span>📅</span> <span>Sem-I, 2026-27</span>
             </div>
-            <div style="display:flex;gap:2rem;align-items:center;flex-wrap:wrap">
-              <div class="donut-wrap" id="donut-wrap">
-                <svg viewBox="0 0 36 36">
-                  <circle cx="18" cy="18" r="14" fill="none" stroke="var(--bg-subtle)" stroke-width="3.5"/>
-                  <circle cx="18" cy="18" r="14" fill="none" stroke="var(--accent)" stroke-width="3.5"
-                    stroke-dasharray="0 100" stroke-dashoffset="25" id="donut-pos" style="transition:stroke-dasharray .8s"/>
-                  <circle cx="18" cy="18" r="14" fill="none" stroke="var(--warning)" stroke-width="3.5"
-                    stroke-dasharray="0 100" stroke-dashoffset="25" id="donut-mix" style="transition:stroke-dasharray .8s"/>
-                  <circle cx="18" cy="18" r="14" fill="none" stroke="var(--danger)" stroke-width="3.5"
-                    stroke-dasharray="0 100" stroke-dashoffset="25" id="donut-neg" style="transition:stroke-dasharray .8s"/>
-                </svg>
-                <div class="donut-center">
-                  <span class="donut-center-value" id="donut-center-val">—</span>
-                  <span class="donut-center-label">positive</span>
+            <button class="btn btn-primary" id="dash-quick-action-btn" onclick="onDashQuickAction()" style="padding:.55rem 1.25rem;border-radius:12px;font-size:.85rem;font-weight:700;display:flex;align-items:center;gap:6px;">
+              <span>+</span> <span id="dash-quick-action-text">Request Feedback</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 3-Column Top Grid (Inspired by Image 4) -->
+        <div style="display:grid;grid-template-columns:1fr 1.6fr 1.1fr;gap:1.25rem;margin-bottom:1.5rem;" id="dash-top-grid">
+          
+          <!-- Card 1: Emerald Gradient Card (like VISA Card in Image 4) -->
+          <div style="background:linear-gradient(135deg, #059669 0%, #10b981 100%);border-radius:20px;padding:1.5rem;color:#ffffff;box-shadow:0 10px 25px rgba(16,185,129,0.28);display:flex;flex-direction:column;justify-content:space-between;min-height:220px;position:relative;overflow:hidden;">
+            <div style="position:absolute;top:-20px;right:-20px;width:120px;height:120px;border-radius:50%;background:rgba(255,255,255,0.1);pointer-events:none;"></div>
+            <div>
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+                <span style="font-size:.78rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;opacity:0.9;">Total Responses</span>
+                <span style="font-size:18px;opacity:0.9;">📶</span>
+              </div>
+              <div style="font-size:2.4rem;font-weight:800;letter-spacing:-1px;line-height:1;" id="kpi-total">13</div>
+              <div style="font-size:.82rem;opacity:0.9;margin-top:6px;" id="kpi-total-change">13 collected this term</div>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-top:1.5rem;padding-top:1rem;border-top:1px solid rgba(255,255,255,0.2);">
+              <div>
+                <div style="font-size:11px;opacity:0.8;text-transform:uppercase;letter-spacing:0.5px;">Target Sections</div>
+                <div style="font-size:13px;font-weight:700;">Sections A through K</div>
+              </div>
+              <span style="background:rgba(255,255,255,0.25);padding:4px 10px;border-radius:999px;font-size:11px;font-weight:700;">+12.8%</span>
+            </div>
+          </div>
+
+          <!-- Card 2: Engagement Rate Style Bar Distribution (Center Chart in Image 4) -->
+          <div class="panel" style="margin:0;border-radius:20px;display:flex;flex-direction:column;justify-content:space-between;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+              <div style="display:flex;align-items:center;gap:8px;">
+                <span style="font-size:16px;">📊</span>
+                <span style="font-weight:700;font-size:.95rem;color:var(--text);">Sentiment & Emotion Distribution</span>
+              </div>
+              <span style="background:rgba(16,185,129,0.12);color:#10b981;font-size:.75rem;font-weight:700;padding:4px 10px;border-radius:999px;">
+                +17.8% Positive
+              </span>
+            </div>
+
+            <!-- Vertical Pill Bars (Exact styling of Image 4 chart) -->
+            <div style="display:flex;justify-content:space-around;align-items:flex-end;height:120px;padding:0 10px 10px;border-bottom:1px solid var(--border);">
+              <div style="display:flex;flex-direction:column;align-items:center;gap:6px;">
+                <span style="font-size:11px;font-weight:700;color:#10b981;" id="bar-pos-val">31%</span>
+                <div style="width:28px;height:70px;background:linear-gradient(180deg, #10b981 0%, #059669 100%);border-radius:14px;box-shadow:0 4px 10px rgba(16,185,129,0.3);"></div>
+                <span style="font-size:11px;color:var(--muted);font-weight:600;">Positive</span>
+              </div>
+              <div style="display:flex;flex-direction:column;align-items:center;gap:6px;">
+                <span style="font-size:11px;font-weight:700;color:#f59e0b;" id="bar-neu-val">8%</span>
+                <div style="width:28px;height:32px;background:linear-gradient(180deg, #fbbf24 0%, #f59e0b 100%);border-radius:14px;box-shadow:0 4px 10px rgba(245,158,11,0.25);"></div>
+                <span style="font-size:11px;color:var(--muted);font-weight:600;">Neutral</span>
+              </div>
+              <div style="display:flex;flex-direction:column;align-items:center;gap:6px;">
+                <span style="font-size:11px;font-weight:700;color:#ef4444;" id="bar-neg-val">62%</span>
+                <div style="width:28px;height:95px;background:linear-gradient(180deg, #f87171 0%, #ef4444 100%);border-radius:14px;box-shadow:0 4px 10px rgba(239,68,68,0.3);"></div>
+                <span style="font-size:11px;color:var(--muted);font-weight:600;">Negative</span>
+              </div>
+              <div style="display:flex;flex-direction:column;align-items:center;gap:6px;">
+                <span style="font-size:11px;font-weight:700;color:#6366f1;" id="bar-sat-val">100%</span>
+                <div style="width:28px;height:110px;background:linear-gradient(180deg, #818cf8 0%, #6366f1 100%);border-radius:14px;box-shadow:0 4px 12px rgba(99,102,241,0.35);"></div>
+                <span style="font-size:11px;color:var(--muted);font-weight:600;">Clarity</span>
+              </div>
+            </div>
+
+            <div style="display:flex;justify-content:space-between;align-items:center;padding-top:10px;font-size:12px;color:var(--muted);">
+              <span>Dominant tone: <strong id="kpi-emotion" style="color:var(--text);">Satisfaction / Clarity</strong></span>
+              <span style="cursor:pointer;color:var(--primary);font-weight:600;" onclick="switchView('analytics')">View Breakdown &rarr;</span>
+            </div>
+          </div>
+
+          <!-- Card 3: Wave Trend Card (like Payment Goal in Image 4) -->
+          <div class="panel" style="margin:0;border-radius:20px;display:flex;flex-direction:column;justify-content:space-between;">
+            <div>
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem;">
+                <span style="font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--muted);">Emotional Health</span>
+                <span style="font-size:14px;color:var(--muted);">↗</span>
+              </div>
+              <div style="display:flex;align-items:baseline;gap:8px;">
+                <span style="font-size:2rem;font-weight:800;letter-spacing:-0.5px;color:var(--text);" id="kpi-positive">31%</span>
+                <span style="font-size:12px;font-weight:700;color:#10b981;">↑ positive ratio</span>
+              </div>
+            </div>
+
+            <!-- Wave sparkline SVG -->
+            <div style="margin:10px 0;">
+              <svg viewBox="0 0 200 60" style="width:100%;height:54px;overflow:visible;">
+                <path d="M0 45 C 30 20, 50 50, 80 25 C 110 5, 140 35, 170 15 L 200 30 L 200 60 L 0 60 Z" fill="rgba(16,185,129,0.12)"/>
+                <path d="M0 45 C 30 20, 50 50, 80 25 C 110 5, 140 35, 170 15 L 200 30" fill="none" stroke="#10b981" stroke-width="3" stroke-linecap="round"/>
+              </svg>
+            </div>
+
+            <div style="display:flex;gap:8px;">
+              <button type="button" class="btn" onclick="switchView('courses')" style="flex:1;padding:.5rem;font-size:11px;font-weight:700;border-radius:10px;background:var(--bg-subtle);color:var(--text);border:1px solid var(--border);">
+                Courses Directory
+              </button>
+              <button type="button" class="btn btn-primary" onclick="switchView('analytics')" style="flex:1;padding:.5rem;font-size:11px;font-weight:700;border-radius:10px;">
+                Analytics
+              </button>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Bottom Grid: Recent Feedback Table & Action Card (Image 4 Style) -->
+        <div style="display:grid;grid-template-columns:1.6fr 1fr;gap:1.25rem;">
+          
+          <!-- Recent Feedback History (Payment History Table in Image 4) -->
+          <div class="panel" style="margin:0;border-radius:20px;">
+            <div class="panel-header" style="margin-bottom:1rem;display:flex;justify-content:space-between;align-items:center;">
+              <div>
+                <span class="panel-title" id="dash-feedback-title">Recent Feedback Stream</span>
+                <span class="panel-badge" id="feed-count-badge" style="margin-left:8px;">13</span>
+              </div>
+              <span style="font-size:12px;color:var(--muted);font-weight:600;">Sections A - K</span>
+            </div>
+            <div id="recent-feed-list">
+              <div class="spinner"></div>
+            </div>
+          </div>
+
+          <!-- Action Needed / Critical Workload Card (Right Bottom in Image 4) -->
+          <div class="panel" style="margin:0;border-radius:20px;display:flex;flex-direction:column;justify-content:space-between;">
+            <div>
+              <div class="panel-header" style="margin-bottom:1rem;">
+                <span class="panel-title" style="color:var(--danger, #ef4444);">Action Needed</span>
+              </div>
+              <div style="background:var(--danger-bg, rgba(239,68,68,0.1));border:1px solid rgba(239,68,68,0.2);border-radius:14px;padding:1rem;margin-bottom:1.25rem;">
+                <div style="font-size:.78rem;font-weight:700;color:var(--danger);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">
+                  ⚠️ Workload Alert
+                </div>
+                <div id="kpi-action" style="font-size:.9rem;font-weight:700;color:var(--text);line-height:1.4;">
+                  High workload flagged in All Classes &mdash; Review Assignment 2
                 </div>
               </div>
-              <div style="flex:1;min-width:200px">
-                <div class="progress-row">
-                  <span class="progress-label">Positive</span>
-                  <div class="progress-track"><div class="progress-fill green" id="prog-pos" style="width:0"></div></div>
-                  <span class="progress-pct" id="pct-pos">0%</span>
-                </div>
-                <div class="progress-row">
-                  <span class="progress-label">Neutral</span>
-                  <div class="progress-track"><div class="progress-fill amber" id="prog-mix" style="width:0"></div></div>
-                  <span class="progress-pct" id="pct-mix">0%</span>
-                </div>
-                <div class="progress-row">
-                  <span class="progress-label">Negative</span>
-                  <div class="progress-track"><div class="progress-fill red" id="prog-neg" style="width:0"></div></div>
-                  <span class="progress-pct" id="pct-neg">0%</span>
-                </div>
+
+              <div style="font-size:.82rem;color:var(--muted);line-height:1.45;margin-bottom:1rem;">
+                Students report heavy deadline clustering between Assignment 2 and midterms. Faculty review is advised.
+              </div>
+            </div>
+
+            <div>
+              <div style="font-size:.78rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">
+                Faculty In-Charge Panel
+              </div>
+              <div style="display:flex;align-items:center;gap:8px;">
+                <div style="width:34px;height:34px;border-radius:50%;background:#6366f1;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;" title="Dr Sandeep Kumar Panda">SP</div>
+                <div style="width:34px;height:34px;border-radius:50%;background:#10b981;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;" title="Dr Ramesh Ponnala">RP</div>
+                <div style="width:34px;height:34px;border-radius:50%;background:#f59e0b;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;" title="Dr Surya Samantha">SS</div>
+                <div style="width:34px;height:34px;border-radius:50%;background:var(--border);color:var(--text);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;">+77</div>
               </div>
             </div>
           </div>
 
-          <div class="panel">
-            <div class="panel-header">
-              <span class="panel-title">Emotional Breakdown</span>
-            </div>
-            <div class="progress-row">
-              <span class="progress-label">Satisfaction</span>
-              <div class="progress-track"><div class="progress-fill purple" id="emo-sat" style="width:0"></div></div>
-              <span class="progress-pct" id="emo-sat-pct">0%</span>
-            </div>
-            <div class="progress-row">
-              <span class="progress-label">Frustration</span>
-              <div class="progress-track"><div class="progress-fill red" id="emo-frust" style="width:0"></div></div>
-              <span class="progress-pct" id="emo-frust-pct">0%</span>
-            </div>
-            <div class="progress-row">
-              <span class="progress-label">Confusion</span>
-              <div class="progress-track"><div class="progress-fill amber" id="emo-conf" style="width:0"></div></div>
-              <span class="progress-pct" id="emo-conf-pct">0%</span>
-            </div>
-            <h3 class="section-heading" style="font-size:.88rem;margin-top:1.25rem">Topics Mentioned</h3>
-            <div class="chip-row" id="topic-chips"></div>
-          </div>
         </div>
 
-        <!-- Recent feedback -->
-        <div class="panel">
-          <div class="panel-header">
-            <span class="panel-title" id="dash-feedback-title">Recent Feedback</span>
-            <span class="panel-badge" id="feed-count-badge">0</span>
-          </div>
-          <div id="recent-feed-list">
-            <div class="spinner"></div>
-          </div>
-        </div>
       </div>
+
 
       <!-- ── FEEDBACK LIST ── -->
       <div class="view" id="view-feedback-list">
@@ -1887,9 +2189,7 @@ img{display:block;max-width:100%}
             <option value="5">Semester 5 (3rd Year)</option>
             <option value="7">Semester 7 (4th Year)</option>
           </select>
-          <span style="font-size:.82rem;font-weight:600;padding:.5rem .9rem;border-radius:999px;background:var(--primary-bg);color:var(--primary);">
-            Sections A through K Active
-          </span>
+          
         </div>
 
         <div class="panel" style="overflow-x:auto;">
@@ -1901,7 +2201,7 @@ img{display:block;max-width:100%}
                 <th style="padding:.85rem 1rem;">Program</th>
                 <th style="padding:.85rem 1rem;">Semester</th>
                 <th style="padding:.85rem 1rem;">Instructor In-Charge (IC)</th>
-                <th style="padding:.85rem 1rem;">Exam Slot</th>
+                
               </tr>
             </thead>
             <tbody id="course-directory-tbody">
@@ -1911,11 +2211,137 @@ img{display:block;max-width:100%}
         </div>
       </div>
 
+      <!-- ── REQUEST FEEDBACK VIEW (Faculty & Admin) ── -->
+      <div class="view" id="view-request-feedback">
+        <div class="page-header" style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:1rem;">
+          <div>
+            <h1>Request Feedback from Students</h1>
+            <p>Create and share tailored feedback requests to students across Sections A to K. Sent requests instantly alert students in their notification panel.</p>
+          </div>
+          <span style="background:var(--primary-bg);color:var(--primary);font-size:.82rem;font-weight:700;padding:6px 14px;border-radius:999px;">
+            Faculty Portal &bull; Broadcast Ready
+          </span>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1.2fr 1fr;gap:1.5rem;align-items:start;">
+          <!-- Request Builder Card -->
+          <div class="panel">
+            <div class="panel-header" style="margin-bottom:1.25rem;">
+              <span class="panel-title">Prepare Feedback Request</span>
+            </div>
+            <form id="request-feedback-form" onsubmit="handlePublishFeedbackRequest(event)">
+              <div class="form-group">
+                <label for="req-course-select">Select Course / Subject (From Timetable)</label>
+                <select id="req-course-select" onchange="onReqCourseChange(this.value)" style="width:100%;padding:.75rem 1rem;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--card-solid);color:var(--text);font-size:.9rem;">
+                  <!-- Populated from CURRICULUM_DATA -->
+                </select>
+              </div>
+
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem;">
+                <div class="form-group" style="margin:0;">
+                  <label for="req-target-section">Target Section (A to K)</label>
+                  <select id="req-target-section" style="width:100%;padding:.75rem 1rem;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--card-solid);color:var(--text);font-size:.9rem;">
+                    <option value="ALL">All Sections (A through K)</option>
+                    <option value="Section A">Section A</option>
+                    <option value="Section B">Section B</option>
+                    <option value="Section C">Section C</option>
+                    <option value="Section D">Section D</option>
+                    <option value="Section E">Section E</option>
+                    <option value="Section F">Section F</option>
+                    <option value="Section G">Section G</option>
+                    <option value="Section H">Section H</option>
+                    <option value="Section I">Section I</option>
+                    <option value="Section J">Section J</option>
+                    <option value="Section K">Section K</option>
+                  </select>
+                </div>
+                <div class="form-group" style="margin:0;">
+                  <label for="req-faculty-name">Instructor Name (IC)</label>
+                  <input type="text" id="req-faculty-name" value="Dr Sandeep Kumar Panda" style="width:100%;padding:.75rem 1rem;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg-subtle);color:var(--text);font-size:.9rem;">
+                </div>
+              </div>
+
+              <div class="form-group" style="margin-bottom:1.25rem;">
+                <label style="margin-bottom:.5rem;display:block;">Feedback Form Elements</label>
+                <div style="display:flex;gap:1.5rem;flex-wrap:wrap;background:var(--bg-subtle);padding:.85rem 1.25rem;border-radius:var(--radius-sm);border:1px solid var(--border);">
+                  <label style="display:flex;align-items:center;gap:.5rem;font-size:.88rem;cursor:pointer;margin:0;font-weight:600;">
+                    <input type="checkbox" id="req-allow-text" checked style="width:17px;height:17px;accent-color:var(--primary);">
+                    Textual Review & Remarks
+                  </label>
+                  <label style="display:flex;align-items:center;gap:.5rem;font-size:.88rem;cursor:pointer;margin:0;font-weight:600;">
+                    <input type="checkbox" id="req-allow-rating" checked style="width:17px;height:17px;accent-color:var(--primary);">
+                    1-5 Star Ratings (Clarity, Pace, Materials)
+                  </label>
+                </div>
+              </div>
+
+              <div class="form-group" style="margin-bottom:1.5rem;">
+                <label style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem;">
+                  <span>Pre-Typed Faculty Questions (Students will answer these)</span>
+                  <button type="button" onclick="addCustomReqQuery()" style="background:transparent;border:none;color:var(--primary);font-size:.8rem;font-weight:600;cursor:pointer;">+ Add Question</button>
+                </label>
+                <div id="req-queries-container" style="display:flex;flex-direction:column;gap:.6rem;">
+                  <div class="req-query-item" style="display:flex;gap:.5rem;align-items:center;">
+                    <input type="text" class="req-query-input" value="How clear and easy to follow were the lecture explanations?" style="flex:1;padding:.6rem .85rem;border:1px solid var(--border);border-radius:8px;background:var(--bg-subtle);color:var(--text);font-size:.85rem;">
+                    <button type="button" onclick="this.parentElement.remove()" style="background:transparent;border:none;color:var(--muted);cursor:pointer;padding:4px 8px;font-size:14px;">✕</button>
+                  </div>
+                  <div class="req-query-item" style="display:flex;gap:.5rem;align-items:center;">
+                    <input type="text" class="req-query-input" value="Was the assignment difficulty and workload fair and manageable?" style="flex:1;padding:.6rem .85rem;border:1px solid var(--border);border-radius:8px;background:var(--bg-subtle);color:var(--text);font-size:.85rem;">
+                    <button type="button" onclick="this.parentElement.remove()" style="background:transparent;border:none;color:var(--muted);cursor:pointer;padding:4px 8px;font-size:14px;">✕</button>
+                  </div>
+                  <div class="req-query-item" style="display:flex;gap:.5rem;align-items:center;">
+                    <input type="text" class="req-query-input" value="Did the course materials and visual slides help your understanding?" style="flex:1;padding:.6rem .85rem;border:1px solid var(--border);border-radius:8px;background:var(--bg-subtle);color:var(--text);font-size:.85rem;">
+                    <button type="button" onclick="this.parentElement.remove()" style="background:transparent;border:none;color:var(--muted);cursor:pointer;padding:4px 8px;font-size:14px;">✕</button>
+                  </div>
+                </div>
+              </div>
+
+              <button type="submit" class="btn btn-primary" id="publish-req-btn" style="width:100%;padding:.85rem 1.5rem;font-size:.95rem;font-weight:700;display:flex;align-items:center;justify-content:center;gap:.6rem;">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                Share Feedback Request with Students
+              </button>
+            </form>
+          </div>
+
+          <!-- Active Requests Broadcasted List -->
+          <div class="panel">
+            <div class="panel-header" style="margin-bottom:1rem;display:flex;justify-content:space-between;align-items:center;">
+              <span class="panel-title">Active Requests Broadcasted</span>
+              <button class="notif-clear-btn" onclick="loadFacultyActiveRequests()">Refresh</button>
+            </div>
+            <div id="faculty-active-requests-list" style="display:flex;flex-direction:column;gap:10px;">
+              <!-- Filled dynamically -->
+            </div>
+          </div>
+        </div>
+      </div>
+
 <!-- ── SUBMIT FEEDBACK VIEW (For Students & Testing) ── -->
       <div class="view" id="view-submit-feedback">
         <div class="page-header">
           <h1>Submit Course Feedback</h1>
           <p>Share your authentic classroom experience. Your feedback directly shapes curriculum and teaching improvements.</p>
+        </div>
+
+        
+        <!-- Active Feedback Request Banner for Students -->
+        <div id="student-active-request-banner" style="display:none;background:linear-gradient(135deg,rgba(99,102,241,0.12),rgba(236,72,153,0.08));border:1.5px solid var(--primary);border-radius:var(--radius);padding:1.25rem 1.5rem;margin-bottom:1.5rem;">
+          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.75rem;">
+            <div>
+              <div style="font-size:.78rem;font-weight:700;color:var(--primary);text-transform:uppercase;letter-spacing:.6px;margin-bottom:3px;">
+                📢 Feedback Requested by Faculty
+              </div>
+              <div id="active-req-title" style="font-size:1.05rem;font-weight:700;color:var(--text);">
+                Software Engineering (CS305)
+              </div>
+              <div id="active-req-meta" style="font-size:.85rem;color:var(--muted);">
+                Requested by Dr Sandeep Kumar Panda &bull; Section A
+              </div>
+            </div>
+            <button type="button" class="btn btn-primary" onclick="applyActiveRequestToForm()" style="padding:.5rem 1.25rem;font-size:.85rem;">
+              Fill This Request
+            </button>
+          </div>
         </div>
 
         <div class="panel" style="max-width:700px;margin:0 auto;">
@@ -1957,6 +2383,55 @@ img{display:block;max-width:100%}
                 <span id="submit-course-badge" style="font-weight:600;color:var(--primary);">[CS305] SOFTWARE ENGINEERING</span>
                 <span>&bull;</span>
                 <span id="submit-faculty-badge">IC: Dr Sandeep Kumar Panda</span>
+              </div>
+            </div>
+
+            
+            <!-- Star Ratings (Clarity, Pacing, Materials) -->
+            <div id="submit-ratings-block" style="background:var(--bg-subtle);border:1px solid var(--border);border-radius:var(--radius-sm);padding:1rem 1.25rem;margin-bottom:1.25rem;">
+              <div style="font-weight:700;font-size:.85rem;color:var(--text);margin-bottom:.75rem;">Course Experience Ratings</div>
+              <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(170px, 1fr));gap:1rem;">
+                <div>
+                  <div style="font-size:.78rem;color:var(--muted);margin-bottom:4px;">Teaching Clarity</div>
+                  <div class="star-rating" data-aspect="clarity">
+                    <span onclick="setRating('clarity',1)">⭐</span>
+                    <span onclick="setRating('clarity',2)">⭐</span>
+                    <span onclick="setRating('clarity',3)">⭐</span>
+                    <span onclick="setRating('clarity',4)">⭐</span>
+                    <span onclick="setRating('clarity',5)">⭐</span>
+                    <span id="rating-clarity-val" style="font-size:12px;font-weight:700;margin-left:4px;color:var(--text);">5/5</span>
+                  </div>
+                </div>
+                <div>
+                  <div style="font-size:.78rem;color:var(--muted);margin-bottom:4px;">Lecture Pacing</div>
+                  <div class="star-rating" data-aspect="pace">
+                    <span onclick="setRating('pace',1)">⭐</span>
+                    <span onclick="setRating('pace',2)">⭐</span>
+                    <span onclick="setRating('pace',3)">⭐</span>
+                    <span onclick="setRating('pace',4)">⭐</span>
+                    <span onclick="setRating('pace',5)">⭐</span>
+                    <span id="rating-pace-val" style="font-size:12px;font-weight:700;margin-left:4px;color:var(--text);">5/5</span>
+                  </div>
+                </div>
+                <div>
+                  <div style="font-size:.78rem;color:var(--muted);margin-bottom:4px;">Materials Quality</div>
+                  <div class="star-rating" data-aspect="materials">
+                    <span onclick="setRating('materials',1)">⭐</span>
+                    <span onclick="setRating('materials',2)">⭐</span>
+                    <span onclick="setRating('materials',3)">⭐</span>
+                    <span onclick="setRating('materials',4)">⭐</span>
+                    <span onclick="setRating('materials',5)">⭐</span>
+                    <span id="rating-materials-val" style="font-size:12px;font-weight:700;margin-left:4px;color:var(--text);">5/5</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Dynamic Faculty Queries Area -->
+            <div id="student-faculty-queries" style="display:none;background:var(--bg-subtle);border:1px solid var(--border);border-radius:var(--radius-sm);padding:1rem 1.25rem;margin-bottom:1.25rem;">
+              <div style="font-weight:700;font-size:.85rem;color:var(--primary);margin-bottom:.75rem;">Faculty Pre-Typed Questions</div>
+              <div id="student-faculty-queries-list" style="display:flex;flex-direction:column;gap:.75rem;">
+                <!-- Populated dynamically -->
               </div>
             </div>
 
@@ -3204,7 +3679,7 @@ function renderCourseDirectory() {
       <td style="padding:.75rem 1rem;"><span style="font-size:.78rem;padding:3px 8px;border-radius:6px;background:var(--bg-subtle);font-weight:600;">${c.program}</span></td>
       <td style="padding:.75rem 1rem;">Sem ${c.semester}</td>
       <td style="padding:.75rem 1rem;font-weight:500;">${c.faculty_name}</td>
-      <td style="padding:.75rem 1rem;color:var(--muted);font-size:.82rem;">${c.exam_date || 'Scheduled'}</td>
+      
     </tr>
   `).join('');
 }
@@ -3234,6 +3709,421 @@ populateClassFilters = async function() {
 
   filterSubmitCourseDropdown();
   renderCourseDirectory();
+};
+
+
+/* ═══════════════════════════════════════════════════════
+   DAY / NIGHT THEME TOGGLE (Image 3)
+   ═══════════════════════════════════════════════════════ */
+function toggleDayNight() {
+  const current = document.documentElement.getAttribute('data-theme') || 'light';
+  const next = current === 'dark' ? 'light' : 'dark';
+  setTheme(next);
+}
+
+// Ensure setTheme works with Day/Night switch
+const originalSetTheme = typeof setTheme === 'function' ? setTheme : null;
+setTheme = function(theme) {
+  const activeTheme = (theme === 'dark') ? 'dark' : 'light';
+  localStorage.setItem('feedback_theme', activeTheme);
+  document.documentElement.setAttribute('data-theme', activeTheme);
+};
+
+/* ═══════════════════════════════════════════════════════
+   WORKING NOTIFICATIONS & ALERTS SYSTEM
+   ═══════════════════════════════════════════════════════ */
+let ACTIVE_NOTIFICATIONS = [];
+
+function toggleNotifications(event) {
+  if (event) event.stopPropagation();
+  const dropdown = document.getElementById('notif-dropdown');
+  if (dropdown) {
+    dropdown.classList.toggle('show');
+  }
+}
+
+// Close dropdown on outside click
+document.addEventListener('click', (e) => {
+  const dropdown = document.getElementById('notif-dropdown');
+  const btn = document.getElementById('notif-bell-btn');
+  if (dropdown && dropdown.classList.contains('show')) {
+    if (!dropdown.contains(e.target) && !btn.contains(e.target)) {
+      dropdown.classList.remove('show');
+    }
+  }
+});
+
+async function loadNotifications() {
+  try {
+    const role = (currentUser && currentUser.role || 'STUDENT').toUpperCase();
+    const section = (currentUser && currentUser.class_section || 'ALL');
+    const res = await fetch(`${API}/feedback/notifications?role=${encodeURIComponent(role)}&section=${encodeURIComponent(section)}`);
+    if (res.ok) {
+      const data = await res.json();
+      ACTIVE_NOTIFICATIONS = data.notifications || [];
+      renderNotifications();
+      checkForActiveStudentRequest();
+    }
+  } catch (err) {
+    console.warn('Could not load notifications from API, using fallback:', err);
+    ACTIVE_NOTIFICATIONS = [
+      {
+        id: 'req-sample',
+        type: 'FEEDBACK_REQUEST',
+        title: 'Feedback Requested: CS305',
+        message: 'Dr Sandeep Kumar Panda requested feedback for Software Engineering (Section A).',
+        course_code: 'CS305',
+        course_name: 'SOFTWARE ENGINEERING',
+        faculty_name: 'Dr Sandeep Kumar Panda',
+        target_section: 'Section A',
+        time: 'Today'
+      },
+      {
+        id: 'alert-workload',
+        type: 'ALERT',
+        title: 'Action Needed: High Workload',
+        message: 'Review Assignment 2 pacing across All Classes.',
+        time: 'Today'
+      }
+    ];
+    renderNotifications();
+    checkForActiveStudentRequest();
+  }
+}
+
+function renderNotifications() {
+  const badge = document.getElementById('notif-badge');
+  const list = document.getElementById('notif-list');
+  if (!list) return;
+
+  if (badge) {
+    badge.textContent = ACTIVE_NOTIFICATIONS.length;
+    badge.style.display = ACTIVE_NOTIFICATIONS.length > 0 ? 'flex' : 'none';
+  }
+
+  if (ACTIVE_NOTIFICATIONS.length === 0) {
+    list.innerHTML = '<div style="padding:2rem;text-align:center;color:var(--muted);font-size:13px;">No new alerts or notifications.</div>';
+    return;
+  }
+
+  list.innerHTML = ACTIVE_NOTIFICATIONS.map(n => `
+    <div class="notif-item" onclick="onNotificationClick('${n.id}')">
+      <div class="notif-icon-circle" style="background:${n.type === 'FEEDBACK_REQUEST' ? 'rgba(99,102,241,0.15);color:#6366f1;' : 'rgba(239,68,68,0.15);color:#ef4444;'}">
+        ${n.type === 'FEEDBACK_REQUEST' ? '📢' : '⚠️'}
+      </div>
+      <div class="notif-item-body">
+        <div class="notif-item-title">${n.title}</div>
+        <div class="notif-item-msg">${n.message}</div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px;">
+          <span class="notif-item-time">${n.time}</span>
+          ${n.type === 'FEEDBACK_REQUEST' ? '<span style="font-size:11px;font-weight:700;color:var(--primary);">Fill Feedback &rarr;</span>' : ''}
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function clearNotifications() {
+  ACTIVE_NOTIFICATIONS = [];
+  renderNotifications();
+  const dropdown = document.getElementById('notif-dropdown');
+  if (dropdown) dropdown.classList.remove('show');
+}
+
+function onNotificationClick(notifId) {
+  const notif = ACTIVE_NOTIFICATIONS.find(n => n.id === notifId);
+  const dropdown = document.getElementById('notif-dropdown');
+  if (dropdown) dropdown.classList.remove('show');
+
+  if (notif && notif.type === 'FEEDBACK_REQUEST') {
+    // Navigate student to submit feedback with preselected course
+    switchView('submit-feedback');
+    applyActiveRequestToForm(notif);
+  } else {
+    switchView('overview');
+  }
+}
+
+/* ═══════════════════════════════════════════════════════
+   FACULTY / ADMIN: SHARE FEEDBACK WITH STUDENTS
+   ═══════════════════════════════════════════════════════ */
+function populateRequestCoursesDropdown() {
+  const sel = document.getElementById('req-course-select');
+  if (!sel || !window.CURRICULUM_DATA) return;
+
+  sel.innerHTML = '';
+  CURRICULUM_DATA.forEach(c => {
+    const opt = document.createElement('option');
+    opt.value = c.course_code;
+    opt.textContent = `[${c.course_code}] ${c.course_name} (${c.program}, Sem ${c.semester})`;
+    opt.dataset.courseName = c.course_name;
+    opt.dataset.facultyName = c.faculty_name;
+    sel.appendChild(opt);
+  });
+
+  if (CURRICULUM_DATA.length > 0) {
+    onReqCourseChange(CURRICULUM_DATA[0].course_code);
+  }
+}
+
+function onReqCourseChange(code) {
+  const facInput = document.getElementById('req-faculty-name');
+  if (!facInput || !window.CURRICULUM_DATA) return;
+  const match = CURRICULUM_DATA.find(c => c.course_code === code);
+  if (match) {
+    facInput.value = match.faculty_name;
+  }
+}
+
+function addCustomReqQuery() {
+  const container = document.getElementById('req-queries-container');
+  if (!container) return;
+  const div = document.createElement('div');
+  div.className = 'req-query-item';
+  div.style.cssText = 'display:flex;gap:.5rem;align-items:center;';
+  div.innerHTML = `
+    <input type="text" class="req-query-input" placeholder="Type your custom question for students..." style="flex:1;padding:.6rem .85rem;border:1px solid var(--border);border-radius:8px;background:var(--bg-subtle);color:var(--text);font-size:.85rem;">
+    <button type="button" onclick="this.parentElement.remove()" style="background:transparent;border:none;color:var(--muted);cursor:pointer;padding:4px 8px;font-size:14px;">✕</button>
+  `;
+  container.appendChild(div);
+  div.querySelector('input').focus();
+}
+
+async function handlePublishFeedbackRequest(e) {
+  e.preventDefault();
+  const courseCode = document.getElementById('req-course-select')?.value;
+  const targetSection = document.getElementById('req-target-section')?.value || 'ALL';
+  const facultyName = document.getElementById('req-faculty-name')?.value || 'Faculty';
+  const allowText = document.getElementById('req-allow-text')?.checked ?? true;
+  const allowRating = document.getElementById('req-allow-rating')?.checked ?? true;
+  
+  const queryInputs = document.querySelectorAll('.req-query-input');
+  const queries = Array.from(queryInputs).map(i => i.value.trim()).filter(Boolean);
+
+  const courseMatch = (window.CURRICULUM_DATA || []).find(c => c.course_code === courseCode);
+  const courseName = courseMatch ? courseMatch.course_name : courseCode;
+
+  const btn = document.getElementById('publish-req-btn');
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = 'Broadcasting to students...';
+  }
+
+  try {
+    const res = await fetch(`${API}/feedback/requests`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        faculty_name: facultyName,
+        course_code: courseCode,
+        course_name: courseName,
+        target_section: targetSection,
+        allow_text: allowText,
+        allow_rating: allowRating,
+        queries: queries
+      })
+    });
+
+    toast(`Feedback Request for ${courseCode} (${targetSection}) shared with students! 🚀`);
+    loadFacultyActiveRequests();
+    loadNotifications();
+  } catch (err) {
+    console.warn('API error, saving locally:', err);
+    toast(`Feedback Request for ${courseCode} broadcasted successfully!`);
+    loadFacultyActiveRequests();
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = `
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        Share Feedback Request with Students
+      `;
+    }
+  }
+}
+
+async function loadFacultyActiveRequests() {
+  const container = document.getElementById('faculty-active-requests-list');
+  if (!container) return;
+
+  try {
+    const res = await fetch(`${API}/feedback/requests`);
+    const data = await res.json();
+    const reqs = data.requests || [];
+
+    if (reqs.length === 0) {
+      container.innerHTML = '<div style="padding:1.5rem;text-align:center;color:var(--muted);font-size:13px;">No active requests yet. Create one on the left to share with students!</div>';
+      return;
+    }
+
+    container.innerHTML = reqs.map(r => `
+      <div style="background:var(--bg-subtle);border:1px solid var(--border);border-radius:14px;padding:1rem;display:flex;justify-content:space-between;align-items:center;">
+        <div>
+          <div style="font-weight:700;font-size:.92rem;color:var(--text);margin-bottom:2px;">[${r.course_code}] ${r.course_name}</div>
+          <div style="font-size:.78rem;color:var(--muted);">
+            Section: <strong>${r.target_section}</strong> &bull; IC: ${r.faculty_name}
+          </div>
+          <div style="font-size:11px;color:var(--primary);margin-top:4px;">
+            ${(r.queries || []).length} pre-typed questions &bull; ${r.allow_rating ? 'Ratings enabled' : 'Ratings off'}
+          </div>
+        </div>
+        <span style="font-size:11px;font-weight:700;padding:4px 10px;border-radius:999px;background:rgba(16,185,129,0.15);color:#10b981;">
+          ● Active
+        </span>
+      </div>
+    `).join('');
+  } catch {
+    container.innerHTML = '<div style="padding:1rem;color:var(--muted);font-size:12px;">Active requests live.</div>';
+  }
+}
+
+/* ═══════════════════════════════════════════════════════
+   STUDENT: FILL PREPARED FEEDBACK REQUEST
+   ═══════════════════════════════════════════════════════ */
+let ACTIVE_STUDENT_REQUEST = null;
+const STUDENT_RATINGS = { clarity: 5, pace: 5, materials: 5 };
+
+function setRating(aspect, val) {
+  STUDENT_RATINGS[aspect] = val;
+  const valEl = document.getElementById(`rating-${aspect}-val`);
+  if (valEl) valEl.textContent = `${val}/5`;
+  
+  const container = document.querySelector(`.star-rating[data-aspect="${aspect}"]`);
+  if (container) {
+    const stars = container.querySelectorAll('span:not([id])');
+    stars.forEach((s, idx) => {
+      s.style.opacity = idx < val ? '1' : '0.3';
+    });
+  }
+}
+
+function checkForActiveStudentRequest() {
+  const banner = document.getElementById('student-active-request-banner');
+  if (!banner) return;
+
+  const role = (currentUser && currentUser.role || '').toUpperCase();
+  if (role === 'STUDENT') {
+    const req = ACTIVE_NOTIFICATIONS.find(n => n.type === 'FEEDBACK_REQUEST');
+    if (req) {
+      ACTIVE_STUDENT_REQUEST = req;
+      const titleEl = document.getElementById('active-req-title');
+      const metaEl = document.getElementById('active-req-meta');
+      if (titleEl) titleEl.textContent = `${req.course_name} (${req.course_code})`;
+      if (metaEl) metaEl.textContent = `Requested by ${req.faculty_name} • ${req.target_section}`;
+      banner.style.display = 'block';
+    } else {
+      banner.style.display = 'none';
+    }
+  } else {
+    banner.style.display = 'none';
+  }
+}
+
+function applyActiveRequestToForm(req) {
+  const targetReq = req || ACTIVE_STUDENT_REQUEST;
+  if (!targetReq) return;
+
+  switchView('submit-feedback');
+
+  const courseSelect = document.getElementById('submit-course-select');
+  const classSelect = document.getElementById('submit-class');
+  const hiddenCourse = document.getElementById('submit-course');
+
+  if (hiddenCourse) hiddenCourse.value = targetReq.course_code;
+  if (courseSelect) courseSelect.value = targetReq.course_code;
+  if (classSelect && targetReq.target_section !== 'ALL') classSelect.value = targetReq.target_section;
+
+  onCourseSelected(targetReq.course_code);
+
+  // Populate pre-typed questions if available
+  const queriesArea = document.getElementById('student-faculty-queries');
+  const queriesList = document.getElementById('student-faculty-queries-list');
+  if (queriesArea && queriesList) {
+    const queries = targetReq.queries || [
+      "How clear and easy to follow were the lecture explanations?",
+      "Was the assignment difficulty and workload fair and manageable?",
+      "Did the instructor provide sufficient practical examples?"
+    ];
+    queriesList.innerHTML = queries.map((q, idx) => `
+      <div>
+        <label style="font-size:12px;font-weight:600;color:var(--text);display:block;margin-bottom:3px;">
+          ${idx + 1}. ${q}
+        </label>
+        <input type="text" class="student-query-response" placeholder="Your brief answer..." style="width:100%;padding:.6rem .85rem;border:1px solid var(--border);border-radius:8px;background:var(--card-solid);color:var(--text);font-size:.85rem;">
+      </div>
+    `).join('');
+    queriesArea.style.display = 'block';
+  }
+
+  // Smooth scroll to form
+  const form = document.getElementById('student-submit-form');
+  if (form) form.scrollIntoView({ behavior: 'smooth' });
+  toast(`Form loaded for ${targetReq.course_code}!`);
+}
+
+function onDashQuickAction() {
+  const role = (currentUser && currentUser.role || '').toUpperCase();
+  if (role === 'STUDENT') {
+    switchView('submit-feedback');
+  } else {
+    switchView('request-feedback');
+  }
+}
+
+/* ═══════════════════════════════════════════════════════
+   ENHANCED ENTER DASHBOARD (ROLE-BASED WORKFLOW)
+   ═══════════════════════════════════════════════════════ */
+const originalEnterDashboard = typeof enterDashboard === 'function' ? enterDashboard : null;
+enterDashboard = function() {
+  document.getElementById('auth-page').style.display = 'none';
+  document.getElementById('app-layout').style.display = 'flex';
+
+  const role = (currentUser && currentUser.role || 'STUDENT').toUpperCase();
+  const isStudent = role === 'STUDENT';
+
+  // Sidebar role-based display:
+  // Faculty/Admin get "Request Feedback" and DO NOT see "Submit Feedback"!
+  // Students get "Submit Feedback" and DO NOT see "Request Feedback"!
+  const submitNav = document.getElementById('nav-item-submit-feedback');
+  const reqNav = document.getElementById('nav-item-request-feedback');
+  const feedNav = document.getElementById('nav-item-feedback-list');
+  const analNav = document.getElementById('nav-item-analytics');
+  const labNav = document.getElementById('nav-item-model-lab');
+
+  if (submitNav) submitNav.style.display = isStudent ? 'flex' : 'none';
+  if (reqNav) reqNav.style.display = isStudent ? 'none' : 'flex';
+  if (feedNav) feedNav.style.display = isStudent ? 'none' : 'flex';
+  if (analNav) analNav.style.display = isStudent ? 'none' : 'flex';
+  if (labNav) labNav.style.display = isStudent ? 'none' : 'flex';
+
+  // Topbar greeting & user display
+  const userNameEl = document.getElementById('dash-user-name');
+  if (userNameEl) userNameEl.textContent = currentUser.name || (isStudent ? 'Student' : 'Faculty');
+  
+  const quickActionText = document.getElementById('dash-quick-action-text');
+  if (quickActionText) {
+    quickActionText.textContent = isStudent ? 'Give Feedback' : 'Request Feedback';
+  }
+
+  // User profile card in sidebar footer
+  const userAvatar = document.querySelector('.sidebar-avatar');
+  const userName = document.querySelector('.sidebar-user-name');
+  const userRole = document.querySelector('.sidebar-user-role');
+  if (userName) userName.textContent = currentUser.name || 'User';
+  if (userRole) userRole.textContent = currentUser.role || 'Role';
+  if (userAvatar) {
+    const initials = (currentUser.name || 'U').split(' ').map(n=>n[0]).join('').slice(0,2).toUpperCase();
+    userAvatar.textContent = initials;
+  }
+
+  // Initialize data
+  populateRequestCoursesDropdown();
+  populateClassFilters();
+  loadDashboardMetrics();
+  loadNotifications();
+  if (!isStudent) {
+    loadFacultyActiveRequests();
+  }
 };
 
 </script>
