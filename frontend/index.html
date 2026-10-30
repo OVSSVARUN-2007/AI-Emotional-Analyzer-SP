@@ -542,11 +542,14 @@ img{display:block;max-width:100%}
 
 /* Main content area */
 .main-area {
-  flex:1;
-  display:flex;
-  flex-direction:column;
-  min-width:0;
-  overflow:hidden;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  height: 100vh;
+  max-height: 100vh;
+  min-height: 0;
+  overflow: hidden;
 }
 
 /* Top bar */
@@ -627,10 +630,36 @@ html, body {
 
 .page-content {
   flex: 1;
-  overflow-y: auto !important;
+  min-height: 0 !important;
+  height: calc(100vh - var(--topbar-h)) !important;
+  max-height: calc(100vh - var(--topbar-h)) !important;
+  overflow-y: scroll !important;
+  overflow-x: hidden !important;
   scroll-behavior: smooth !important;
-  padding: 1.75rem 2rem 5rem !important;
+  padding: 1.5rem 2rem 6rem !important;
   position: relative;
+  box-sizing: border-box !important;
+  scrollbar-width: thin !important;
+  scrollbar-color: #6366f1 rgba(99, 102, 241, 0.12) !important;
+}
+
+.page-content::-webkit-scrollbar {
+  width: 10px !important;
+  display: block !important;
+}
+.page-content::-webkit-scrollbar-track {
+  background: var(--bg-subtle, #f1f5f9) !important;
+  border-radius: 999px !important;
+  margin: 6px 0 !important;
+}
+.page-content::-webkit-scrollbar-thumb {
+  background: #6366f1 !important;
+  border-radius: 999px !important;
+  border: 2px solid transparent !important;
+  background-clip: content-box !important;
+}
+.page-content::-webkit-scrollbar-thumb:hover {
+  background: #4f46e5 !important;
 }
 
 /* Floating Quick Scroll Helper Button (Scroll Down / Top) */
@@ -2530,8 +2559,12 @@ html, body {
   color: var(--text);
 }
 .nav-parent-item.open {
+  color: var(--text);
+  background: transparent;
+}
+.nav-parent-item.open .nav-parent-header span {
+  font-weight: 700;
   color: var(--primary);
-  background: var(--primary-bg);
 }
 .nav-parent-header {
   display: flex;
@@ -3091,19 +3124,19 @@ html, body {
         Submit Feedback
       </div>
 
-      <!-- Student: My Mentor Option (Accordion with Academic & Special Project Mentors) -->
-      <div class="nav-parent-item" id="nav-parent-mentors" style="display:none;" onclick="toggleNavAccordion('mentors'); openAcademicMentor();">
+      <!-- Student: My Mentors Option (Accordion with Separate Sub-Options) -->
+      <div class="nav-parent-item" id="nav-parent-mentors" style="display:none;" onclick="toggleNavAccordion('mentors');">
         <div class="nav-parent-header" style="display:flex;align-items:center;gap:10px;">
           <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 14l9-5-9-5-9 5 9 5z"/><path d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"/><path d="M12 14v7"/></svg>
-          <span>My Mentor</span>
+          <span>My Mentors</span>
         </div>
         <svg class="accordion-chevron" id="chevron-mentors" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
       </div>
       <div class="nav-child-container" id="nav-children-mentors">
-        <div class="nav-child-item" data-view="my-mentor" id="nav-child-academic-mentor" onclick="openAcademicMentor();">
+        <div class="nav-child-item" data-view="mentor-academic" id="nav-child-academic-mentor" onclick="selectAcademicMentor(event);">
           <span class="child-bullet"></span> Academic Mentor
         </div>
-        <div class="nav-child-item" data-view="my-mentor" id="nav-child-project-mentor" onclick="openProjectMentor();">
+        <div class="nav-child-item" data-view="mentor-project" id="nav-child-project-mentor" onclick="selectProjectMentor(event);">
           <span class="child-bullet"></span> Special Project Mentor
         </div>
       </div>
@@ -4907,8 +4940,13 @@ function toggleNavAccordion(group) {
   const parent = document.getElementById(`nav-parent-${group}`);
   const container = document.getElementById(`nav-children-${group}`);
   if (parent && container) {
+    const willOpen = !parent.classList.contains('open');
     parent.classList.toggle('open');
     container.classList.toggle('show');
+    // When opening mentors from closed state, default to selecting Academic Mentor
+    if (group === 'mentors' && willOpen) {
+      selectAcademicMentor();
+    }
   }
 }
 
@@ -4941,47 +4979,78 @@ function switchView(name) {
   const isFaculty = role === 'FACULTY';
   const isAdmin = role === 'ADMIN';
 
+  // Handle mentor sub-views mapping to view-my-mentor DOM element
+  let mentorTab = null;
+  let viewId = name;
+  if (name === 'mentor-academic') {
+    mentorTab = 'academic';
+    viewId = 'my-mentor';
+  } else if (name === 'mentor-project') {
+    mentorTab = 'project';
+    viewId = 'my-mentor';
+  } else if (name === 'my-mentor') {
+    const tabProj = document.getElementById('tab-mentor-project');
+    mentorTab = (tabProj && tabProj.classList.contains('active')) ? 'project' : 'academic';
+  }
+
   // STRICT ROLE-BASED WORKFLOW GUARDS:
-  // 1. Students ONLY perform student actions (Submit Feedback, View Mentors, Dashboard, Courses)
   const restrictedForStudents = [
     'model-lab', 'feedback-list', 'analytics', 'departments',
     'my-students', 'admin-students', 'admin-faculty', 'request-feedback', 'complaints'
   ];
-  if (isStudent && restrictedForStudents.includes(name)) {
+  if (isStudent && restrictedForStudents.includes(viewId)) {
     toast('Access restricted: This area is reserved for Faculty and Administrators.');
     switchView('overview');
     return;
   }
 
-  // 2. Administrators oversee institutional management (CANNOT submit student feedback, CANNOT access student mentorship)
-  if (isAdmin && (name === 'submit-feedback' || name === 'my-mentor')) {
+  if (isAdmin && (viewId === 'submit-feedback' || viewId === 'my-mentor')) {
     toast('Access restricted: Course Feedback Submission and Mentorship are exclusively for enrolled Students. Administrators oversee institutional management.');
     switchView('overview');
     return;
   }
 
-  // 3. Faculty review evaluations & request feedback (CANNOT submit student feedback, CANNOT access administrative management, CANNOT access student mentorship)
   if (isFaculty) {
-    if (name === 'submit-feedback' || name === 'my-mentor') {
+    if (viewId === 'submit-feedback' || viewId === 'my-mentor') {
       toast('Access restricted: Course Feedback Submission and Mentorship are exclusively for enrolled Students. Faculty review student evaluations.');
       switchView('overview');
       return;
     }
     const adminOnly = ['admin-students', 'admin-faculty', 'departments'];
-    if (adminOnly.includes(name)) {
+    if (adminOnly.includes(viewId)) {
       toast('Access restricted: Administrative controls are reserved exclusively for Administrators.');
       switchView('overview');
       return;
     }
   }
 
+  // Toggle active view
   document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-  const targetView = document.getElementById('view-' + name);
+  const targetView = document.getElementById('view-' + viewId);
   if (targetView) targetView.classList.add('active');
 
-  // Update nav item active states (both top-level and child accordion items)
-  document.querySelectorAll('.nav-item').forEach(n => n.classList.toggle('active', n.dataset.view === name));
-  document.querySelectorAll('.nav-child-item').forEach(n => n.classList.toggle('active', n.dataset.view === name));
+  // Update top-level nav items
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.toggle('active', n.dataset.view === viewId));
+
+  // Update child accordion items: strictly mutually exclusive!
+  const childAcademic = document.getElementById('nav-child-academic-mentor');
+  const childProject = document.getElementById('nav-child-project-mentor');
+  if (childAcademic) {
+    childAcademic.classList.toggle('active', viewId === 'my-mentor' && mentorTab === 'academic');
+  }
+  if (childProject) {
+    childProject.classList.toggle('active', viewId === 'my-mentor' && mentorTab === 'project');
+  }
+
+  // Admin child items
+  document.querySelectorAll('.nav-child-item:not(#nav-child-academic-mentor):not(#nav-child-project-mentor)').forEach(n => {
+    n.classList.toggle('active', n.dataset.view === viewId);
+  });
+
+  // Synchronize mentor tabs if viewing mentorship
+  if (viewId === 'my-mentor' && mentorTab) {
+    switchMentorTab(mentorTab, false);
+  }
 
   const titles = {
     overview: 'Dashboard',
@@ -4996,22 +5065,27 @@ function switchView(name) {
     'admin-students': 'Student Management Directory',
     'admin-faculty': 'Faculty Directory & Allocations',
     departments: 'Departments & Academic Units',
-    'my-mentor': 'My Mentors & Projects'
+    'my-mentor': mentorTab === 'project' ? 'My Special Project Mentor' : 'My Academic Mentor'
   };
-  document.getElementById('topbar-title').textContent = titles[name] || 'Dashboard';
+  document.getElementById('topbar-title').textContent = titles[name] || titles[viewId] || 'Dashboard';
+
+  // Scroll to top of view
+  const pageContent = document.querySelector('.page-content');
+  if (pageContent) pageContent.scrollTop = 0;
+
   if (typeof updateScrollHelperState === 'function') {
     setTimeout(updateScrollHelperState, 150);
   }
 
-  if (name === 'feedback-list') loadFeedback();
-  if (name === 'my-students') loadMyStudents();
-  if (name === 'complaints') loadComplaints();
-  if (name === 'admin-students') loadAdminStudents();
-  if (name === 'admin-faculty') loadAdminFaculty();
-  if (name === 'departments') loadDepartments();
-  if (name === 'analytics') loadAnalytics();
-  if (name === 'courses') renderCourses();
-  if (name === 'my-mentor') loadStudentMentors();
+  if (viewId === 'feedback-list') loadFeedback();
+  if (viewId === 'my-students') loadMyStudents();
+  if (viewId === 'complaints') loadComplaints();
+  if (viewId === 'admin-students') loadAdminStudents();
+  if (viewId === 'admin-faculty') loadAdminFaculty();
+  if (viewId === 'departments') loadDepartments();
+  if (viewId === 'analytics') loadAnalytics();
+  if (viewId === 'courses') renderCourses();
+  if (viewId === 'my-mentor') loadStudentMentors();
 }
 
 function selectModelEngine(engine) {
@@ -7425,7 +7499,7 @@ function highlightElement(elementId) {
 /* ═══════════════════════════════════════════════════════
    MY MENTORS VIEW CONTROLLERS & FILTERING
    ═══════════════════════════════════════════════════════ */
-function switchMentorTab(tabKey) {
+function switchMentorTab(tabKey, syncNav = true) {
   const tabAcademic = document.getElementById('tab-mentor-academic');
   const tabProject = document.getElementById('tab-mentor-project');
 
@@ -7440,22 +7514,18 @@ function switchMentorTab(tabKey) {
 
   const titleEl = document.getElementById('mentor-page-title');
   const subEl = document.getElementById('mentor-page-subtitle');
+  const topbarTitle = document.getElementById('topbar-title');
 
   const navChildAcademic = document.getElementById('nav-child-academic-mentor');
   const navChildProject = document.getElementById('nav-child-project-mentor');
 
-  // Deactivate all tab pills and sidebar children
-  if (tabAcademic) tabAcademic.classList.remove('active');
-  if (tabProject) tabProject.classList.remove('active');
-  if (navChildAcademic) navChildAcademic.classList.remove('active');
-  if (navChildProject) navChildProject.classList.remove('active');
-
-  // Strictly separate: Academic Mentor vs Special Project Mentor (never both together)
   if (tabKey === 'project') {
+    if (tabAcademic) tabAcademic.classList.remove('active');
     if (tabProject) tabProject.classList.add('active');
-    if (navChildProject) navChildProject.classList.add('active');
+
     if (cardAcademic) cardAcademic.style.display = 'none';
     if (cardProject) cardProject.style.display = 'flex';
+
     if (metricAcademic) metricAcademic.style.display = 'none';
     if (metricProject) metricProject.style.display = 'grid';
 
@@ -7464,12 +7534,20 @@ function switchMentorTab(tabKey) {
 
     if (titleEl) titleEl.textContent = 'My Special Project Mentor (Dr. Sandeep Kumar Panda)';
     if (subEl) subEl.textContent = 'Capstone research guide supervising your active project: AI-Powered Real-Time Emotional Analyzer in Cabin R-412.';
+    if (topbarTitle) topbarTitle.textContent = 'My Special Project Mentor';
+
+    if (syncNav) {
+      if (navChildAcademic) navChildAcademic.classList.remove('active');
+      if (navChildProject) navChildProject.classList.add('active');
+    }
   } else {
     // Default to Academic Mentor only
     if (tabAcademic) tabAcademic.classList.add('active');
-    if (navChildAcademic) navChildAcademic.classList.add('active');
+    if (tabProject) tabProject.classList.remove('active');
+
     if (cardAcademic) cardAcademic.style.display = 'flex';
     if (cardProject) cardProject.style.display = 'none';
+
     if (metricAcademic) metricAcademic.style.display = 'grid';
     if (metricProject) metricProject.style.display = 'none';
 
@@ -7478,6 +7556,12 @@ function switchMentorTab(tabKey) {
 
     if (titleEl) titleEl.textContent = 'My Academic Mentor (Dr. Ramesh Ponnala)';
     if (subEl) subEl.textContent = 'Assigned Academic Counselor for course evaluations, attendance reviews, and curriculum advisory in Cabin B-304.';
+    if (topbarTitle) topbarTitle.textContent = 'My Academic Mentor';
+
+    if (syncNav) {
+      if (navChildAcademic) navChildAcademic.classList.add('active');
+      if (navChildProject) navChildProject.classList.remove('active');
+    }
   }
 
   if (typeof updateScrollHelperState === 'function') {
@@ -7485,14 +7569,22 @@ function switchMentorTab(tabKey) {
   }
 }
 
+function selectAcademicMentor(event) {
+  if (event) event.stopPropagation();
+  switchView('mentor-academic');
+}
+
+function selectProjectMentor(event) {
+  if (event) event.stopPropagation();
+  switchView('mentor-project');
+}
+
 function openAcademicMentor() {
-  switchMentorTab('academic');
-  switchView('my-mentor');
+  selectAcademicMentor();
 }
 
 function openProjectMentor() {
-  switchMentorTab('project');
-  switchView('my-mentor');
+  selectProjectMentor();
 }
 
 function filterMentorsInView(query) {
@@ -7677,11 +7769,11 @@ document.addEventListener('keydown', (e) => {
 function handleScrollHelperClick() {
   const pageContent = document.querySelector('.page-content');
   if (!pageContent) return;
-  const isNearBottom = (pageContent.scrollTop + pageContent.clientHeight >= pageContent.scrollHeight - 80);
+  const isNearBottom = (pageContent.scrollTop + pageContent.clientHeight >= pageContent.scrollHeight - 60);
   if (isNearBottom) {
     pageContent.scrollTo({ top: 0, behavior: 'smooth' });
   } else {
-    pageContent.scrollBy({ top: 520, behavior: 'smooth' });
+    pageContent.scrollBy({ top: 400, behavior: 'smooth' });
   }
 }
 
@@ -7692,10 +7784,10 @@ function updateScrollHelperState() {
   const text = document.getElementById('scroll-helper-text');
   if (!pageContent || !btn || !icon || !text) return;
 
-  const canScroll = pageContent.scrollHeight > (pageContent.clientHeight + 40);
+  const canScroll = pageContent.scrollHeight > (pageContent.clientHeight + 20);
   btn.style.display = canScroll ? 'flex' : 'none';
 
-  const isNearBottom = (pageContent.scrollTop + pageContent.clientHeight >= pageContent.scrollHeight - 80);
+  const isNearBottom = (pageContent.scrollTop + pageContent.clientHeight >= pageContent.scrollHeight - 60);
   if (isNearBottom) {
     icon.innerHTML = '<polyline points="18 15 12 9 6 15"/>';
     text.textContent = 'Top';
@@ -7705,15 +7797,27 @@ function updateScrollHelperState() {
   }
 }
 
-// Bind scroll listeners
+// Bind scroll listeners and wheel forwarder
 document.addEventListener('DOMContentLoaded', () => {
   const pageContent = document.querySelector('.page-content');
   if (pageContent) {
-    pageContent.addEventListener('scroll', updateScrollHelperState);
+    pageContent.addEventListener('scroll', updateScrollHelperState, { passive: true });
   }
   setTimeout(updateScrollHelperState, 300);
 });
 window.addEventListener('resize', updateScrollHelperState);
+
+// Forward mouse wheel rolls in main area directly to page-content
+window.addEventListener('wheel', (e) => {
+  const pageContent = document.querySelector('.page-content');
+  if (!pageContent) return;
+  if (e.target.closest('.sidebar') || e.target.closest('.search-results-dropdown') || e.target.closest('.account-popover')) {
+    return;
+  }
+  if (e.deltaY) {
+    pageContent.scrollBy({ top: e.deltaY, behavior: 'auto' });
+  }
+}, { passive: true });
 
 </script>
 
