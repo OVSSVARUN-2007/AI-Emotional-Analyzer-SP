@@ -46,29 +46,35 @@
 
 /* ── Dark ── */
 [data-theme="dark"] {
-  --bg: #0f1117;
-  --bg-subtle: #1a1d27;
-  --card: rgba(26,29,39,0.88);
-  --card-solid: #1a1d27;
-  --text: #e8e6e3;
-  --text-secondary: #9ca3af;
-  --muted: #6b7280;
-  --border: rgba(255,255,255,0.08);
+  --bg: #141724;
+  --bg-subtle: #1c2033;
+  --card: rgba(30, 35, 54, 0.94);
+  --card-solid: #1e2336;
+  --text: #f1f5f9;
+  --text-secondary: #cbd5e1;
+  --muted: #94a3b8;
+  --border: rgba(255, 255, 255, 0.1);
   --primary: #818cf8;
   --primary-dark: #6366f1;
   --primary-light: #a5b4fc;
-  --primary-bg: rgba(99,102,241,0.12);
-  --accent: #4ade80;
-  --accent-bg: rgba(34,197,94,0.1);
+  --primary-bg: rgba(99, 102, 241, 0.18);
+  --accent: #34d399;
+  --accent-bg: rgba(52, 211, 153, 0.14);
   --warning: #fbbf24;
-  --warning-bg: rgba(245,158,11,0.1);
+  --warning-bg: rgba(251, 191, 36, 0.14);
   --danger: #f87171;
-  --danger-bg: rgba(239,68,68,0.1);
-  --shadow-sm: 0 1px 3px rgba(0,0,0,0.3);
-  --shadow-md: 0 4px 20px rgba(0,0,0,0.4);
-  --shadow-lg: 0 8px 40px rgba(0,0,0,0.5);
-  --auth-gradient: linear-gradient(135deg,#0f1117 0%,#161927 50%,#111520 100%);
-  --donut-track: #252a36;
+  --danger-bg: rgba(248, 113, 113, 0.14);
+  --shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 6px 24px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 10px 40px rgba(0, 0, 0, 0.5);
+  --auth-gradient: linear-gradient(135deg, #141724 0%, #1e2336 50%, #141724 100%);
+  --donut-track: #2a3147;
+}
+
+/* Ensure feedback logo handwriting is bright white and legible on dark sidebar in night mode */
+[data-theme="dark"] .sidebar-logo-img,
+[data-theme="dark"] .auth-brand-logo {
+  filter: brightness(0) invert(1) drop-shadow(0 0 1px rgba(255,255,255,0.85));
 }
 
 /* ── System — follows OS preference ── */
@@ -403,26 +409,28 @@ img{display:block;max-width:100%}
 .sidebar-brand {
   display:flex;
   align-items:center;
-  padding:0.75rem 1.25rem;
+  padding:0.6rem 1rem;
   border-bottom:1px solid var(--border);
-  min-height:var(--topbar-h, 64px);
+  min-height:76px;
   box-sizing:border-box;
 }
 .sidebar-brand-link {
-  display:inline-flex;
+  display:flex;
   align-items:center;
+  width:100%;
   text-decoration:none;
 }
 .sidebar-logo-img {
-  height:44px;
-  width:auto;
-  max-width:150px;
+  height:56px;
+  width:100%;
+  max-width:220px;
   object-fit:contain;
+  object-position:left center;
   display:block;
-  transition:transform .2s ease, opacity .2s ease;
+  transition:transform .2s ease, filter .2s ease;
 }
 .sidebar-brand-link:hover .sidebar-logo-img {
-  transform:scale(1.03);
+  transform:scale(1.02);
 }
 
 /* Light / Dark Mode Logo Display */
@@ -1448,68 +1456,68 @@ img{display:block;max-width:100%}
 }
 .day-night-track {
   position: relative;
-  width: 92px;
-  height: 38px;
+  width: 106px;
+  height: 40px;
   border-radius: 999px;
-  background: #f5b800; /* Bright Day Gold/Yellow from Image 3 */
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 12px;
-  box-shadow: inset 0 2px 4px rgba(0,0,0,0.18), 0 2px 8px rgba(0,0,0,0.08);
-  transition: background 0.35s ease, box-shadow 0.35s ease;
+  background: #f5b800; /* Day gold/yellow from Image 3 */
+  border: 2px solid rgba(255,255,255,0.45);
+  box-shadow: inset 0 2px 5px rgba(0,0,0,0.22), 0 2px 10px rgba(0,0,0,0.08);
+  transition: background 0.35s ease, border-color 0.35s ease, box-shadow 0.35s ease;
   overflow: hidden;
+  cursor: pointer;
 }
 [data-theme="dark"] .day-night-track {
-  background: #252736; /* Dark Charcoal Night from Image 3 */
-  box-shadow: inset 0 2px 5px rgba(0,0,0,0.45), 0 2px 8px rgba(0,0,0,0.3);
+  background: #252736; /* Dark charcoal slate from Image 3 */
+  border-color: #3d4257;
+  box-shadow: inset 0 2px 6px rgba(0,0,0,0.5), 0 2px 10px rgba(0,0,0,0.35);
 }
 .day-night-label {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
   font-size: 11px;
   font-weight: 800;
-  letter-spacing: 1px;
+  letter-spacing: 1.2px;
   text-transform: uppercase;
-  z-index: 1;
-  transition: opacity 0.25s ease, transform 0.25s ease;
   user-select: none;
+  transition: opacity 0.25s ease, color 0.25s ease;
+  z-index: 1;
 }
 .day-label {
+  left: 14px;
   color: #ffffff;
-  margin-left: 2px;
   opacity: 1;
-  display: block;
 }
 [data-theme="dark"] .day-label {
   opacity: 0;
-  display: none;
+  pointer-events: none;
 }
 .night-label {
-  color: #6b6f82;
-  margin-right: 2px;
+  right: 14px;
+  color: #9da4ba;
   opacity: 0;
-  display: none;
 }
 [data-theme="dark"] .night-label {
   opacity: 1;
-  display: block;
+  color: #a6adbf;
 }
 .day-night-knob {
   position: absolute;
-  top: 4px;
-  right: 4px;
+  top: 3px;
+  left: 68px; /* On the right side for DAY */
   width: 30px;
   height: 30px;
   border-radius: 50%;
   background: #ffffff;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.22);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.28);
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition: left 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
   z-index: 2;
 }
 [data-theme="dark"] .day-night-knob {
-  transform: translateX(-54px);
+  left: 4px; /* Slides smoothly to the left for NIGHT */
 }
 .knob-icon {
   width: 17px;
@@ -1636,6 +1644,173 @@ img{display:block;max-width:100%}
 .notif-item-time {
   font-size: 10px;
   color: var(--muted);
+}
+
+
+/* ═══════════════════════════════════════════════════════
+   ACCOUNT PROFILE MODAL (Interactive Account View)
+   ═══════════════════════════════════════════════════════ */
+.sidebar-user-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+  cursor: pointer;
+  padding: 6px 8px;
+  margin: -6px -8px;
+  border-radius: var(--radius-sm);
+  transition: background 0.2s ease, transform 0.15s ease;
+  user-select: none;
+}
+.sidebar-user-card:hover {
+  background: var(--bg-subtle);
+  transform: translateX(2px);
+}
+.sidebar-user-card:focus-visible {
+  outline: 2px solid var(--primary);
+}
+
+.account-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(6px);
+  z-index: 1000;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+.account-modal-backdrop.show {
+  display: flex;
+  opacity: 1;
+}
+.account-modal-card {
+  background: var(--card-solid);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-lg);
+  width: 100%;
+  max-width: 520px;
+  max-height: 90vh;
+  overflow-y: auto;
+  transform: scale(0.96) translateY(8px);
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.account-modal-backdrop.show .account-modal-card {
+  transform: scale(1) translateY(0);
+}
+.account-modal-header {
+  padding: 1.5rem 1.75rem 1.25rem;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.account-modal-user-summary {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.account-modal-avatar {
+  width: 52px;
+  height: 52px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+  color: #ffffff;
+  font-weight: 800;
+  font-size: 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35);
+}
+.account-modal-name {
+  font-size: 1.15rem;
+  font-weight: 700;
+  margin: 0 0 4px 0;
+  color: var(--text);
+}
+.account-modal-role-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  background: var(--primary-bg);
+  color: var(--primary);
+}
+.account-modal-close-btn {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  line-height: 1;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  transition: color 0.15s, background 0.15s;
+}
+.account-modal-close-btn:hover {
+  color: var(--text);
+  background: var(--bg-subtle);
+}
+.account-modal-body {
+  padding: 1.5rem 1.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+.account-section-title {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--muted);
+  margin-bottom: 0.75rem;
+}
+.account-info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.85rem;
+}
+.account-info-item {
+  background: var(--bg-subtle);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 0.75rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.account-info-item.full-width {
+  grid-column: 1 / -1;
+}
+.account-info-label {
+  font-size: 11px;
+  color: var(--muted);
+  font-weight: 600;
+  text-transform: uppercase;
+}
+.account-info-val {
+  font-size: 0.9rem;
+  color: var(--text);
+  font-weight: 600;
+  word-break: break-word;
+}
+.account-modal-footer {
+  padding: 1rem 1.75rem 1.5rem;
+  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
 }
 
 </style>
@@ -1796,12 +1971,14 @@ img{display:block;max-width:100%}
     </nav>
 
     <div class="sidebar-footer">
-      <div class="sidebar-avatar" id="sidebar-avatar">U</div>
-      <div class="sidebar-user-info">
-        <div class="sidebar-user-name" id="sidebar-user-name">User</div>
-        <div class="sidebar-user-role" id="sidebar-user-role">Role</div>
+      <div class="sidebar-user-card" id="sidebar-account-btn" onclick="openAccountModal()" title="View & Edit Account Profile" role="button" tabindex="0">
+        <div class="sidebar-avatar" id="sidebar-avatar">U</div>
+        <div class="sidebar-user-info">
+          <div class="sidebar-user-name" id="sidebar-user-name">User</div>
+          <div class="sidebar-user-role" id="sidebar-user-role">Role</div>
+        </div>
       </div>
-      <button class="icon-btn" onclick="logout()" title="Logout" style="margin-left:auto; border:none; background:none;">
+      <button class="icon-btn" onclick="logout()" title="Logout" style="margin-left:auto; border:none; background:none; flex-shrink:0;">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
       </button>
     </div>
@@ -2714,16 +2891,19 @@ function enterDashboard() {
   const navAnalytics = document.getElementById('nav-item-analytics');
   const navSubmit = document.getElementById('nav-item-submit-feedback');
 
+  const navRequest = document.getElementById('nav-item-request-feedback');
   if (isStudent) {
     if (navFeedback) navFeedback.style.display = 'none';
     if (navModelLab) navModelLab.style.display = 'none';
     if (navAnalytics) navAnalytics.style.display = 'none';
     if (navSubmit) navSubmit.style.display = 'flex';
+    if (navRequest) navRequest.style.display = 'none';
   } else {
     if (navFeedback) navFeedback.style.display = 'flex';
     if (navModelLab) navModelLab.style.display = 'flex';
     if (navAnalytics) navAnalytics.style.display = 'flex';
-    if (navSubmit) navSubmit.style.display = 'flex';
+    if (navSubmit) navSubmit.style.display = 'none'; // HIDE for Faculty / Admin
+    if (navRequest) navRequest.style.display = 'flex'; // SHOW for Faculty / Admin
   }
 
   // Show admin nav
