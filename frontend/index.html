@@ -2120,6 +2120,446 @@ img{display:block;max-width:100%}
   z-index: 10005 !important;
 }
 
+
+/* ─── PARENT-CHILD ACCORDION NAVIGATION (ADMIN & MAIN) ─── */
+.nav-parent-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.62rem 0.9rem;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  color: var(--text-secondary);
+  font-size: 0.88rem;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  user-select: none;
+  margin-bottom: 2px;
+}
+.nav-parent-item:hover {
+  background: var(--bg-subtle);
+  color: var(--text);
+}
+.nav-parent-item.open {
+  color: var(--primary);
+  background: var(--primary-bg);
+}
+.nav-parent-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+.accordion-chevron {
+  transition: transform 0.25s ease;
+  color: var(--muted);
+}
+.nav-parent-item.open .accordion-chevron {
+  transform: rotate(180deg);
+  color: var(--primary);
+}
+.nav-child-container {
+  display: none;
+  padding-left: 1.4rem;
+  margin-bottom: 6px;
+  flex-direction: column;
+  gap: 2px;
+}
+.nav-child-container.show {
+  display: flex;
+}
+.nav-child-item {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.42rem 0.75rem;
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.nav-child-item:hover {
+  color: var(--primary);
+  background: var(--bg-subtle);
+}
+.nav-child-item.active {
+  color: var(--primary);
+  font-weight: 700;
+  background: var(--primary-bg);
+}
+.child-bullet {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.6;
+}
+
+/* ─── HIGH CONTRAST RELIABLE NOTIFICATION DROPDOWN ─── */
+.notif-wrapper {
+  position: relative !important;
+}
+.notif-dropdown {
+  display: none;
+  position: absolute;
+  top: calc(100% + 12px);
+  right: 0;
+  width: 410px;
+  max-width: min(410px, calc(100vw - 20px));
+  background: var(--card-solid);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.22);
+  z-index: 10010 !important;
+  overflow: hidden;
+  animation: bixi-bubble-in 0.22s ease-out;
+}
+[data-theme="dark"] .notif-dropdown {
+  background: #131b2e !important;
+  border-color: rgba(99, 102, 241, 0.35) !important;
+  box-shadow: 0 24px 60px rgba(0,0,0,0.75) !important;
+}
+.notif-dropdown.show {
+  display: block !important;
+}
+.notif-header {
+  padding: 12px 18px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--bg-subtle);
+}
+.notif-header-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text);
+}
+.notif-header-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--primary);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 1px 7px;
+  border-radius: 10px;
+}
+.notif-close-btn {
+  background: transparent;
+  border: none;
+  font-size: 18px;
+  color: var(--muted);
+  cursor: pointer;
+  line-height: 1;
+}
+.notif-close-btn:hover {
+  color: var(--text);
+}
+.notif-tabs {
+  display: flex;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+  padding: 4px 8px;
+  gap: 4px;
+}
+.notif-tab {
+  flex: 1;
+  padding: 6px 4px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-align: center;
+}
+.notif-tab.active {
+  background: var(--primary-bg);
+  color: var(--primary);
+  font-weight: 700;
+}
+.notif-list {
+  max-height: 380px;
+  overflow-y: auto;
+}
+.notif-item {
+  padding: 13px 16px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  transition: background 0.15s ease;
+  cursor: pointer;
+}
+.notif-item:hover {
+  background: var(--primary-bg);
+}
+.notif-icon-circle {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 15px;
+}
+.notif-item-body {
+  flex: 1;
+  min-width: 0;
+}
+.notif-item-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 3px;
+}
+.notif-item-msg {
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.45;
+  margin-bottom: 6px;
+}
+.notif-item-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 11px;
+  color: var(--muted);
+}
+.notif-action-btn {
+  padding: 3px 10px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #fff;
+  background: var(--primary);
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+/* ─── COMPLAINTS & GRIEVANCES CARDS ─── */
+.complaints-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+  gap: 1.25rem;
+  margin-top: 1.25rem;
+}
+.complaint-card {
+  background: var(--card-solid);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.complaint-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+.complaint-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+.complaint-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.35;
+}
+.severity-pill {
+  font-size: 10px;
+  font-weight: 800;
+  padding: 3px 8px;
+  border-radius: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  flex-shrink: 0;
+}
+.sev-high {
+  background: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+.sev-medium {
+  background: rgba(245, 158, 11, 0.15);
+  color: #f59e0b;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+.sev-low {
+  background: rgba(99, 102, 241, 0.15);
+  color: #6366f1;
+  border: 1px solid rgba(99, 102, 241, 0.3);
+}
+.complaint-status-pill {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+.status-pending { background: rgba(239, 68, 68, 0.12); color: #ef4444; }
+.status-in-review { background: rgba(245, 158, 11, 0.12); color: #f59e0b; }
+.status-resolved { background: rgba(16, 185, 129, 0.12); color: #10b981; }
+
+.complaint-desc {
+  font-size: 0.88rem;
+  color: var(--text-secondary);
+  line-height: 1.45;
+}
+.complaint-meta-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 0.78rem;
+  color: var(--muted);
+  border-top: 1px solid var(--border);
+  padding-top: 0.65rem;
+}
+.complaint-meta-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.complaint-action-box {
+  background: var(--bg-subtle);
+  border-radius: var(--radius-sm);
+  padding: 0.6rem 0.85rem;
+  font-size: 0.8rem;
+  color: var(--text);
+  border-left: 3px solid #10b981;
+}
+
+/* ─── STUDENTS & FACULTY MANAGEMENT TABLES ─── */
+.admin-action-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  background: var(--card-solid);
+  padding: 1rem 1.25rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  margin-bottom: 1.25rem;
+}
+.admin-search-box {
+  flex: 1;
+  min-width: 240px;
+  position: relative;
+}
+.admin-search-input {
+  width: 100%;
+  padding: 0.55rem 0.85rem 0.55rem 2.2rem;
+  font-size: 0.88rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+  color: var(--text);
+}
+.admin-search-icon {
+  position: absolute;
+  left: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--muted);
+  pointer-events: none;
+}
+.admin-filter-group {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+.admin-table-container {
+  background: var(--card-solid);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+  text-align: left;
+}
+.admin-table th {
+  background: var(--bg-subtle);
+  padding: 0.85rem 1rem;
+  font-size: 0.76rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--muted);
+  border-bottom: 1px solid var(--border);
+}
+.admin-table td {
+  padding: 0.85rem 1rem;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+  vertical-align: middle;
+}
+.admin-table tr:hover td {
+  background: var(--bg-subtle);
+}
+
+/* ─── MODAL DIALOGS ─── */
+.custom-modal-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(4px);
+  z-index: 10050;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  animation: bixi-bubble-in 0.2s ease-out;
+}
+.custom-modal-backdrop.show {
+  display: flex;
+}
+.custom-modal-content {
+  background: var(--card-solid);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  width: 100%;
+  max-width: 520px;
+  box-shadow: 0 25px 60px rgba(0,0,0,0.35);
+  overflow: hidden;
+}
+.custom-modal-header {
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--bg-subtle);
+}
+.custom-modal-body {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.custom-modal-footer {
+  padding: 1rem 1.5rem;
+  border-top: 1px solid var(--border);
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  background: var(--bg-subtle);
+}
+
 </style>
 </head>
 <body>
@@ -2230,30 +2670,84 @@ img{display:block;max-width:100%}
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
         Feedback
       </div>
+      <!-- Faculty & Admin: My Students Option -->
+      <div class="nav-item" data-view="my-students" id="nav-item-my-students" onclick="switchView('my-students')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        My Students
+      </div>
+      <!-- Faculty & Admin: Complaints Option with Badge -->
+      <div class="nav-item" data-view="complaints" id="nav-item-complaints" onclick="switchView('complaints')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        Complaints
+        <span class="badge badge-danger" id="nav-complaints-badge" style="margin-left:auto;font-size:10px;padding:2px 7px;border-radius:10px;">4</span>
+      </div>
       <div class="nav-item" data-view="analytics" id="nav-item-analytics" onclick="switchView('analytics')">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
         Analytics
       </div>
-            <div class="nav-item" data-view="courses" id="nav-item-courses" onclick="switchView('courses')">
+      <div class="nav-item" data-view="courses" id="nav-item-courses" onclick="switchView('courses')">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
         Courses & Faculty
       </div>
-<div class="nav-item" data-view="model-lab" id="nav-item-model-lab" onclick="switchView('model-lab')">
+      <div class="nav-item" data-view="model-lab" id="nav-item-model-lab" onclick="switchView('model-lab')">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
         AI Models
       </div>
-            <div class="nav-item" data-view="request-feedback" id="nav-item-request-feedback" onclick="switchView('request-feedback')">
+      <div class="nav-item" data-view="request-feedback" id="nav-item-request-feedback" onclick="switchView('request-feedback')">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
         Request Feedback
       </div>
-<div class="nav-item" data-view="submit-feedback" id="nav-item-submit-feedback" onclick="switchView('submit-feedback')">
+      <div class="nav-item" data-view="submit-feedback" id="nav-item-submit-feedback" onclick="switchView('submit-feedback')">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
         Submit Feedback
       </div>
 
+      <!-- ADMINISTRATION GROUP (Admin Mode Parent-Child Hierarchy) -->
       <div class="sidebar-nav-group" id="nav-admin-group" style="display:none">Administration</div>
+      
+      <!-- Parent Option 1: Students -->
+      <div class="nav-parent-item" id="nav-parent-students" style="display:none;" onclick="toggleNavAccordion('students')">
+        <div class="nav-parent-header">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          <span>Students</span>
+        </div>
+        <svg class="accordion-chevron" id="chevron-students" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="nav-child-container" id="nav-children-students">
+        <div class="nav-child-item" data-view="admin-students" id="nav-child-admin-students" onclick="switchView('admin-students')">
+          <span class="child-bullet"></span> Student Directory (A-K)
+        </div>
+        <div class="nav-child-item" data-view="admin-student-feedback" id="nav-child-admin-student-feedback" onclick="switchView('feedback-list')">
+          <span class="child-bullet"></span> Student Feedback Logs
+        </div>
+        <div class="nav-child-item" data-view="admin-student-complaints" id="nav-child-admin-student-complaints" onclick="switchView('complaints')">
+          <span class="child-bullet"></span> Complaints & Grievances
+        </div>
+      </div>
+
+      <!-- Parent Option 2: Faculty -->
+      <div class="nav-parent-item" id="nav-parent-faculty" style="display:none;" onclick="toggleNavAccordion('faculty')">
+        <div class="nav-parent-header">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          <span>Faculty</span>
+        </div>
+        <svg class="accordion-chevron" id="chevron-faculty" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="nav-child-container" id="nav-children-faculty">
+        <div class="nav-child-item" data-view="admin-faculty" id="nav-child-admin-faculty" onclick="switchView('admin-faculty')">
+          <span class="child-bullet"></span> Faculty Directory & Allocations
+        </div>
+        <div class="nav-child-item" data-view="courses" id="nav-child-admin-courses" onclick="switchView('courses')">
+          <span class="child-bullet"></span> Course Allocations (102)
+        </div>
+        <div class="nav-child-item" data-view="analytics" id="nav-child-admin-ratings" onclick="switchView('analytics')">
+          <span class="child-bullet"></span> Teaching Ratings & Reviews
+        </div>
+      </div>
+
+      <!-- Departments Option -->
       <div class="nav-item" data-view="departments" id="nav-departments" style="display:none" onclick="switchView('departments')">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
         Departments
       </div>
     </nav>
@@ -2400,23 +2894,36 @@ img{display:block;max-width:100%}
           </span>
         </button>
 
-        <!-- Working Notification Bell & Dropdown -->
-        <div class="notif-wrapper">
-          <button class="icon-btn notif-bell-btn" id="notif-bell-btn" onclick="toggleNotifications()" title="Notifications" aria-label="Notifications">
+        <!-- Working High-Contrast Notification Bell & Dropdown -->
+        <div class="notif-wrapper" id="notif-wrapper-container">
+          <button class="icon-btn notif-bell-btn" id="notif-bell-btn" onclick="toggleNotifications(event)" title="Notifications & Alerts" aria-label="Notifications & Alerts">
             <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
-            <span class="notif-badge" id="notif-badge">2</span>
+            <span class="notif-badge" id="notif-badge" style="display:none;">0</span>
           </button>
-          <div class="notif-dropdown" id="notif-dropdown">
+          <div class="notif-dropdown" id="notif-dropdown" onclick="event.stopPropagation()">
             <div class="notif-header">
-              <span style="font-weight:700;font-size:.92rem;">Notifications & Alerts</span>
-              <button class="notif-clear-btn" onclick="clearNotifications()">Clear all</button>
+              <div style="display:flex;align-items:center;gap:8px;">
+                <span class="notif-header-title">Notifications & Alerts</span>
+                <span class="notif-header-count" id="notif-header-count">0</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:10px;">
+                <button class="notif-clear-btn" onclick="clearNotifications(event)">Clear all</button>
+                <button class="notif-close-btn" onclick="closeNotifications(event)" title="Close">&times;</button>
+              </div>
             </div>
+            
+            <!-- Category Tabs so users can filter and find messages clearly -->
+            <div class="notif-tabs">
+              <button class="notif-tab active" id="notif-tab-all" onclick="filterNotificationTab('ALL')">All Alerts</button>
+              <button class="notif-tab" id="notif-tab-req" onclick="filterNotificationTab('FEEDBACK_REQUEST')">Feedback Requests</button>
+              <button class="notif-tab" id="notif-tab-alerts" onclick="filterNotificationTab('ALERTS')">Complaints & Alerts</button>
+            </div>
+
             <div class="notif-list" id="notif-list">
-              <!-- Filled dynamically -->
+              <!-- High-contrast readable cards rendered dynamically -->
             </div>
           </div>
         </div>
-
       </div>
     </header>
 
@@ -3020,6 +3527,429 @@ img{display:block;max-width:100%}
       </div>
 
     </div>
+
+    <!-- ═══════════════════════════════════════════════════════
+         VIEW: MY STUDENTS (Faculty & Admin Access)
+         ═══════════════════════════════════════════════════════ -->
+    <div class="view" id="view-my-students">
+      <div style="margin-bottom:1.5rem;">
+        <h2 style="font-size:1.6rem;font-weight:800;color:var(--text);margin-bottom:0.25rem;">My Students Directory</h2>
+        <p style="color:var(--muted);font-size:0.9rem;">Official student rosters enrolled across your assigned sections (A to K), attendance, and emotional health index.</p>
+      </div>
+
+      <!-- Quick Metrics -->
+      <div class="metrics-grid" style="grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));gap:1rem;margin-bottom:1.5rem;">
+        <div class="metric-card" style="padding:1.25rem;background:var(--card-solid);border:1px solid var(--border);border-radius:var(--radius-md);">
+          <div style="font-size:0.75rem;font-weight:700;color:var(--muted);text-transform:uppercase;margin-bottom:0.4rem;">Enrolled Students</div>
+          <div style="font-size:1.8rem;font-weight:800;color:var(--text);" id="my-students-count">36</div>
+          <div style="font-size:0.75rem;color:var(--primary);margin-top:0.25rem;font-weight:600;">Active in Timetable</div>
+        </div>
+        <div class="metric-card" style="padding:1.25rem;background:var(--card-solid);border:1px solid var(--border);border-radius:var(--radius-md);">
+          <div style="font-size:0.75rem;font-weight:700;color:var(--muted);text-transform:uppercase;margin-bottom:0.4rem;">Allocated Sections</div>
+          <div style="font-size:1.8rem;font-weight:800;color:var(--primary);">Sections A - K</div>
+          <div style="font-size:0.75rem;color:var(--muted);margin-top:0.25rem;">Semesters 1, 3, 5, 7</div>
+        </div>
+        <div class="metric-card" style="padding:1.25rem;background:var(--card-solid);border:1px solid var(--border);border-radius:var(--radius-md);">
+          <div style="font-size:0.75rem;font-weight:700;color:var(--muted);text-transform:uppercase;margin-bottom:0.4rem;">Avg Attendance</div>
+          <div style="font-size:1.8rem;font-weight:800;color:#10b981;">92.4%</div>
+          <div style="font-size:0.75rem;color:var(--muted);margin-top:0.25rem;">Across all sections</div>
+        </div>
+        <div class="metric-card" style="padding:1.25rem;background:var(--card-solid);border:1px solid var(--border);border-radius:var(--radius-md);">
+          <div style="font-size:0.75rem;font-weight:700;color:var(--muted);text-transform:uppercase;margin-bottom:0.4rem;">Emotional Wellness</div>
+          <div style="font-size:1.8rem;font-weight:800;color:#6366f1;">86% Positive</div>
+          <div style="font-size:0.75rem;color:var(--muted);margin-top:0.25rem;">High satisfaction score</div>
+        </div>
+      </div>
+
+      <!-- Action & Filter Bar -->
+      <div class="admin-action-bar">
+        <div class="admin-search-box">
+          <svg class="admin-search-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" id="my-students-search" class="admin-search-input" placeholder="Search student by name, roll number, or email..." oninput="filterMyStudents()">
+        </div>
+        <div class="admin-filter-group">
+          <select id="my-students-section-filter" class="form-select" style="min-width:150px;padding:0.5rem 0.75rem;font-size:0.85rem;" onchange="loadMyStudents()">
+            <option value="ALL">All Sections (A-K)</option>
+            <option value="Section A">Section A</option>
+            <option value="Section B">Section B</option>
+            <option value="Section C">Section C</option>
+            <option value="Section D">Section D</option>
+            <option value="Section E">Section E</option>
+            <option value="Section F">Section F</option>
+            <option value="Section G">Section G</option>
+            <option value="Section H">Section H</option>
+            <option value="Section I">Section I</option>
+            <option value="Section J">Section J</option>
+            <option value="Section K">Section K</option>
+          </select>
+          <select id="my-students-sem-filter" class="form-select" style="min-width:130px;padding:0.5rem 0.75rem;font-size:0.85rem;" onchange="loadMyStudents()">
+            <option value="ALL">All Semesters</option>
+            <option value="1">Sem 1</option>
+            <option value="3">Sem 3</option>
+            <option value="5">Sem 5</option>
+            <option value="7">Sem 7</option>
+          </select>
+          <button type="button" class="btn btn-primary" onclick="openAddStudentModal()" style="display:flex;align-items:center;gap:6px;padding:0.55rem 1rem;font-size:0.85rem;">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Add Student
+          </button>
+        </div>
+      </div>
+
+      <!-- Students Table -->
+      <div class="admin-table-container">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Roll Number</th>
+              <th>Student Name & Email</th>
+              <th>Department / Program</th>
+              <th>Semester & Section</th>
+              <th>Feedback Submissions</th>
+              <th>Emotional Health</th>
+              <th style="text-align:right;">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="my-students-table-body">
+            <!-- Dynamically populated -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+
+    <!-- ═══════════════════════════════════════════════════════
+         VIEW: COMPLAINTS & GRIEVANCES (Faculty & Admin Access)
+         ═══════════════════════════════════════════════════════ -->
+    <div class="view" id="view-complaints">
+      <div style="margin-bottom:1.5rem;">
+        <h2 style="font-size:1.6rem;font-weight:800;color:var(--text);margin-bottom:0.25rem;">Student Complaints & Grievances</h2>
+        <p style="color:var(--muted);font-size:0.9rem;">Real-time student grievances, workload alerts, lab equipment issues, and faculty resolution tracking.</p>
+      </div>
+
+      <!-- Complaints Metrics -->
+      <div class="metrics-grid" style="grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));gap:1rem;margin-bottom:1.5rem;">
+        <div class="metric-card" style="padding:1.25rem;background:var(--card-solid);border:1px solid var(--border);border-radius:var(--radius-md);">
+          <div style="font-size:0.75rem;font-weight:700;color:var(--muted);text-transform:uppercase;margin-bottom:0.4rem;">Total Logged</div>
+          <div style="font-size:1.8rem;font-weight:800;color:var(--text);" id="complaints-total-count">8</div>
+          <div style="font-size:0.75rem;color:var(--muted);margin-top:0.25rem;">This Semester</div>
+        </div>
+        <div class="metric-card" style="padding:1.25rem;background:var(--card-solid);border:1px solid var(--border);border-radius:var(--radius-md);">
+          <div style="font-size:0.75rem;font-weight:700;color:#ef4444;text-transform:uppercase;margin-bottom:0.4rem;">Pending Action</div>
+          <div style="font-size:1.8rem;font-weight:800;color:#ef4444;" id="complaints-pending-count">4</div>
+          <div style="font-size:0.75rem;color:#ef4444;margin-top:0.25rem;font-weight:600;">Requires Faculty Review</div>
+        </div>
+        <div class="metric-card" style="padding:1.25rem;background:var(--card-solid);border:1px solid var(--border);border-radius:var(--radius-md);">
+          <div style="font-size:0.75rem;font-weight:700;color:#f59e0b;text-transform:uppercase;margin-bottom:0.4rem;">Under Review</div>
+          <div style="font-size:1.8rem;font-weight:800;color:#f59e0b;" id="complaints-review-count">2</div>
+          <div style="font-size:0.75rem;color:#f59e0b;margin-top:0.25rem;">Action in progress</div>
+        </div>
+        <div class="metric-card" style="padding:1.25rem;background:var(--card-solid);border:1px solid var(--border);border-radius:var(--radius-md);">
+          <div style="font-size:0.75rem;font-weight:700;color:#10b981;text-transform:uppercase;margin-bottom:0.4rem;">Resolved</div>
+          <div style="font-size:1.8rem;font-weight:800;color:#10b981;" id="complaints-resolved-count">2</div>
+          <div style="font-size:0.75rem;color:#10b981;margin-top:0.25rem;">Action completed</div>
+        </div>
+      </div>
+
+      <!-- Action & Filter Bar -->
+      <div class="admin-action-bar">
+        <div class="admin-search-box">
+          <svg class="admin-search-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" id="complaints-search" class="admin-search-input" placeholder="Search complaints by title, course, or student name..." oninput="filterComplaints()">
+        </div>
+        <div class="admin-filter-group">
+          <select id="complaints-status-filter" class="form-select" style="min-width:130px;padding:0.5rem 0.75rem;font-size:0.85rem;" onchange="loadComplaints()">
+            <option value="ALL">All Statuses</option>
+            <option value="PENDING">Pending Only</option>
+            <option value="IN_REVIEW">In Review</option>
+            <option value="RESOLVED">Resolved</option>
+          </select>
+          <select id="complaints-severity-filter" class="form-select" style="min-width:130px;padding:0.5rem 0.75rem;font-size:0.85rem;" onchange="loadComplaints()">
+            <option value="ALL">All Severities</option>
+            <option value="HIGH">High Severity</option>
+            <option value="MEDIUM">Medium Severity</option>
+            <option value="LOW">Low Severity</option>
+          </select>
+          <select id="complaints-section-filter" class="form-select" style="min-width:140px;padding:0.5rem 0.75rem;font-size:0.85rem;" onchange="loadComplaints()">
+            <option value="ALL">All Sections (A-K)</option>
+            <option value="Section A">Section A</option>
+            <option value="Section B">Section B</option>
+            <option value="Section C">Section C</option>
+            <option value="Section D">Section D</option>
+            <option value="Section E">Section E</option>
+            <option value="Section F">Section F</option>
+            <option value="Section G">Section G</option>
+            <option value="Section H">Section H</option>
+            <option value="Section I">Section I</option>
+            <option value="Section J">Section J</option>
+            <option value="Section K">Section K</option>
+          </select>
+          <button type="button" class="btn btn-primary" onclick="openFileComplaintModal()" style="display:flex;align-items:center;gap:6px;padding:0.55rem 1rem;font-size:0.85rem;">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            File Grievance
+          </button>
+        </div>
+      </div>
+
+      <!-- Complaints Cards Grid -->
+      <div class="complaints-grid" id="complaints-grid">
+        <!-- Rendered dynamically -->
+      </div>
+    </div>
+
+
+    <!-- ═══════════════════════════════════════════════════════
+         VIEW: ADMIN - STUDENT DIRECTORY & FULL ACCESS (A-K)
+         ═══════════════════════════════════════════════════════ -->
+    <div class="view" id="view-admin-students">
+      <div style="margin-bottom:1.5rem;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <h2 style="font-size:1.6rem;font-weight:800;color:var(--text);margin-bottom:0.25rem;">Student Management Directory</h2>
+          <span class="badge" style="background:var(--primary-bg);color:var(--primary);font-size:11px;font-weight:700;padding:2px 8px;border-radius:12px;">Full Admin Control</span>
+        </div>
+        <p style="color:var(--muted);font-size:0.9rem;">Comprehensive university roster of all students across Sections A through K, semester allocations, and feedback records.</p>
+      </div>
+
+      <!-- Action & Filter Bar -->
+      <div class="admin-action-bar">
+        <div class="admin-search-box">
+          <svg class="admin-search-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" id="admin-students-search" class="admin-search-input" placeholder="Filter by student name, roll number, or department..." oninput="filterAdminStudents()">
+        </div>
+        <div class="admin-filter-group">
+          <select id="admin-students-section-filter" class="form-select" style="min-width:140px;padding:0.5rem 0.75rem;font-size:0.85rem;" onchange="loadAdminStudents()">
+            <option value="ALL">All Sections (A-K)</option>
+            <option value="Section A">Section A</option>
+            <option value="Section B">Section B</option>
+            <option value="Section C">Section C</option>
+            <option value="Section D">Section D</option>
+            <option value="Section E">Section E</option>
+            <option value="Section F">Section F</option>
+            <option value="Section G">Section G</option>
+            <option value="Section H">Section H</option>
+            <option value="Section I">Section I</option>
+            <option value="Section J">Section J</option>
+            <option value="Section K">Section K</option>
+          </select>
+          <select id="admin-students-dept-filter" class="form-select" style="min-width:160px;padding:0.5rem 0.75rem;font-size:0.85rem;" onchange="loadAdminStudents()">
+            <option value="ALL">All Departments</option>
+            <option value="AI & Data Science">AI & Data Science</option>
+            <option value="Computer Science">Computer Science</option>
+            <option value="Electronics & Comm">Electronics & Comm</option>
+            <option value="Mechanical Engineering">Mechanical Engineering</option>
+          </select>
+          <button type="button" class="btn btn-primary" onclick="openAddStudentModal()" style="display:flex;align-items:center;gap:6px;padding:0.55rem 1rem;font-size:0.85rem;">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Add Student
+          </button>
+          <button type="button" class="btn btn-secondary" onclick="exportStudentsCSV()" style="padding:0.55rem 1rem;font-size:0.85rem;">
+            Export CSV
+          </button>
+        </div>
+      </div>
+
+      <!-- Admin Students Table -->
+      <div class="admin-table-container">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Roll Number</th>
+              <th>Full Name</th>
+              <th>Email Address</th>
+              <th>Semester & Section</th>
+              <th>Department</th>
+              <th>Feedback Logs</th>
+              <th style="text-align:right;">Management</th>
+            </tr>
+          </thead>
+          <tbody id="admin-students-table-body">
+            <!-- Dynamically populated -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+
+    <!-- ═══════════════════════════════════════════════════════
+         VIEW: ADMIN - FACULTY DIRECTORY & ALLOCATIONS
+         ═══════════════════════════════════════════════════════ -->
+    <div class="view" id="view-admin-faculty">
+      <div style="margin-bottom:1.5rem;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <h2 style="font-size:1.6rem;font-weight:800;color:var(--text);margin-bottom:0.25rem;">Faculty Directory & Allocations</h2>
+          <span class="badge" style="background:var(--primary-bg);color:var(--primary);font-size:11px;font-weight:700;padding:2px 8px;border-radius:12px;">Full Admin Access</span>
+        </div>
+        <p style="color:var(--muted);font-size:0.9rem;">Official directory of all faculty members, teaching allocations across 102 courses and sections A-K, and student rating analytics.</p>
+      </div>
+
+      <!-- Faculty Stats -->
+      <div class="metrics-grid" style="grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));gap:1rem;margin-bottom:1.5rem;">
+        <div class="metric-card" style="padding:1.25rem;background:var(--card-solid);border:1px solid var(--border);border-radius:var(--radius-md);">
+          <div style="font-size:0.75rem;font-weight:700;color:var(--muted);text-transform:uppercase;margin-bottom:0.4rem;">Total Faculty</div>
+          <div style="font-size:1.8rem;font-weight:800;color:var(--text);" id="admin-faculty-total">80 Instructors</div>
+          <div style="font-size:0.75rem;color:var(--primary);margin-top:0.25rem;">Faculty of Science & Tech</div>
+        </div>
+        <div class="metric-card" style="padding:1.25rem;background:var(--card-solid);border:1px solid var(--border);border-radius:var(--radius-md);">
+          <div style="font-size:0.75rem;font-weight:700;color:var(--muted);text-transform:uppercase;margin-bottom:0.4rem;">Course Allocations</div>
+          <div style="font-size:1.8rem;font-weight:800;color:#10b981;">102 Courses</div>
+          <div style="font-size:0.75rem;color:var(--muted);margin-top:0.25rem;">Semesters 1 through 8</div>
+        </div>
+        <div class="metric-card" style="padding:1.25rem;background:var(--card-solid);border:1px solid var(--border);border-radius:var(--radius-md);">
+          <div style="font-size:0.75rem;font-weight:700;color:var(--muted);text-transform:uppercase;margin-bottom:0.4rem;">Avg Teaching Rating</div>
+          <div style="font-size:1.8rem;font-weight:800;color:#f59e0b;">4.7 / 5.0 ⭐</div>
+          <div style="font-size:0.75rem;color:var(--muted);margin-top:0.25rem;">Student satisfaction index</div>
+        </div>
+        <div class="metric-card" style="padding:1.25rem;background:var(--card-solid);border:1px solid var(--border);border-radius:var(--radius-md);">
+          <div style="font-size:0.75rem;font-weight:700;color:var(--muted);text-transform:uppercase;margin-bottom:0.4rem;">Academic Units</div>
+          <div style="font-size:1.8rem;font-weight:800;color:var(--primary);">4 Departments</div>
+          <div style="font-size:0.75rem;color:var(--muted);margin-top:0.25rem;">CSE, AI&DS, ECE, ME</div>
+        </div>
+      </div>
+
+      <!-- Action & Filter Bar -->
+      <div class="admin-action-bar">
+        <div class="admin-search-box">
+          <svg class="admin-search-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" id="admin-faculty-search" class="admin-search-input" placeholder="Search instructor by name or email..." oninput="filterAdminFaculty()">
+        </div>
+        <div class="admin-filter-group">
+          <select id="admin-faculty-dept-filter" class="form-select" style="min-width:180px;padding:0.5rem 0.75rem;font-size:0.85rem;" onchange="loadAdminFaculty()">
+            <option value="ALL">All Departments</option>
+            <option value="Faculty of Science & Technology">Faculty of Science & Technology</option>
+            <option value="Computer Science">Computer Science</option>
+            <option value="AI & Data Science">AI & Data Science</option>
+          </select>
+          <button type="button" class="btn btn-primary" onclick="openAddFacultyModal()" style="display:flex;align-items:center;gap:6px;padding:0.55rem 1rem;font-size:0.85rem;">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Add Faculty
+          </button>
+        </div>
+      </div>
+
+      <!-- Faculty Table -->
+      <div class="admin-table-container">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Instructor Name</th>
+              <th>Department</th>
+              <th>Official Email</th>
+              <th>Assigned Courses</th>
+              <th>Student Rating</th>
+              <th>Satisfaction %</th>
+              <th style="text-align:right;">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="admin-faculty-table-body">
+            <!-- Dynamically populated -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+
+    <!-- ═══════════════════════════════════════════════════════
+         VIEW: DEPARTMENTS & ACADEMIC UNITS
+         ═══════════════════════════════════════════════════════ -->
+    <div class="view" id="view-departments">
+      <div style="margin-bottom:1.5rem;">
+        <h2 style="font-size:1.6rem;font-weight:800;color:var(--text);margin-bottom:0.25rem;">Departments & Academic Units</h2>
+        <p style="color:var(--muted);font-size:0.9rem;">Official academic departments under the Faculty of Science & Technology.</p>
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(320px, 1fr));gap:1.5rem;">
+        <!-- Department 1: CSE & AI -->
+        <div style="background:var(--card-solid);border:1px solid var(--border);border-radius:var(--radius-md);padding:1.5rem;display:flex;flex-direction:column;gap:1rem;">
+          <div style="display:flex;align-items:center;justify-content:space-between;">
+            <div style="width:44px;height:44px;border-radius:12px;background:rgba(99,102,241,0.15);color:#6366f1;display:flex;align-items:center;justify-content:center;font-size:20px;">💻</div>
+            <span class="badge" style="background:rgba(16,185,129,0.15);color:#10b981;font-weight:700;padding:2px 8px;border-radius:10px;">Active</span>
+          </div>
+          <div>
+            <h3 style="font-size:1.15rem;font-weight:700;color:var(--text);margin-bottom:0.35rem;">Computer Science & Engineering</h3>
+            <p style="font-size:0.84rem;color:var(--text-secondary);line-height:1.45;">B.Tech CSE, AI & Data Science, Cloud Computing, and Software Engineering specializations.</p>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;padding:0.75rem;background:var(--bg-subtle);border-radius:var(--radius-sm);font-size:0.8rem;">
+            <div><span style="color:var(--muted);">Courses:</span> <strong>42 Subjects</strong></div>
+            <div><span style="color:var(--muted);">Faculty:</span> <strong>36 Instructors</strong></div>
+            <div><span style="color:var(--muted);">Sections:</span> <strong>A through G</strong></div>
+            <div><span style="color:var(--muted);">Students:</span> <strong>1,240 Enrolled</strong></div>
+          </div>
+          <div style="display:flex;gap:8px;margin-top:auto;">
+            <button class="btn btn-primary" onclick="switchView('courses')" style="flex:1;padding:0.5rem;font-size:0.82rem;">View Courses</button>
+            <button class="btn btn-secondary" onclick="switchView('admin-students')" style="flex:1;padding:0.5rem;font-size:0.82rem;">View Roster</button>
+          </div>
+        </div>
+
+        <!-- Department 2: ECE -->
+        <div style="background:var(--card-solid);border:1px solid var(--border);border-radius:var(--radius-md);padding:1.5rem;display:flex;flex-direction:column;gap:1rem;">
+          <div style="display:flex;align-items:center;justify-content:space-between;">
+            <div style="width:44px;height:44px;border-radius:12px;background:rgba(245,158,11,0.15);color:#f59e0b;display:flex;align-items:center;justify-content:center;font-size:20px;">⚡</div>
+            <span class="badge" style="background:rgba(16,185,129,0.15);color:#10b981;font-weight:700;padding:2px 8px;border-radius:10px;">Active</span>
+          </div>
+          <div>
+            <h3 style="font-size:1.15rem;font-weight:700;color:var(--text);margin-bottom:0.35rem;">Electronics & Communication</h3>
+            <p style="font-size:0.84rem;color:var(--text-secondary);line-height:1.45;">VLSI Design, Embedded Systems, Signal Processing, and Wireless Telecommunications.</p>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;padding:0.75rem;background:var(--bg-subtle);border-radius:var(--radius-sm);font-size:0.8rem;">
+            <div><span style="color:var(--muted);">Courses:</span> <strong>28 Subjects</strong></div>
+            <div><span style="color:var(--muted);">Faculty:</span> <strong>22 Instructors</strong></div>
+            <div><span style="color:var(--muted);">Sections:</span> <strong>H through I</strong></div>
+            <div><span style="color:var(--muted);">Students:</span> <strong>720 Enrolled</strong></div>
+          </div>
+          <div style="display:flex;gap:8px;margin-top:auto;">
+            <button class="btn btn-primary" onclick="switchView('courses')" style="flex:1;padding:0.5rem;font-size:0.82rem;">View Courses</button>
+            <button class="btn btn-secondary" onclick="switchView('admin-students')" style="flex:1;padding:0.5rem;font-size:0.82rem;">View Roster</button>
+          </div>
+        </div>
+
+        <!-- Department 3: Mechanical -->
+        <div style="background:var(--card-solid);border:1px solid var(--border);border-radius:var(--radius-md);padding:1.5rem;display:flex;flex-direction:column;gap:1rem;">
+          <div style="display:flex;align-items:center;justify-content:space-between;">
+            <div style="width:44px;height:44px;border-radius:12px;background:rgba(239,68,68,0.15);color:#ef4444;display:flex;align-items:center;justify-content:center;font-size:20px;">⚙️</div>
+            <span class="badge" style="background:rgba(16,185,129,0.15);color:#10b981;font-weight:700;padding:2px 8px;border-radius:10px;">Active</span>
+          </div>
+          <div>
+            <h3 style="font-size:1.15rem;font-weight:700;color:var(--text);margin-bottom:0.35rem;">Mechanical Engineering</h3>
+            <p style="font-size:0.84rem;color:var(--text-secondary);line-height:1.45;">Additive Manufacturing, Thermodynamics, Robotics, and Mechatronics research labs.</p>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;padding:0.75rem;background:var(--bg-subtle);border-radius:var(--radius-sm);font-size:0.8rem;">
+            <div><span style="color:var(--muted);">Courses:</span> <strong>18 Subjects</strong></div>
+            <div><span style="color:var(--muted);">Faculty:</span> <strong>14 Instructors</strong></div>
+            <div><span style="color:var(--muted);">Sections:</span> <strong>Section J</strong></div>
+            <div><span style="color:var(--muted);">Students:</span> <strong>460 Enrolled</strong></div>
+          </div>
+          <div style="display:flex;gap:8px;margin-top:auto;">
+            <button class="btn btn-primary" onclick="switchView('courses')" style="flex:1;padding:0.5rem;font-size:0.82rem;">View Courses</button>
+            <button class="btn btn-secondary" onclick="switchView('admin-students')" style="flex:1;padding:0.5rem;font-size:0.82rem;">View Roster</button>
+          </div>
+        </div>
+
+        <!-- Department 4: Humanities & Sciences -->
+        <div style="background:var(--card-solid);border:1px solid var(--border);border-radius:var(--radius-md);padding:1.5rem;display:flex;flex-direction:column;gap:1rem;">
+          <div style="display:flex;align-items:center;justify-content:space-between;">
+            <div style="width:44px;height:44px;border-radius:12px;background:rgba(16,185,129,0.15);color:#10b981;display:flex;align-items:center;justify-content:center;font-size:20px;">📚</div>
+            <span class="badge" style="background:rgba(16,185,129,0.15);color:#10b981;font-weight:700;padding:2px 8px;border-radius:10px;">Active</span>
+          </div>
+          <div>
+            <h3 style="font-size:1.15rem;font-weight:700;color:var(--text);margin-bottom:0.35rem;">Applied Sciences & Humanities</h3>
+            <p style="font-size:0.84rem;color:var(--text-secondary);line-height:1.45;">Engineering Mathematics, Physics, Chemistry, and Professional Communication skills.</p>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;padding:0.75rem;background:var(--bg-subtle);border-radius:var(--radius-sm);font-size:0.8rem;">
+            <div><span style="color:var(--muted);">Courses:</span> <strong>14 Subjects</strong></div>
+            <div><span style="color:var(--muted);">Faculty:</span> <strong>8 Instructors</strong></div>
+            <div><span style="color:var(--muted);">Sections:</span> <strong>Sections A - K</strong></div>
+            <div><span style="color:var(--muted);">Students:</span> <strong>Foundation Year</strong></div>
+          </div>
+          <div style="display:flex;gap:8px;margin-top:auto;">
+            <button class="btn btn-primary" onclick="switchView('courses')" style="flex:1;padding:0.5rem;font-size:0.82rem;">View Courses</button>
+            <button class="btn btn-secondary" onclick="switchView('admin-faculty')" style="flex:1;padding:0.5rem;font-size:0.82rem;">View Faculty</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
   </div>
 
 
@@ -3287,6 +4217,7 @@ function enterDashboard() {
 
   const role = (currentUser.role || '').toUpperCase();
   const isStudent = role === 'STUDENT';
+  const isFaculty = role === 'FACULTY';
   const isAdmin = role === 'ADMIN';
   const initials = (currentUser.name || 'U').split(' ').map(w => w[0]).join('').substring(0,2).toUpperCase();
 
@@ -3295,35 +4226,68 @@ function enterDashboard() {
   document.getElementById('sidebar-user-role').textContent = role;
   document.getElementById('dash-greeting').textContent = `Welcome, ${(currentUser.name || 'User').split(' ')[0]}`;
 
-  // Role-based navigation visibility: Restrict AI Models and Feedback list from students
+  // Role-based navigation visibility
   const navFeedback = document.getElementById('nav-item-feedback-list');
-  const navModelLab = document.getElementById('nav-item-model-lab');
+  const navMyStudents = document.getElementById('nav-item-my-students');
+  const navComplaints = document.getElementById('nav-item-complaints');
   const navAnalytics = document.getElementById('nav-item-analytics');
+  const navCourses = document.getElementById('nav-item-courses');
+  const navModelLab = document.getElementById('nav-item-model-lab');
+  const navRequest = document.getElementById('nav-item-request-feedback');
   const navSubmit = document.getElementById('nav-item-submit-feedback');
 
-  const navRequest = document.getElementById('nav-item-request-feedback');
   if (isStudent) {
     if (navFeedback) navFeedback.style.display = 'none';
-    if (navModelLab) navModelLab.style.display = 'none';
+    if (navMyStudents) navMyStudents.style.display = 'none';
+    if (navComplaints) navComplaints.style.display = 'none';
     if (navAnalytics) navAnalytics.style.display = 'none';
-    if (navSubmit) navSubmit.style.display = 'flex';
+    if (navModelLab) navModelLab.style.display = 'none';
     if (navRequest) navRequest.style.display = 'none';
+    if (navSubmit) navSubmit.style.display = 'flex';
   } else {
+    // Faculty & Admin
     if (navFeedback) navFeedback.style.display = 'flex';
-    if (navModelLab) navModelLab.style.display = 'flex';
+    if (navMyStudents) navMyStudents.style.display = 'flex'; // Show "My Students"
+    if (navComplaints) navComplaints.style.display = 'flex'; // Show "Complaints"
     if (navAnalytics) navAnalytics.style.display = 'flex';
-    if (navSubmit) navSubmit.style.display = 'none'; // HIDE for Faculty / Admin
-    if (navRequest) navRequest.style.display = 'flex'; // SHOW for Faculty / Admin
+    if (navCourses) navCourses.style.display = 'flex';
+    if (navModelLab) navModelLab.style.display = 'flex';
+    if (navRequest) navRequest.style.display = 'flex';
+    if (navSubmit) navSubmit.style.display = 'none';
   }
 
-  // Show admin nav
+  // Admin Accordion & Navigation
   const adminGroup = document.getElementById('nav-admin-group');
+  const pStudents = document.getElementById('nav-parent-students');
+  const cStudents = document.getElementById('nav-children-students');
+  const pFaculty = document.getElementById('nav-parent-faculty');
+  const cFaculty = document.getElementById('nav-children-faculty');
   const navDept = document.getElementById('nav-departments');
+
   if (adminGroup) adminGroup.style.display = isAdmin ? 'block' : 'none';
+  if (pStudents) pStudents.style.display = isAdmin ? 'flex' : 'none';
+  if (pFaculty) pFaculty.style.display = isAdmin ? 'flex' : 'none';
   if (navDept) navDept.style.display = isAdmin ? 'flex' : 'none';
+
+  // In Admin Mode, automatically expand the Students parent accordion for seamless access
+  if (isAdmin) {
+    if (pStudents) pStudents.classList.add('open');
+    if (cStudents) cStudents.classList.add('show');
+  }
 
   switchView('overview');
   loadOverview();
+  loadNotifications();
+  loadComplaintsBadge();
+}
+
+function toggleNavAccordion(group) {
+  const parent = document.getElementById(`nav-parent-${group}`);
+  const container = document.getElementById(`nav-children-${group}`);
+  if (parent && container) {
+    parent.classList.toggle('open');
+    container.classList.toggle('show');
+  }
 }
 
 function logout() {
@@ -3353,9 +4317,10 @@ function switchView(name) {
   const role = (currentUser && currentUser.role || '').toUpperCase();
   const isStudent = role === 'STUDENT';
 
-  // Role access guard: Restrict AI Models and Feedback browsing to Faculty/Admin only
-  if (isStudent && (name === 'model-lab' || name === 'feedback-list' || name === 'analytics' || name === 'departments')) {
-    toast('Access restricted: AI Models and Full Feedback browsing are reserved for Faculty and Administrators.');
+  // Role access guard: Restrict internal browsing from students
+  const restrictedForStudents = ['model-lab', 'feedback-list', 'analytics', 'departments', 'my-students', 'admin-students', 'admin-faculty'];
+  if (isStudent && restrictedForStudents.includes(name)) {
+    toast('Access restricted: This area is reserved for Faculty and Administrators.');
     switchView('overview');
     return;
   }
@@ -3363,27 +4328,36 @@ function switchView(name) {
   document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
   const targetView = document.getElementById('view-' + name);
   if (targetView) targetView.classList.add('active');
+
+  // Update nav item active states (both top-level and child accordion items)
   document.querySelectorAll('.nav-item').forEach(n => n.classList.toggle('active', n.dataset.view === name));
+  document.querySelectorAll('.nav-child-item').forEach(n => n.classList.toggle('active', n.dataset.view === name));
 
   const titles = {
     overview: 'Dashboard',
-    'feedback-list': 'Feedback',
+    'feedback-list': 'Feedback Records',
+    'my-students': 'My Students Directory',
+    complaints: 'Student Complaints & Grievances',
     analytics: 'Analytics',
+    courses: 'Courses & Faculty Directory',
     'model-lab': 'AI Model Testing Lab',
+    'request-feedback': 'Request Feedback',
     'submit-feedback': 'Submit Course Feedback',
-    departments: 'Departments'
+    'admin-students': 'Student Management Directory',
+    'admin-faculty': 'Faculty Directory & Allocations',
+    departments: 'Departments & Academic Units'
   };
   document.getElementById('topbar-title').textContent = titles[name] || 'Dashboard';
 
   if (name === 'feedback-list') loadFeedback();
-  if (name === 'analytics') loadAnalytics();
+  if (name === 'my-students') loadMyStudents();
+  if (name === 'complaints') loadComplaints();
+  if (name === 'admin-students') loadAdminStudents();
+  if (name === 'admin-faculty') loadAdminFaculty();
   if (name === 'departments') loadDepartments();
+  if (name === 'analytics') loadAnalytics();
+  if (name === 'courses') renderCourses();
 }
-
-/* ═══════════════════════════════════════════════════════
-   AI MODEL LAB & TESTING
-   ═══════════════════════════════════════════════════════ */
-let currentModelEngine = 'tfidf';
 
 function selectModelEngine(engine) {
   currentModelEngine = engine;
@@ -4346,28 +5320,53 @@ setTheme = function(theme) {
 };
 
 /* ═══════════════════════════════════════════════════════
-   WORKING NOTIFICATIONS & ALERTS SYSTEM
+   CRYSTAL-CLEAR, RELIABLE NOTIFICATIONS & ALERTS SYSTEM
    ═══════════════════════════════════════════════════════ */
 let ACTIVE_NOTIFICATIONS = [];
+let CURRENT_NOTIF_TAB = 'ALL';
 
 function toggleNotifications(event) {
-  if (event) event.stopPropagation();
+  if (event) {
+    event.stopPropagation();
+    if (event.preventDefault) event.preventDefault();
+  }
   const dropdown = document.getElementById('notif-dropdown');
   if (dropdown) {
-    dropdown.classList.toggle('show');
+    const isShowing = dropdown.classList.contains('show');
+    if (!isShowing) {
+      dropdown.classList.add('show');
+      loadNotifications();
+    } else {
+      dropdown.classList.remove('show');
+    }
   }
 }
 
-// Close dropdown on outside click
+function closeNotifications(event) {
+  if (event) event.stopPropagation();
+  const dropdown = document.getElementById('notif-dropdown');
+  if (dropdown) dropdown.classList.remove('show');
+}
+
+// Robust click-outside listener that does not close when interacting with dropdown
 document.addEventListener('click', (e) => {
   const dropdown = document.getElementById('notif-dropdown');
   const btn = document.getElementById('notif-bell-btn');
+  const wrapper = document.getElementById('notif-wrapper-container');
   if (dropdown && dropdown.classList.contains('show')) {
-    if (!dropdown.contains(e.target) && !btn.contains(e.target)) {
+    if (!dropdown.contains(e.target) && !btn.contains(e.target) && (!wrapper || !wrapper.contains(e.target))) {
       dropdown.classList.remove('show');
     }
   }
 });
+
+function filterNotificationTab(tab) {
+  CURRENT_NOTIF_TAB = tab;
+  document.querySelectorAll('.notif-tab').forEach(t => t.classList.remove('active'));
+  const tabEl = document.getElementById(`notif-tab-${tab === 'ALL' ? 'all' : tab === 'FEEDBACK_REQUEST' ? 'req' : 'alerts'}`);
+  if (tabEl) tabEl.classList.add('active');
+  renderNotifications();
+}
 
 async function loadNotifications() {
   try {
@@ -4381,27 +5380,71 @@ async function loadNotifications() {
       checkForActiveStudentRequest();
     }
   } catch (err) {
-    console.warn('Could not load notifications from API, using fallback:', err);
-    ACTIVE_NOTIFICATIONS = [
-      {
-        id: 'req-sample',
-        type: 'FEEDBACK_REQUEST',
-        title: 'Feedback Requested: CS305',
-        message: 'Dr Sandeep Kumar Panda requested feedback for Software Engineering (Section A).',
-        course_code: 'CS305',
-        course_name: 'SOFTWARE ENGINEERING',
-        faculty_name: 'Dr Sandeep Kumar Panda',
-        target_section: 'Section A',
-        time: 'Today'
-      },
-      {
-        id: 'alert-workload',
-        type: 'ALERT',
-        title: 'Action Needed: High Workload',
-        message: 'Review Assignment 2 pacing across All Classes.',
-        time: 'Today'
-      }
-    ];
+    console.warn('API error loading notifications, using robust fallback:', err);
+    const role = (currentUser && currentUser.role || 'STUDENT').toUpperCase();
+    if (role === 'STUDENT') {
+      ACTIVE_NOTIFICATIONS = [
+        {
+          id: 'req-cs305',
+          type: 'FEEDBACK_REQUEST',
+          title: 'Feedback Requested: CS305',
+          message: 'Dr Sandeep Kumar Panda requested feedback for Software Engineering (Section A).',
+          course_code: 'CS305',
+          course_name: 'SOFTWARE ENGINEERING',
+          faculty_name: 'Dr Sandeep Kumar Panda',
+          target_section: 'Section A',
+          time: 'Today, 11:30 AM'
+        },
+        {
+          id: 'alert-workload',
+          type: 'ALERT',
+          title: 'Action Needed: Workload Alert',
+          message: 'Heavy workload flagged across classes for Assignment 2 & Midterms.',
+          time: 'Today'
+        }
+      ];
+    } else {
+      ACTIVE_NOTIFICATIONS = [
+        {
+          id: 'complaint-1',
+          type: 'COMPLAINT',
+          title: '⚠️ Complaint: Assignment 2 Deadline Cluster',
+          message: '[HIGH SEVERITY] Course CS305 (Section A) - Student reported heavy deadline clustering.',
+          course_code: 'CS305',
+          target_section: 'Section A',
+          time: '2 hours ago',
+          complaint_id: 1
+        },
+        {
+          id: 'req-sample',
+          type: 'FEEDBACK_REQUEST',
+          title: 'Feedback Request Active: ES201',
+          message: 'Active feedback collection in progress for Object Oriented Programming (Section C).',
+          course_code: 'ES201',
+          course_name: 'OBJECT ORIENTED PROGRAMMING',
+          faculty_name: 'Dr Ramesh Ponnala',
+          target_section: 'Section C',
+          time: 'Today'
+        },
+        {
+          id: 'complaint-2',
+          type: 'COMPLAINT',
+          title: '⚠️ Lab Issue: GPU Cluster Node 4 Down',
+          message: '[HIGH SEVERITY] Course AI501 (Section B) - Server cluster memory outage during transformers lab.',
+          course_code: 'AI501',
+          target_section: 'Section B',
+          time: '5 hours ago',
+          complaint_id: 2
+        },
+        {
+          id: 'alert-workload',
+          type: 'ALERT',
+          title: 'Action Needed: High Workload',
+          message: 'Review Assignment 2 pacing across All Classes.',
+          time: 'Today'
+        }
+      ];
+    }
     renderNotifications();
     checkForActiveStudentRequest();
   }
@@ -4409,49 +5452,77 @@ async function loadNotifications() {
 
 function renderNotifications() {
   const badge = document.getElementById('notif-badge');
+  const countEl = document.getElementById('notif-header-count');
   const list = document.getElementById('notif-list');
   if (!list) return;
+
+  // Filter list by CURRENT_NOTIF_TAB
+  let filtered = ACTIVE_NOTIFICATIONS;
+  if (CURRENT_NOTIF_TAB === 'FEEDBACK_REQUEST') {
+    filtered = ACTIVE_NOTIFICATIONS.filter(n => n.type === 'FEEDBACK_REQUEST');
+  } else if (CURRENT_NOTIF_TAB === 'ALERTS') {
+    filtered = ACTIVE_NOTIFICATIONS.filter(n => n.type !== 'FEEDBACK_REQUEST');
+  }
 
   if (badge) {
     badge.textContent = ACTIVE_NOTIFICATIONS.length;
     badge.style.display = ACTIVE_NOTIFICATIONS.length > 0 ? 'flex' : 'none';
   }
+  if (countEl) {
+    countEl.textContent = ACTIVE_NOTIFICATIONS.length;
+  }
 
-  if (ACTIVE_NOTIFICATIONS.length === 0) {
+  if (filtered.length === 0) {
     list.innerHTML = `
       <div style="padding:2.5rem 1.5rem;text-align:center;">
-        <div style="font-size:2rem;margin-bottom:8px;">🎉</div>
-        <div style="font-weight:700;color:var(--text);font-size:14px;margin-bottom:4px;">All Caught Up!</div>
-        <div style="color:var(--muted);font-size:12px;">No unread feedback alerts or notices.</div>
+        <div style="font-size:2.2rem;margin-bottom:8px;">🎉</div>
+        <div style="font-weight:700;color:var(--text);font-size:14px;margin-bottom:4px;">No Notifications</div>
+        <div style="color:var(--muted);font-size:12px;">All feedback notices and alerts are cleared.</div>
       </div>`;
     return;
   }
 
-  list.innerHTML = ACTIVE_NOTIFICATIONS.map(n => `
-    <div class="notif-item" onclick="onNotificationClick('${n.id}')" style="position:relative;cursor:pointer;">
-      <div class="notif-icon-circle" style="background:${n.type === 'FEEDBACK_REQUEST' ? 'rgba(99,102,241,0.15);color:#6366f1;' : 'rgba(239,68,68,0.15);color:#ef4444;'}">
-        ${n.type === 'FEEDBACK_REQUEST' ? '📢' : '⚠️'}
-      </div>
-      <div class="notif-item-body" style="flex:1;min-width:0;">
-        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:6px;">
-          <div class="notif-item-title">${n.title}</div>
-          <button class="notif-dismiss-btn" onclick="dismissSingleNotification(event, '${n.id}')" title="Dismiss" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px;padding:0 2px;line-height:1;">&times;</button>
+  list.innerHTML = filtered.map(n => {
+    const isRequest = n.type === 'FEEDBACK_REQUEST';
+    const isComplaint = n.type === 'COMPLAINT';
+    const icon = isRequest ? '📢' : (isComplaint ? '⚠️' : '⚡');
+    const iconBg = isRequest ? 'rgba(99,102,241,0.15);color:#6366f1;' : (isComplaint ? 'rgba(239,68,68,0.15);color:#ef4444;' : 'rgba(245,158,11,0.15);color:#f59e0b;');
+    const actionText = isRequest ? 'Give Feedback &rarr;' : (isComplaint ? 'Review Issue &rarr;' : 'Take Action &rarr;');
+
+    return `
+      <div class="notif-item" onclick="onNotificationClick('${n.id}')">
+        <div class="notif-icon-circle" style="background:${iconBg}">
+          ${icon}
         </div>
-        <div class="notif-item-msg">${n.message}</div>
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px;">
-          <span class="notif-item-time">${n.time}</span>
-          ${n.type === 'FEEDBACK_REQUEST' ? '<span style="font-size:11px;font-weight:700;color:var(--primary);">Open & Action &rarr;</span>' : ''}
+        <div class="notif-item-body">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:6px;">
+            <div class="notif-item-title">${escapeHtml(n.title)}</div>
+            <button class="notif-close-btn" onclick="dismissSingleNotification(event, '${n.id}')" title="Dismiss">&times;</button>
+          </div>
+          <div class="notif-item-msg">${escapeHtml(n.message)}</div>
+          <div class="notif-item-meta">
+            <span>${escapeHtml(n.time || 'Today')}</span>
+            <button class="notif-action-btn" onclick="event.stopPropagation();onNotificationClick('${n.id}')">${actionText}</button>
+          </div>
         </div>
       </div>
-    </div>
-  `).join('');
+    `;
+  }).join('');
 }
 
-function clearNotifications() {
+function clearNotifications(event) {
+  if (event) event.stopPropagation();
   ACTIVE_NOTIFICATIONS = [];
   renderNotifications();
   const dropdown = document.getElementById('notif-dropdown');
   if (dropdown) dropdown.classList.remove('show');
+  toast('All notifications cleared.');
+}
+
+function dismissSingleNotification(event, notifId) {
+  if (event) event.stopPropagation();
+  ACTIVE_NOTIFICATIONS = ACTIVE_NOTIFICATIONS.filter(n => n.id !== notifId);
+  renderNotifications();
 }
 
 function onNotificationClick(notifId) {
@@ -4466,26 +5537,552 @@ function onNotificationClick(notifId) {
 
   if (notif.type === 'FEEDBACK_REQUEST') {
     if (isStudent) {
-      // Direct student to submit feedback with preselected course and faculty questions
       switchView('submit-feedback');
       applyActiveRequestToForm(notif);
-      toast(`Loaded requested feedback form for ${notif.course_code}`);
+      toast(`Loaded feedback form for ${notif.course_code}`);
     } else {
-      // Faculty viewing request
       switchView('request-feedback');
-      toast(`Showing request details for ${notif.course_code}`);
+      toast(`Showing requests for ${notif.course_code}`);
     }
+  } else if (notif.type === 'COMPLAINT') {
+    switchView('complaints');
+    toast(`Viewing grievance ticket`);
   } else {
-    // Workload / general alert
     switchView('overview');
-    toast(`Alert: ${notif.message}`);
   }
 }
 
-function dismissSingleNotification(event, notifId) {
-  if (event) event.stopPropagation();
-  ACTIVE_NOTIFICATIONS = ACTIVE_NOTIFICATIONS.filter(n => n.id !== notifId);
-  renderNotifications();
+
+/* ═══════════════════════════════════════════════════════
+   MY STUDENTS & ADMIN STUDENT DIRECTORY LOGIC (Sections A-K)
+   ═══════════════════════════════════════════════════════ */
+let ALL_STUDENTS_CACHE = [];
+
+async function loadMyStudents() {
+  const sectionFilter = document.getElementById('my-students-section-filter') ? document.getElementById('my-students-section-filter').value : 'ALL';
+  const semFilter = document.getElementById('my-students-sem-filter') ? document.getElementById('my-students-sem-filter').value : 'ALL';
+
+  try {
+    const res = await fetch(`${API}/feedback/students?section=${encodeURIComponent(sectionFilter)}`);
+    if (res.ok) {
+      const data = await res.json();
+      ALL_STUDENTS_CACHE = data.students || [];
+      renderMyStudentsTable(ALL_STUDENTS_CACHE, semFilter);
+    }
+  } catch (err) {
+    console.warn('API error loading students, using local cache:', err);
+    renderMyStudentsTable(ALL_STUDENTS_CACHE, semFilter);
+  }
+}
+
+function filterMyStudents() {
+  const search = (document.getElementById('my-students-search').value || '').toLowerCase().trim();
+  const semFilter = document.getElementById('my-students-sem-filter') ? document.getElementById('my-students-sem-filter').value : 'ALL';
+
+  const filtered = ALL_STUDENTS_CACHE.filter(s => {
+    const matchesSearch = !search || s.name.toLowerCase().includes(search) || s.roll_number.toLowerCase().includes(search) || (s.email && s.email.toLowerCase().includes(search));
+    const matchesSem = semFilter === 'ALL' || String(s.semester) === String(semFilter);
+    return matchesSearch && matchesSem;
+  });
+  renderMyStudentsTable(filtered, semFilter, false);
+}
+
+function renderMyStudentsTable(students, semFilter = 'ALL', updateCacheCount = true) {
+  const tbody = document.getElementById('my-students-table-body');
+  const countEl = document.getElementById('my-students-count');
+  if (!tbody) return;
+
+  let list = students;
+  if (semFilter !== 'ALL') {
+    list = list.filter(s => String(s.semester) === String(semFilter));
+  }
+
+  if (updateCacheCount && countEl) {
+    countEl.textContent = list.length;
+  }
+
+  if (list.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:2.5rem;color:var(--muted);">No students found matching current filters.</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = list.map(s => {
+    const feedbackCount = s.feedback_count || 0;
+    const wellnessTag = feedbackCount > 0 
+      ? '<span style="color:#10b981;font-weight:700;">● Satisfied</span>' 
+      : '<span style="color:#6366f1;font-weight:700;">● Attentive</span>';
+
+    return `
+      <tr>
+        <td>
+          <span style="font-family:monospace;font-weight:700;background:var(--bg-subtle);padding:3px 8px;border-radius:6px;font-size:0.82rem;color:var(--text);">
+            ${escapeHtml(s.roll_number)}
+          </span>
+        </td>
+        <td>
+          <div style="font-weight:700;color:var(--text);font-size:0.92rem;">${escapeHtml(s.name)}</div>
+          <div style="font-size:0.78rem;color:var(--muted);">${escapeHtml(s.email)}</div>
+        </td>
+        <td>
+          <span style="font-weight:600;color:var(--text-secondary);font-size:0.84rem;">${escapeHtml(s.department_name || 'AI & Data Science')}</span>
+        </td>
+        <td>
+          <span class="badge" style="background:var(--primary-bg);color:var(--primary);font-weight:700;border-radius:6px;padding:3px 8px;font-size:0.8rem;">
+            Sem ${s.semester} &bull; ${escapeHtml(s.class_section)}
+          </span>
+        </td>
+        <td>
+          <span style="font-weight:700;color:var(--text);">${feedbackCount} Submitted</span>
+        </td>
+        <td>
+          ${wellnessTag}
+        </td>
+        <td style="text-align:right;">
+          <button class="btn btn-secondary" onclick="toast('Viewing profile for ${escapeHtml(s.name)}')" style="padding:4px 10px;font-size:0.8rem;">Details</button>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+/* ─── ADMIN STUDENTS DIRECTORY ─── */
+async function loadAdminStudents() {
+  const sectionFilter = document.getElementById('admin-students-section-filter') ? document.getElementById('admin-students-section-filter').value : 'ALL';
+  const deptFilter = document.getElementById('admin-students-dept-filter') ? document.getElementById('admin-students-dept-filter').value : 'ALL';
+
+  try {
+    const res = await fetch(`${API}/feedback/students?section=${encodeURIComponent(sectionFilter)}&department=${encodeURIComponent(deptFilter)}`);
+    if (res.ok) {
+      const data = await res.json();
+      renderAdminStudentsTable(data.students || []);
+    }
+  } catch (err) {
+    console.warn('API error loading admin students:', err);
+  }
+}
+
+function filterAdminStudents() {
+  const search = (document.getElementById('admin-students-search').value || '').toLowerCase().trim();
+  const rows = document.querySelectorAll('#admin-students-table-body tr');
+  rows.forEach(r => {
+    const text = r.textContent.toLowerCase();
+    r.style.display = (!search || text.includes(search)) ? '' : 'none';
+  });
+}
+
+function renderAdminStudentsTable(students) {
+  const tbody = document.getElementById('admin-students-table-body');
+  if (!tbody) return;
+
+  if (students.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:2.5rem;color:var(--muted);">No students found.</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = students.map(s => `
+    <tr>
+      <td style="color:var(--muted);font-weight:600;">#${s.student_id}</td>
+      <td><span style="font-family:monospace;font-weight:700;background:var(--bg-subtle);padding:3px 8px;border-radius:6px;color:var(--text);">${escapeHtml(s.roll_number)}</span></td>
+      <td><strong>${escapeHtml(s.name)}</strong></td>
+      <td style="color:var(--muted);">${escapeHtml(s.email)}</td>
+      <td><span class="badge" style="background:var(--primary-bg);color:var(--primary);font-weight:700;">Sem ${s.semester} &bull; ${escapeHtml(s.class_section)}</span></td>
+      <td>${escapeHtml(s.department_name)}</td>
+      <td><strong>${s.feedback_count || 0}</strong> records</td>
+      <td style="text-align:right;">
+        <button class="btn btn-secondary" onclick="deleteStudent(${s.student_id}, '${escapeHtml(s.name)}')" style="padding:4px 8px;font-size:0.75rem;color:#ef4444;border-color:rgba(239,68,68,0.2);">Remove</button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+async function deleteStudent(studentId, name) {
+  if (!confirm(`Are you sure you want to remove student "${name}"?`)) return;
+  try {
+    const res = await fetch(`${API}/feedback/students/${studentId}`, { method: 'DELETE' });
+    if (res.ok) {
+      toast(`Student "${name}" removed successfully.`);
+      loadAdminStudents();
+      loadMyStudents();
+    }
+  } catch (err) {
+    toast(`Failed to remove student: ${err.message}`);
+  }
+}
+
+function exportStudentsCSV() {
+  if (!ALL_STUDENTS_CACHE || ALL_STUDENTS_CACHE.length === 0) {
+    toast('No student records to export.');
+    return;
+  }
+  let csv = 'Student ID,Roll Number,Name,Email,Semester,Section,Department,Feedback Count\n';
+  ALL_STUDENTS_CACHE.forEach(s => {
+    csv += `"${s.student_id}","${s.roll_number}","${s.name}","${s.email}","${s.semester}","${s.class_section}","${s.department_name}","${s.feedback_count || 0}"\n`;
+  });
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = window.URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `Students_Roster_Sections_A_through_K_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+  toast('Student directory CSV exported successfully!');
+}
+
+/* ─── MODAL ADD STUDENT ─── */
+function openAddStudentModal() {
+  const modal = document.getElementById('modal-add-student');
+  if (modal) modal.classList.add('show');
+}
+function closeAddStudentModal() {
+  const modal = document.getElementById('modal-add-student');
+  if (modal) modal.classList.remove('show');
+}
+
+async function submitNewStudent(e) {
+  e.preventDefault();
+  const name = document.getElementById('add-student-name').value.trim();
+  const roll_number = document.getElementById('add-student-roll').value.trim();
+  const email = document.getElementById('add-student-email').value.trim();
+  const semester = parseInt(document.getElementById('add-student-semester').value, 10);
+  const class_section = document.getElementById('add-student-section').value;
+  const department_name = document.getElementById('add-student-dept').value;
+
+  try {
+    const res = await fetch(`${API}/feedback/students`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, roll_number, email, semester, class_section, department_name })
+    });
+    if (res.ok) {
+      toast(`Student ${name} enrolled successfully in ${class_section}!`);
+      closeAddStudentModal();
+      document.getElementById('form-add-student').reset();
+      loadMyStudents();
+      loadAdminStudents();
+    } else {
+      const err = await res.json();
+      toast(`Error: ${err.detail || 'Could not enroll student'}`);
+    }
+  } catch (err) {
+    toast(`Network error: ${err.message}`);
+  }
+}
+
+
+/* ═══════════════════════════════════════════════════════
+   COMPLAINTS & GRIEVANCE RESOLUTION LOGIC
+   ═══════════════════════════════════════════════════════ */
+let ALL_COMPLAINTS_CACHE = [];
+
+async function loadComplaints() {
+  const statusFilter = document.getElementById('complaints-status-filter') ? document.getElementById('complaints-status-filter').value : 'ALL';
+  const severityFilter = document.getElementById('complaints-severity-filter') ? document.getElementById('complaints-severity-filter').value : 'ALL';
+  const sectionFilter = document.getElementById('complaints-section-filter') ? document.getElementById('complaints-section-filter').value : 'ALL';
+
+  try {
+    const res = await fetch(`${API}/feedback/complaints?status=${encodeURIComponent(statusFilter)}&severity=${encodeURIComponent(severityFilter)}&section=${encodeURIComponent(sectionFilter)}`);
+    if (res.ok) {
+      const data = await res.json();
+      ALL_COMPLAINTS_CACHE = data.complaints || [];
+      renderComplaintsGrid(ALL_COMPLAINTS_CACHE);
+      updateComplaintsCounters(ALL_COMPLAINTS_CACHE);
+    }
+  } catch (err) {
+    console.warn('API error loading complaints:', err);
+  }
+}
+
+async function loadComplaintsBadge() {
+  try {
+    const res = await fetch(`${API}/feedback/complaints?status=PENDING`);
+    if (res.ok) {
+      const data = await res.json();
+      const count = (data.complaints || []).length;
+      const badge = document.getElementById('nav-complaints-badge');
+      if (badge) {
+        badge.textContent = count;
+        badge.style.display = count > 0 ? 'inline-block' : 'none';
+      }
+    }
+  } catch (err) {}
+}
+
+function updateComplaintsCounters(complaints) {
+  const totalEl = document.getElementById('complaints-total-count');
+  const pendingEl = document.getElementById('complaints-pending-count');
+  const reviewEl = document.getElementById('complaints-review-count');
+  const resolvedEl = document.getElementById('complaints-resolved-count');
+
+  const pending = complaints.filter(c => c.status === 'PENDING').length;
+  const review = complaints.filter(c => c.status === 'IN_REVIEW').length;
+  const resolved = complaints.filter(c => c.status === 'RESOLVED').length;
+
+  if (totalEl) totalEl.textContent = complaints.length;
+  if (pendingEl) pendingEl.textContent = pending;
+  if (reviewEl) reviewEl.textContent = review;
+  if (resolvedEl) resolvedEl.textContent = resolved;
+
+  const badge = document.getElementById('nav-complaints-badge');
+  if (badge) {
+    badge.textContent = pending;
+    badge.style.display = pending > 0 ? 'inline-block' : 'none';
+  }
+}
+
+function filterComplaints() {
+  const search = (document.getElementById('complaints-search').value || '').toLowerCase().trim();
+  const filtered = ALL_COMPLAINTS_CACHE.filter(c => {
+    return !search || c.title.toLowerCase().includes(search) || c.description.toLowerCase().includes(search) || c.course_code.toLowerCase().includes(search) || c.student_name.toLowerCase().includes(search);
+  });
+  renderComplaintsGrid(filtered);
+}
+
+function renderComplaintsGrid(complaints) {
+  const grid = document.getElementById('complaints-grid');
+  if (!grid) return;
+
+  if (complaints.length === 0) {
+    grid.innerHTML = `
+      <div style="grid-column:1/-1;text-align:center;padding:3rem 1.5rem;background:var(--card-solid);border:1px solid var(--border);border-radius:var(--radius-md);">
+        <div style="font-size:2.5rem;margin-bottom:8px;">✅</div>
+        <div style="font-weight:700;font-size:1.1rem;color:var(--text);margin-bottom:4px;">No Grievance Tickets Found</div>
+        <div style="color:var(--muted);font-size:0.88rem;">There are no complaints matching your active filters.</div>
+      </div>`;
+    return;
+  }
+
+  grid.innerHTML = complaints.map(c => {
+    const sevClass = c.severity === 'HIGH' ? 'sev-high' : (c.severity === 'MEDIUM' ? 'sev-medium' : 'sev-low');
+    const statusClass = c.status === 'RESOLVED' ? 'status-resolved' : (c.status === 'IN_REVIEW' ? 'status-in-review' : 'status-pending');
+    const statusLabel = c.status === 'RESOLVED' ? 'Resolved' : (c.status === 'IN_REVIEW' ? 'In Review' : 'Pending Action');
+
+    return `
+      <div class="complaint-card" id="card-complaint-${c.complaint_id}">
+        <div class="complaint-card-header">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span class="severity-pill ${sevClass}">${escapeHtml(c.severity)} SEVERITY</span>
+            <span class="complaint-status-pill ${statusClass}">● ${statusLabel}</span>
+          </div>
+          <span style="font-size:0.75rem;color:var(--muted);">${escapeHtml(c.created_at || 'Today')}</span>
+        </div>
+
+        <div class="complaint-title">${escapeHtml(c.title)}</div>
+        <div class="complaint-desc">${escapeHtml(c.description)}</div>
+
+        ${c.action_taken ? `
+          <div class="complaint-action-box">
+            <strong>Action Taken / Resolution:</strong> ${escapeHtml(c.action_taken)}
+          </div>
+        ` : ''}
+
+        <div class="complaint-meta-bar">
+          <div class="complaint-meta-item">
+            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+            <strong>${escapeHtml(c.course_code)}</strong> (${escapeHtml(c.class_section)})
+          </div>
+          <div class="complaint-meta-item">
+            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            <span>${escapeHtml(c.faculty_name || 'Faculty IC')}</span>
+          </div>
+          <div class="complaint-meta-item">
+            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+            <span>${escapeHtml(c.student_name)} (${escapeHtml(c.student_roll)})</span>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:8px;margin-top:auto;padding-top:0.5rem;">
+          ${c.status !== 'RESOLVED' ? `
+            <button class="btn btn-primary" onclick="openResolveComplaintModal(${c.complaint_id}, '${escapeHtml(c.title)}', '${escapeHtml(c.course_code)}', '${escapeHtml(c.class_section)}', '${c.status}', '${escapeHtml(c.action_taken || '')}')" style="flex:1;padding:0.45rem;font-size:0.82rem;background:#10b981;border-color:#10b981;">
+              Resolve / Action
+            </button>
+          ` : `
+            <button class="btn btn-secondary" onclick="openResolveComplaintModal(${c.complaint_id}, '${escapeHtml(c.title)}', '${escapeHtml(c.course_code)}', '${escapeHtml(c.class_section)}', '${c.status}', '${escapeHtml(c.action_taken || '')}')" style="flex:1;padding:0.45rem;font-size:0.82rem;">
+              Update Action
+            </button>
+          `}
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+/* ─── MODAL FILE / RESOLVE COMPLAINT ─── */
+function openFileComplaintModal() {
+  const modal = document.getElementById('modal-file-complaint');
+  if (modal) modal.classList.add('show');
+}
+function closeFileComplaintModal() {
+  const modal = document.getElementById('modal-file-complaint');
+  if (modal) modal.classList.remove('show');
+}
+
+async function submitNewComplaint(e) {
+  e.preventDefault();
+  const category = document.getElementById('complaint-category-input').value;
+  const severity = document.getElementById('complaint-severity-input').value;
+  const course_code = document.getElementById('complaint-course-code').value.trim();
+  const class_section = document.getElementById('complaint-section-input').value;
+  const title = document.getElementById('complaint-title-input').value.trim();
+  const description = document.getElementById('complaint-desc-input').value.trim();
+
+  const student_name = currentUser && currentUser.name ? currentUser.name : 'Anonymous Student';
+  const student_roll = currentUser && currentUser.roll_number ? currentUser.roll_number : '2024-AI-042';
+
+  try {
+    const res = await fetch(`${API}/feedback/complaints`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        category, severity, course_code,
+        course_name: course_code === 'CS305' ? 'SOFTWARE ENGINEERING' : 'Course Lecture',
+        class_section, title, description,
+        student_name, student_roll
+      })
+    });
+    if (res.ok) {
+      toast('Grievance ticket filed successfully!');
+      closeFileComplaintModal();
+      document.getElementById('form-file-complaint').reset();
+      loadComplaints();
+    }
+  } catch (err) {
+    toast(`Failed to file grievance: ${err.message}`);
+  }
+}
+
+function openResolveComplaintModal(id, title, course, section, currentStatus, currentAction) {
+  document.getElementById('resolve-complaint-id').value = id;
+  document.getElementById('resolve-complaint-info').innerHTML = `
+    <strong>Complaint:</strong> ${title}<br>
+    <strong>Course:</strong> ${course} (${section})
+  `;
+  document.getElementById('resolve-status-select').value = currentStatus || 'RESOLVED';
+  document.getElementById('resolve-action-input').value = currentAction || '';
+  const modal = document.getElementById('modal-resolve-complaint');
+  if (modal) modal.classList.add('show');
+}
+
+function closeResolveComplaintModal() {
+  const modal = document.getElementById('modal-resolve-complaint');
+  if (modal) modal.classList.remove('show');
+}
+
+async function submitComplaintResolution(e) {
+  e.preventDefault();
+  const id = document.getElementById('resolve-complaint-id').value;
+  const status = document.getElementById('resolve-status-select').value;
+  const action_taken = document.getElementById('resolve-action-input').value.trim();
+
+  try {
+    const res = await fetch(`${API}/feedback/complaints/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status, action_taken })
+    });
+    if (res.ok) {
+      toast(`Complaint #${id} updated to status "${status}"!`);
+      closeResolveComplaintModal();
+      loadComplaints();
+      loadNotifications();
+    }
+  } catch (err) {
+    toast(`Error: ${err.message}`);
+  }
+}
+
+
+/* ═══════════════════════════════════════════════════════
+   ADMIN FACULTY DIRECTORY & ALLOCATIONS LOGIC
+   ═══════════════════════════════════════════════════════ */
+let ALL_ADMIN_FACULTY_CACHE = [];
+
+async function loadAdminFaculty() {
+  const deptFilter = document.getElementById('admin-faculty-dept-filter') ? document.getElementById('admin-faculty-dept-filter').value : 'ALL';
+  try {
+    const res = await fetch(`${API}/feedback/faculty-directory?department=${encodeURIComponent(deptFilter)}`);
+    if (res.ok) {
+      const data = await res.json();
+      ALL_ADMIN_FACULTY_CACHE = data.faculty || [];
+      renderAdminFacultyTable(ALL_ADMIN_FACULTY_CACHE);
+    }
+  } catch (err) {
+    console.warn('API error loading faculty directory:', err);
+  }
+}
+
+function filterAdminFaculty() {
+  const search = (document.getElementById('admin-faculty-search').value || '').toLowerCase().trim();
+  const rows = document.querySelectorAll('#admin-faculty-table-body tr');
+  rows.forEach(r => {
+    const text = r.textContent.toLowerCase();
+    r.style.display = (!search || text.includes(search)) ? '' : 'none';
+  });
+}
+
+function renderAdminFacultyTable(faculty) {
+  const tbody = document.getElementById('admin-faculty-table-body');
+  const totalEl = document.getElementById('admin-faculty-total');
+  if (!tbody) return;
+
+  if (totalEl) totalEl.textContent = `${faculty.length} Instructors`;
+
+  if (faculty.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:2.5rem;color:var(--muted);">No faculty members found.</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = faculty.map(f => `
+    <tr>
+      <td style="color:var(--muted);font-weight:600;">#${f.faculty_id}</td>
+      <td><strong>${escapeHtml(f.name)}</strong></td>
+      <td><span style="font-size:0.83rem;color:var(--text-secondary);">${escapeHtml(f.department)}</span></td>
+      <td style="color:var(--muted);font-size:0.83rem;">${escapeHtml(f.email)}</td>
+      <td><span class="badge" style="background:var(--primary-bg);color:var(--primary);font-weight:700;">${f.courses_assigned || 1} Assigned</span></td>
+      <td><span style="font-weight:700;color:#f59e0b;">⭐ ${f.rating || 4.7} / 5.0</span></td>
+      <td><span style="font-weight:700;color:#10b981;">${f.satisfaction_pct || 90}% Positive</span></td>
+      <td style="text-align:right;">
+        <button class="btn btn-secondary" onclick="toast('Managing course allocations for ${escapeHtml(f.name)}')" style="padding:4px 8px;font-size:0.75rem;">Allocations</button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function openAddFacultyModal() {
+  const modal = document.getElementById('modal-add-faculty');
+  if (modal) modal.classList.add('show');
+}
+function closeAddFacultyModal() {
+  const modal = document.getElementById('modal-add-faculty');
+  if (modal) modal.classList.remove('show');
+}
+
+async function submitNewFaculty(e) {
+  e.preventDefault();
+  const name = document.getElementById('add-faculty-name').value.trim();
+  const email = document.getElementById('add-faculty-email').value.trim();
+  const department = document.getElementById('add-faculty-dept').value;
+
+  try {
+    const res = await fetch(`${API}/feedback/faculty-directory`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, email, department })
+    });
+    if (res.ok) {
+      toast(`Faculty member "${name}" registered successfully!`);
+      closeAddFacultyModal();
+      document.getElementById('form-add-faculty').reset();
+      loadAdminFaculty();
+    }
+  } catch (err) {
+    toast(`Failed to add faculty: ${err.message}`);
+  }
+}
+
+/* ═══════════════════════════════════════════════════════
+   DEPARTMENTS & ACADEMIC UNITS LOGIC
+   ═══════════════════════════════════════════════════════ */
+function loadDepartments() {
+  // Departments view is statically defined with rich cards, triggers active view
 }
 
 /* ═══════════════════════════════════════════════════════
@@ -5016,5 +6613,225 @@ document.addEventListener('keydown', (e) => {
       </div>
     </div>
   </div>
+
+<!-- ═══════════════════════════════════════════════════════
+     MODAL: ADD NEW STUDENT (Faculty & Admin Access)
+     ═══════════════════════════════════════════════════════ -->
+<div class="custom-modal-backdrop" id="modal-add-student" onclick="if(event.target===this)closeAddStudentModal()">
+  <div class="custom-modal-content">
+    <div class="custom-modal-header">
+      <h3 style="font-size:1.15rem;font-weight:700;color:var(--text);margin:0;">Enroll / Add New Student</h3>
+      <button class="icon-btn" onclick="closeAddStudentModal()" style="border:none;background:none;font-size:20px;cursor:pointer;">&times;</button>
+    </div>
+    <form id="form-add-student" onsubmit="submitNewStudent(event)">
+      <div class="custom-modal-body">
+        <div class="form-group">
+          <label class="form-label" style="font-weight:600;font-size:0.84rem;margin-bottom:4px;display:block;">Full Name</label>
+          <input type="text" id="add-student-name" class="form-input" placeholder="e.g. Vikramaditya Reddy" required style="width:100%;padding:0.6rem;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg);color:var(--text);">
+        </div>
+        <div class="form-group">
+          <label class="form-label" style="font-weight:600;font-size:0.84rem;margin-bottom:4px;display:block;">Roll Number / Registration ID</label>
+          <input type="text" id="add-student-roll" class="form-input" placeholder="e.g. 2024-AI-088" required style="width:100%;padding:0.6rem;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg);color:var(--text);">
+        </div>
+        <div class="form-group">
+          <label class="form-label" style="font-weight:600;font-size:0.84rem;margin-bottom:4px;display:block;">Email Address</label>
+          <input type="email" id="add-student-email" class="form-input" placeholder="e.g. student@univ.edu" required style="width:100%;padding:0.6rem;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg);color:var(--text);">
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+          <div class="form-group">
+            <label class="form-label" style="font-weight:600;font-size:0.84rem;margin-bottom:4px;display:block;">Semester</label>
+            <select id="add-student-semester" class="form-select" required style="width:100%;padding:0.6rem;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg);color:var(--text);">
+              <option value="1">Semester 1 (1st Year)</option>
+              <option value="3">Semester 3 (2nd Year)</option>
+              <option value="5" selected>Semester 5 (3rd Year)</option>
+              <option value="7">Semester 7 (4th Year)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" style="font-weight:600;font-size:0.84rem;margin-bottom:4px;display:block;">Section (A to K)</label>
+            <select id="add-student-section" class="form-select" required style="width:100%;padding:0.6rem;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg);color:var(--text);">
+              <option value="Section A">Section A</option>
+              <option value="Section B">Section B</option>
+              <option value="Section C">Section C</option>
+              <option value="Section D">Section D</option>
+              <option value="Section E">Section E</option>
+              <option value="Section F">Section F</option>
+              <option value="Section G">Section G</option>
+              <option value="Section H">Section H</option>
+              <option value="Section I">Section I</option>
+              <option value="Section J">Section J</option>
+              <option value="Section K">Section K</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label" style="font-weight:600;font-size:0.84rem;margin-bottom:4px;display:block;">Department / Program</label>
+          <select id="add-student-dept" class="form-select" required style="width:100%;padding:0.6rem;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg);color:var(--text);">
+            <option value="AI & Data Science">B.Tech - AI & Data Science</option>
+            <option value="Computer Science">B.Tech - Computer Science & Eng</option>
+            <option value="Electronics & Comm">B.Tech - Electronics & Comm</option>
+            <option value="Mechanical Engineering">B.Tech - Mechanical Engineering</option>
+          </select>
+        </div>
+      </div>
+      <div class="custom-modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="closeAddStudentModal()">Cancel</button>
+        <button type="submit" class="btn btn-primary">Enroll Student</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════
+     MODAL: FILE GRIEVANCE / COMPLAINT
+     ═══════════════════════════════════════════════════════ -->
+<div class="custom-modal-backdrop" id="modal-file-complaint" onclick="if(event.target===this)closeFileComplaintModal()">
+  <div class="custom-modal-content">
+    <div class="custom-modal-header">
+      <h3 style="font-size:1.15rem;font-weight:700;color:var(--text);margin:0;">File Student Grievance / Complaint</h3>
+      <button class="icon-btn" onclick="closeFileComplaintModal()" style="border:none;background:none;font-size:20px;cursor:pointer;">&times;</button>
+    </div>
+    <form id="form-file-complaint" onsubmit="submitNewComplaint(event)">
+      <div class="custom-modal-body">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+          <div class="form-group">
+            <label class="form-label" style="font-weight:600;font-size:0.84rem;margin-bottom:4px;display:block;">Category</label>
+            <select id="complaint-category-input" class="form-select" required style="width:100%;padding:0.6rem;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg);color:var(--text);">
+              <option value="Workload Alert">Workload Alert / Deadlines</option>
+              <option value="Pacing & Clarity">Pacing & Lecture Clarity</option>
+              <option value="Lab Infrastructure">Lab Equipment / Hardware</option>
+              <option value="Evaluation & Rubric">Evaluation & Rubric</option>
+              <option value="General Issue">General Course Issue</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" style="font-weight:600;font-size:0.84rem;margin-bottom:4px;display:block;">Severity</label>
+            <select id="complaint-severity-input" class="form-select" required style="width:100%;padding:0.6rem;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg);color:var(--text);">
+              <option value="HIGH">High Severity (Urgent)</option>
+              <option value="MEDIUM" selected>Medium Severity</option>
+              <option value="LOW">Low Severity</option>
+            </select>
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+          <div class="form-group">
+            <label class="form-label" style="font-weight:600;font-size:0.84rem;margin-bottom:4px;display:block;">Course Code</label>
+            <input type="text" id="complaint-course-code" class="form-input" placeholder="e.g. CS305" required style="width:100%;padding:0.6rem;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg);color:var(--text);">
+          </div>
+          <div class="form-group">
+            <label class="form-label" style="font-weight:600;font-size:0.84rem;margin-bottom:4px;display:block;">Section (A-K)</label>
+            <select id="complaint-section-input" class="form-select" required style="width:100%;padding:0.6rem;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg);color:var(--text);">
+              <option value="Section A">Section A</option>
+              <option value="Section B">Section B</option>
+              <option value="Section C">Section C</option>
+              <option value="Section D">Section D</option>
+              <option value="Section E">Section E</option>
+              <option value="Section F">Section F</option>
+              <option value="Section G">Section G</option>
+              <option value="Section H">Section H</option>
+              <option value="Section I">Section I</option>
+              <option value="Section J">Section J</option>
+              <option value="Section K">Section K</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" style="font-weight:600;font-size:0.84rem;margin-bottom:4px;display:block;">Complaint Title</label>
+          <input type="text" id="complaint-title-input" class="form-input" placeholder="Short summary of the issue..." required style="width:100%;padding:0.6rem;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg);color:var(--text);">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" style="font-weight:600;font-size:0.84rem;margin-bottom:4px;display:block;">Detailed Description</label>
+          <textarea id="complaint-desc-input" rows="4" class="form-textarea" placeholder="Explain the specific issue and recommended resolution..." required style="width:100%;padding:0.6rem;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg);color:var(--text);font-family:inherit;"></textarea>
+        </div>
+      </div>
+      <div class="custom-modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="closeFileComplaintModal()">Cancel</button>
+        <button type="submit" class="btn btn-primary">File Ticket</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════
+     MODAL: RESOLVE / UPDATE COMPLAINT ACTION
+     ═══════════════════════════════════════════════════════ -->
+<div class="custom-modal-backdrop" id="modal-resolve-complaint" onclick="if(event.target===this)closeResolveComplaintModal()">
+  <div class="custom-modal-content">
+    <div class="custom-modal-header">
+      <h3 style="font-size:1.15rem;font-weight:700;color:var(--text);margin:0;">Complaint Resolution & Action Taken</h3>
+      <button class="icon-btn" onclick="closeResolveComplaintModal()" style="border:none;background:none;font-size:20px;cursor:pointer;">&times;</button>
+    </div>
+    <form id="form-resolve-complaint" onsubmit="submitComplaintResolution(event)">
+      <input type="hidden" id="resolve-complaint-id">
+      <div class="custom-modal-body">
+        <div id="resolve-complaint-info" style="padding:0.75rem 1rem;background:var(--bg-subtle);border-radius:var(--radius-sm);font-size:0.85rem;color:var(--text);border-left:3px solid var(--primary);">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" style="font-weight:600;font-size:0.84rem;margin-bottom:4px;display:block;">Update Status</label>
+          <select id="resolve-status-select" class="form-select" required style="width:100%;padding:0.6rem;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg);color:var(--text);">
+            <option value="IN_REVIEW">In Review (Action Initiated)</option>
+            <option value="RESOLVED" selected>Resolved (Issue Addressed)</option>
+            <option value="PENDING">Pending Further Investigation</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" style="font-weight:600;font-size:0.84rem;margin-bottom:4px;display:block;">Faculty Action Taken / Resolution Note</label>
+          <textarea id="resolve-action-input" rows="4" class="form-textarea" placeholder="Detail the specific corrective action taken..." required style="width:100%;padding:0.6rem;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg);color:var(--text);font-family:inherit;"></textarea>
+        </div>
+      </div>
+      <div class="custom-modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="closeResolveComplaintModal()">Cancel</button>
+        <button type="submit" class="btn btn-primary" style="background:#10b981;border-color:#10b981;">Save Resolution</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════
+     MODAL: ADD NEW FACULTY (Admin Access)
+     ═══════════════════════════════════════════════════════ -->
+<div class="custom-modal-backdrop" id="modal-add-faculty" onclick="if(event.target===this)closeAddFacultyModal()">
+  <div class="custom-modal-content">
+    <div class="custom-modal-header">
+      <h3 style="font-size:1.15rem;font-weight:700;color:var(--text);margin:0;">Add Faculty Member</h3>
+      <button class="icon-btn" onclick="closeAddFacultyModal()" style="border:none;background:none;font-size:20px;cursor:pointer;">&times;</button>
+    </div>
+    <form id="form-add-faculty" onsubmit="submitNewFaculty(event)">
+      <div class="custom-modal-body">
+        <div class="form-group">
+          <label class="form-label" style="font-weight:600;font-size:0.84rem;margin-bottom:4px;display:block;">Faculty Name</label>
+          <input type="text" id="add-faculty-name" class="form-input" placeholder="e.g. Dr. Ramesh Kumar" required style="width:100%;padding:0.6rem;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg);color:var(--text);">
+        </div>
+        <div class="form-group">
+          <label class="form-label" style="font-weight:600;font-size:0.84rem;margin-bottom:4px;display:block;">Official Email</label>
+          <input type="email" id="add-faculty-email" class="form-input" placeholder="e.g. ramesh.kumar@faculty.university.edu" required style="width:100%;padding:0.6rem;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg);color:var(--text);">
+        </div>
+        <div class="form-group">
+          <label class="form-label" style="font-weight:600;font-size:0.84rem;margin-bottom:4px;display:block;">Department</label>
+          <select id="add-faculty-dept" class="form-select" required style="width:100%;padding:0.6rem;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg);color:var(--text);">
+            <option value="Faculty of Science & Technology">Faculty of Science & Technology</option>
+            <option value="Computer Science">Computer Science & Engineering</option>
+            <option value="AI & Data Science">AI & Data Science</option>
+            <option value="Electronics & Comm">Electronics & Communication</option>
+            <option value="Mechanical Engineering">Mechanical Engineering</option>
+          </select>
+        </div>
+      </div>
+      <div class="custom-modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="closeAddFacultyModal()">Cancel</button>
+        <button type="submit" class="btn btn-primary">Add Faculty</button>
+      </div>
+    </form>
+  </div>
+</div>
+
 </body>
 </html>
