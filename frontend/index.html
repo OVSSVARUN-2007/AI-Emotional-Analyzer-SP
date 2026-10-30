@@ -594,10 +594,77 @@ img{display:block;max-width:100%}
 .icon-btn svg { width:18px; height:18px; }
 
 /* Page content */
+/* Beautiful, always visible custom scrollbars wherever scrolling is required */
+html, body {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(99, 102, 241, 0.45) transparent;
+  scroll-behavior: smooth;
+}
+::-webkit-scrollbar {
+  width: 9px;
+  height: 9px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-subtle, #f8fafc);
+  border-radius: 999px;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(99, 102, 241, 0.35);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+  transition: background 0.2s ease;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--primary, #6366f1);
+}
+[data-theme="dark"] ::-webkit-scrollbar-thumb {
+  background: rgba(99, 102, 241, 0.5);
+}
+[data-theme="dark"] ::-webkit-scrollbar-thumb:hover {
+  background: rgba(99, 102, 241, 0.85);
+}
+
 .page-content {
-  flex:1;
-  overflow-y:auto;
-  padding:1.75rem 2rem 3rem;
+  flex: 1;
+  overflow-y: auto !important;
+  scroll-behavior: smooth !important;
+  padding: 1.75rem 2rem 5rem !important;
+  position: relative;
+}
+
+/* Floating Quick Scroll Helper Button (Scroll Down / Top) */
+.scroll-helper-btn {
+  position: fixed;
+  bottom: 24px;
+  right: 90px;
+  background: var(--card-solid, #ffffff);
+  border: 1px solid var(--border);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.16);
+  border-radius: 30px;
+  padding: 8px 16px;
+  display: none;
+  align-items: center;
+  gap: 7px;
+  color: var(--text);
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  z-index: 9999;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  user-select: none;
+}
+.scroll-helper-btn:hover {
+  background: var(--primary, #6366f1);
+  color: #ffffff;
+  border-color: var(--primary, #6366f1);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 28px rgba(99, 102, 241, 0.35);
+}
+[data-theme="dark"] .scroll-helper-btn {
+  background: #141c2e;
+  border-color: rgba(99, 102, 241, 0.4);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
 }
 
 /* ═══════════════════════════════════════════════════════
@@ -3025,7 +3092,7 @@ img{display:block;max-width:100%}
       </div>
 
       <!-- Student: My Mentor Option (Accordion with Academic & Special Project Mentors) -->
-      <div class="nav-parent-item" id="nav-parent-mentors" style="display:none;" onclick="toggleNavAccordion('mentors'); switchView('my-mentor');">
+      <div class="nav-parent-item" id="nav-parent-mentors" style="display:none;" onclick="toggleNavAccordion('mentors'); openAcademicMentor();">
         <div class="nav-parent-header" style="display:flex;align-items:center;gap:10px;">
           <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 14l9-5-9-5-9 5 9 5z"/><path d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"/><path d="M12 14v7"/></svg>
           <span>My Mentor</span>
@@ -3033,10 +3100,10 @@ img{display:block;max-width:100%}
         <svg class="accordion-chevron" id="chevron-mentors" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
       </div>
       <div class="nav-child-container" id="nav-children-mentors">
-        <div class="nav-child-item" data-view="my-mentor" id="nav-child-academic-mentor" onclick="switchMentorTab('academic'); switchView('my-mentor');">
+        <div class="nav-child-item" data-view="my-mentor" id="nav-child-academic-mentor" onclick="openAcademicMentor();">
           <span class="child-bullet"></span> Academic Mentor
         </div>
-        <div class="nav-child-item" data-view="my-mentor" id="nav-child-project-mentor" onclick="switchMentorTab('project'); switchView('my-mentor');">
+        <div class="nav-child-item" data-view="my-mentor" id="nav-child-project-mentor" onclick="openProjectMentor();">
           <span class="child-bullet"></span> Special Project Mentor
         </div>
       </div>
@@ -3204,7 +3271,7 @@ img{display:block;max-width:100%}
               <span>📅</span> <span>Sem-I, 2026-27</span>
             </div>
             <button class="btn btn-primary" id="dash-quick-action-btn" onclick="onDashQuickAction()" style="padding:.55rem 1.25rem;border-radius:12px;font-size:.85rem;font-weight:700;display:flex;align-items:center;gap:6px;">
-              <span>+</span> <span id="dash-quick-action-text">Request Feedback</span>
+              <span>+</span> <span id="dash-quick-action-text">Submit Course Feedback</span>
             </button>
           </div>
         </div>
@@ -3789,35 +3856,59 @@ img{display:block;max-width:100%}
     <div class="view" id="view-my-mentor">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:1rem;margin-bottom:1.5rem;">
         <div>
-          <h2 style="font-size:1.6rem;font-weight:800;color:var(--text);margin-bottom:0.25rem;">My Mentors & Project Advisors</h2>
-          <p style="color:var(--muted);font-size:0.9rem;">Official profiles of your assigned Academic Counselor and Special Project Research Guide with cabin numbers, subject specializations, and project milestones.</p>
+          <h2 style="font-size:1.6rem;font-weight:800;color:var(--text);margin-bottom:0.25rem;" id="mentor-page-title">My Academic Mentor (Dr. Ramesh Ponnala)</h2>
+          <p style="color:var(--muted);font-size:0.9rem;" id="mentor-page-subtitle">Assigned Academic Counselor for course evaluations, attendance reviews, and curriculum advisory in Cabin B-304.</p>
         </div>
         <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
-          <button class="btn btn-secondary" onclick="openBookMentorModal('academic')" style="font-size:0.83rem;padding:0.5rem 0.9rem;">
+          <button class="btn btn-secondary" id="btn-mentor-academic-action" onclick="openBookMentorModal('academic')" style="font-size:0.83rem;padding:0.5rem 0.9rem;">
             📅 Book Academic Slot
           </button>
-          <button class="btn btn-primary" onclick="openProjectProgressModal()" style="font-size:0.83rem;padding:0.5rem 0.9rem;background:#10b981;border-color:#10b981;">
+          <button class="btn btn-primary" id="btn-mentor-project-action" onclick="openProjectProgressModal()" style="font-size:0.83rem;padding:0.5rem 0.9rem;background:#10b981;border-color:#10b981;display:none;">
             📤 Submit Project Progress
           </button>
         </div>
       </div>
 
-      <!-- Quick Metrics Strip -->
-      <div class="metrics-grid" style="grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));gap:1rem;margin-bottom:1.5rem;">
+      <!-- Academic Mentor Quick Metrics Strip (Shown when Academic Mentor selected) -->
+      <div class="metrics-grid" id="metric-strip-academic" style="grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));gap:1rem;margin-bottom:1.5rem;">
         <div class="metric-card" style="padding:1.15rem;background:var(--card-solid);border:1px solid var(--border);border-radius:var(--radius-md);">
-          <div style="font-size:0.75rem;font-weight:700;color:var(--muted);text-transform:uppercase;margin-bottom:0.35rem;">Academic Mentor</div>
+          <div style="font-size:0.75rem;font-weight:700;color:var(--muted);text-transform:uppercase;margin-bottom:0.35rem;">Academic Counselor</div>
           <div style="font-size:1.15rem;font-weight:800;color:var(--text);">Dr. Ramesh Ponnala</div>
-          <div style="font-size:0.8rem;color:var(--primary);font-weight:600;margin-top:2px;">Cabin B-304 · Tech Block-B</div>
+          <div style="font-size:0.8rem;color:var(--primary);font-weight:600;margin-top:2px;">Associate Professor · Dept of CSE</div>
         </div>
         <div class="metric-card" style="padding:1.15rem;background:var(--card-solid);border:1px solid var(--border);border-radius:var(--radius-md);">
-          <div style="font-size:0.75rem;font-weight:700;color:var(--muted);text-transform:uppercase;margin-bottom:0.35rem;">Special Project Mentor</div>
+          <div style="font-size:0.75rem;font-weight:700;color:var(--muted);text-transform:uppercase;margin-bottom:0.35rem;">Cabin Location</div>
+          <div style="font-size:1.15rem;font-weight:800;color:var(--text);">Cabin B-304</div>
+          <div style="font-size:0.8rem;color:var(--text-secondary);font-weight:600;margin-top:2px;">Tech Block-B (3rd Floor)</div>
+        </div>
+        <div class="metric-card" style="padding:1.15rem;background:var(--card-solid);border:1px solid var(--border);border-radius:var(--radius-md);">
+          <div style="font-size:0.75rem;font-weight:700;color:var(--muted);text-transform:uppercase;margin-bottom:0.35rem;">Subject Advisory</div>
+          <div style="font-size:1.05rem;font-weight:800;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">OOP & Architecture</div>
+          <div style="font-size:0.8rem;color:var(--accent);font-weight:600;margin-top:2px;">Course Code: CS301 / AI301</div>
+        </div>
+        <div class="metric-card" style="padding:1.15rem;background:var(--card-solid);border:1px solid var(--border);border-radius:var(--radius-md);">
+          <div style="font-size:0.75rem;font-weight:700;color:var(--muted);text-transform:uppercase;margin-bottom:0.35rem;">Academic Standing</div>
+          <div style="font-size:1.15rem;font-weight:800;color:#10b981;">92.4% Attendance</div>
+          <div style="font-size:0.8rem;color:var(--muted);font-weight:600;margin-top:2px;">CGPA: 8.92 · Next 1-on-1: Nov 5</div>
+        </div>
+      </div>
+
+      <!-- Special Project Mentor Quick Metrics Strip (Shown when Special Project selected) -->
+      <div class="metrics-grid" id="metric-strip-project" style="grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));gap:1rem;margin-bottom:1.5rem;display:none;">
+        <div class="metric-card" style="padding:1.15rem;background:var(--card-solid);border:1px solid var(--border);border-radius:var(--radius-md);">
+          <div style="font-size:0.75rem;font-weight:700;color:var(--muted);text-transform:uppercase;margin-bottom:0.35rem;">Capstone Guide</div>
           <div style="font-size:1.15rem;font-weight:800;color:var(--text);">Dr. Sandeep Kumar Panda</div>
-          <div style="font-size:0.8rem;color:#10b981;font-weight:600;margin-top:2px;">Cabin R-412 · Innovation Wing</div>
+          <div style="font-size:0.8rem;color:#10b981;font-weight:600;margin-top:2px;">Professor · Emerging Tech Director</div>
         </div>
         <div class="metric-card" style="padding:1.15rem;background:var(--card-solid);border:1px solid var(--border);border-radius:var(--radius-md);">
-          <div style="font-size:0.75rem;font-weight:700;color:var(--muted);text-transform:uppercase;margin-bottom:0.35rem;">Active Capstone Project</div>
+          <div style="font-size:0.75rem;font-weight:700;color:var(--muted);text-transform:uppercase;margin-bottom:0.35rem;">Cabin Location</div>
+          <div style="font-size:1.15rem;font-weight:800;color:var(--text);">Cabin R-412</div>
+          <div style="font-size:0.8rem;color:#10b981;font-weight:600;margin-top:2px;">Innovation Wing (4th Floor)</div>
+        </div>
+        <div class="metric-card" style="padding:1.15rem;background:var(--card-solid);border:1px solid var(--border);border-radius:var(--radius-md);">
+          <div style="font-size:0.75rem;font-weight:700;color:var(--muted);text-transform:uppercase;margin-bottom:0.35rem;">Special Project (SP)</div>
           <div style="font-size:1.05rem;font-weight:800;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">AI-Emotional Analyzer</div>
-          <div style="font-size:0.8rem;color:var(--accent);font-weight:600;margin-top:2px;">Phase 3: Fine-Tuning (75%)</div>
+          <div style="font-size:0.8rem;color:#10b981;font-weight:600;margin-top:2px;">Phase 3: Fine-Tuning (75%)</div>
         </div>
         <div class="metric-card" style="padding:1.15rem;background:var(--card-solid);border:1px solid var(--border);border-radius:var(--radius-md);">
           <div style="font-size:0.75rem;font-weight:700;color:var(--muted);text-transform:uppercase;margin-bottom:0.35rem;">Upcoming Review</div>
@@ -3826,16 +3917,19 @@ img{display:block;max-width:100%}
         </div>
       </div>
 
-      <!-- Filter Controls & In-View Search -->
+      <!-- Distinct Mentor Selection Tabs: Academic vs Special Project (Completely Separate) -->
       <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem;margin-bottom:1.25rem;">
         <div class="filter-tabs-row" id="mentor-tabs-container">
-          <button class="filter-tab-pill active" id="tab-mentor-all" onclick="switchMentorTab('all')">All Mentors (2)</button>
-          <button class="filter-tab-pill" id="tab-mentor-academic" onclick="switchMentorTab('academic')">🎓 Academic Mentor</button>
-          <button class="filter-tab-pill" id="tab-mentor-project" onclick="switchMentorTab('project')">🚀 Special Project Mentor</button>
+          <button class="filter-tab-pill active" id="tab-mentor-academic" onclick="switchMentorTab('academic')">
+            🎓 Academic Mentor (Dr. Ramesh Ponnala)
+          </button>
+          <button class="filter-tab-pill" id="tab-mentor-project" onclick="switchMentorTab('project')">
+            🚀 Special Project Mentor (Dr. Sandeep Kumar Panda)
+          </button>
         </div>
 
         <div style="min-width:260px;flex:1;max-width:380px;">
-          <input type="text" id="mentor-inview-search" class="form-input" placeholder="🔍 Quick search subject, cabin no, mentor..." oninput="filterMentorsInView(this.value)" style="width:100%;padding:0.5rem 0.85rem;font-size:0.83rem;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--card-solid);color:var(--text);">
+          <input type="text" id="mentor-inview-search" class="form-input" placeholder="🔍 Search cabin no, subject, keywords..." oninput="filterMentorsInView(this.value)" style="width:100%;padding:0.5rem 0.85rem;font-size:0.83rem;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--card-solid);color:var(--text);">
         </div>
       </div>
 
@@ -3921,7 +4015,7 @@ img{display:block;max-width:100%}
 
 
         <!-- CARD 2: SPECIAL PROJECT MENTOR -->
-        <div class="mentor-card" id="card-mentor-project" data-mentor-type="project" data-search-text="special project mentor dr sandeep kumar panda nlp sentiment emotion classification deep learning ai machine learning cabin r-412 r412 innovation wing capstone lead developer bert bilstm">
+        <div class="mentor-card" id="card-mentor-project" data-mentor-type="project" style="display:none;" data-search-text="special project mentor dr sandeep kumar panda nlp sentiment emotion classification deep learning ai machine learning cabin r-412 r412 innovation wing capstone lead developer bert bilstm">
           <div class="mentor-badge-top mentor-badge-project">
             🚀 Special Project Mentor & Research Guide
           </div>
@@ -4449,6 +4543,12 @@ img{display:block;max-width:100%}
       </div>
     </div>
 
+    <!-- Floating Quick Scroll Helper Button -->
+    <button class="scroll-helper-btn" id="scroll-helper-btn" onclick="handleScrollHelperClick()" title="Scroll Down / Top">
+      <svg id="scroll-helper-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+      <span id="scroll-helper-text">Scroll Down</span>
+    </button>
+
   </div>
 
 
@@ -4725,6 +4825,18 @@ function enterDashboard() {
   document.getElementById('sidebar-user-role').textContent = role;
   document.getElementById('dash-greeting').textContent = `Welcome, ${(currentUser.name || 'User').split(' ')[0]}`;
 
+  // Update top banner quick action button based on role
+  const quickActionText = document.getElementById('dash-quick-action-text');
+  if (quickActionText) {
+    if (isStudent) {
+      quickActionText.textContent = 'Submit Course Feedback';
+    } else if (isFaculty) {
+      quickActionText.textContent = 'Request Feedback';
+    } else {
+      quickActionText.textContent = 'Student Directory';
+    }
+  }
+
   // Role-based navigation visibility
   const navFeedback = document.getElementById('nav-item-feedback-list');
   const navMyStudents = document.getElementById('nav-item-my-students');
@@ -4826,13 +4938,41 @@ function logout() {
 function switchView(name) {
   const role = (currentUser && currentUser.role || '').toUpperCase();
   const isStudent = role === 'STUDENT';
+  const isFaculty = role === 'FACULTY';
+  const isAdmin = role === 'ADMIN';
 
-  // Role access guard: Restrict internal browsing from students
-  const restrictedForStudents = ['model-lab', 'feedback-list', 'analytics', 'departments', 'my-students', 'admin-students', 'admin-faculty'];
+  // STRICT ROLE-BASED WORKFLOW GUARDS:
+  // 1. Students ONLY perform student actions (Submit Feedback, View Mentors, Dashboard, Courses)
+  const restrictedForStudents = [
+    'model-lab', 'feedback-list', 'analytics', 'departments',
+    'my-students', 'admin-students', 'admin-faculty', 'request-feedback', 'complaints'
+  ];
   if (isStudent && restrictedForStudents.includes(name)) {
     toast('Access restricted: This area is reserved for Faculty and Administrators.');
     switchView('overview');
     return;
+  }
+
+  // 2. Administrators oversee institutional management (CANNOT submit student feedback, CANNOT access student mentorship)
+  if (isAdmin && (name === 'submit-feedback' || name === 'my-mentor')) {
+    toast('Access restricted: Course Feedback Submission and Mentorship are exclusively for enrolled Students. Administrators oversee institutional management.');
+    switchView('overview');
+    return;
+  }
+
+  // 3. Faculty review evaluations & request feedback (CANNOT submit student feedback, CANNOT access administrative management, CANNOT access student mentorship)
+  if (isFaculty) {
+    if (name === 'submit-feedback' || name === 'my-mentor') {
+      toast('Access restricted: Course Feedback Submission and Mentorship are exclusively for enrolled Students. Faculty review student evaluations.');
+      switchView('overview');
+      return;
+    }
+    const adminOnly = ['admin-students', 'admin-faculty', 'departments'];
+    if (adminOnly.includes(name)) {
+      toast('Access restricted: Administrative controls are reserved exclusively for Administrators.');
+      switchView('overview');
+      return;
+    }
   }
 
   document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
@@ -4859,6 +4999,9 @@ function switchView(name) {
     'my-mentor': 'My Mentors & Projects'
   };
   document.getElementById('topbar-title').textContent = titles[name] || 'Dashboard';
+  if (typeof updateScrollHelperState === 'function') {
+    setTimeout(updateScrollHelperState, 150);
+  }
 
   if (name === 'feedback-list') loadFeedback();
   if (name === 'my-students') loadMyStudents();
@@ -6818,63 +6961,27 @@ function onDashQuickAction() {
   const role = (currentUser && currentUser.role || '').toUpperCase();
   if (role === 'STUDENT') {
     switchView('submit-feedback');
-  } else {
+  } else if (role === 'FACULTY') {
     switchView('request-feedback');
+  } else if (role === 'ADMIN') {
+    switchView('admin-students');
   }
 }
 
 /* ═══════════════════════════════════════════════════════
    ENHANCED ENTER DASHBOARD (ROLE-BASED WORKFLOW)
    ═══════════════════════════════════════════════════════ */
+// Harmonized enterDashboard helper
 const originalEnterDashboard = typeof enterDashboard === 'function' ? enterDashboard : null;
 enterDashboard = function() {
-  document.getElementById('auth-page').style.display = 'none';
-  document.getElementById('app-layout').style.display = 'flex';
-
-  const role = (currentUser && currentUser.role || 'STUDENT').toUpperCase();
-  const isStudent = role === 'STUDENT';
-
-  // Sidebar role-based display:
-  // Faculty/Admin get "Request Feedback" and DO NOT see "Submit Feedback"!
-  // Students get "Submit Feedback" and DO NOT see "Request Feedback"!
-  const submitNav = document.getElementById('nav-item-submit-feedback');
-  const reqNav = document.getElementById('nav-item-request-feedback');
-  const feedNav = document.getElementById('nav-item-feedback-list');
-  const analNav = document.getElementById('nav-item-analytics');
-  const labNav = document.getElementById('nav-item-model-lab');
-
-  if (submitNav) submitNav.style.display = isStudent ? 'flex' : 'none';
-  if (reqNav) reqNav.style.display = isStudent ? 'none' : 'flex';
-  if (feedNav) feedNav.style.display = isStudent ? 'none' : 'flex';
-  if (analNav) analNav.style.display = isStudent ? 'none' : 'flex';
-  if (labNav) labNav.style.display = isStudent ? 'none' : 'flex';
-
-  // Topbar greeting & user display
-  const userNameEl = document.getElementById('dash-user-name');
-  if (userNameEl) userNameEl.textContent = currentUser.name || (isStudent ? 'Student' : 'Faculty');
-  
-  const quickActionText = document.getElementById('dash-quick-action-text');
-  if (quickActionText) {
-    quickActionText.textContent = isStudent ? 'Give Feedback' : 'Request Feedback';
+  if (originalEnterDashboard) {
+    originalEnterDashboard();
   }
-
-  // User profile card in sidebar footer
-  const userAvatar = document.querySelector('.sidebar-avatar');
-  const userName = document.querySelector('.sidebar-user-name');
-  const userRole = document.querySelector('.sidebar-user-role');
-  if (userName) userName.textContent = currentUser.name || 'User';
-  if (userRole) userRole.textContent = currentUser.role || 'Role';
-  if (userAvatar) {
-    const initials = (currentUser.name || 'U').split(' ').map(n=>n[0]).join('').slice(0,2).toUpperCase();
-    userAvatar.textContent = initials;
-  }
-
-  // Initialize data
   populateRequestCoursesDropdown();
   populateClassFilters();
   loadDashboardMetrics();
   loadNotifications();
-  if (!isStudent) {
+  if (currentUser && currentUser.role !== 'STUDENT') {
     loadFacultyActiveRequests();
   }
 };
@@ -7319,30 +7426,73 @@ function highlightElement(elementId) {
    MY MENTORS VIEW CONTROLLERS & FILTERING
    ═══════════════════════════════════════════════════════ */
 function switchMentorTab(tabKey) {
-  const tabAll = document.getElementById('tab-mentor-all');
   const tabAcademic = document.getElementById('tab-mentor-academic');
   const tabProject = document.getElementById('tab-mentor-project');
 
   const cardAcademic = document.getElementById('card-mentor-academic');
   const cardProject = document.getElementById('card-mentor-project');
 
-  [tabAll, tabAcademic, tabProject].forEach(btn => {
-    if (btn) btn.classList.remove('active');
-  });
+  const metricAcademic = document.getElementById('metric-strip-academic');
+  const metricProject = document.getElementById('metric-strip-project');
 
-  if (tabKey === 'academic') {
-    if (tabAcademic) tabAcademic.classList.add('active');
-    if (cardAcademic) cardAcademic.style.display = 'flex';
-    if (cardProject) cardProject.style.display = 'none';
-  } else if (tabKey === 'project') {
+  const btnAcademicAction = document.getElementById('btn-mentor-academic-action');
+  const btnProjectAction = document.getElementById('btn-mentor-project-action');
+
+  const titleEl = document.getElementById('mentor-page-title');
+  const subEl = document.getElementById('mentor-page-subtitle');
+
+  const navChildAcademic = document.getElementById('nav-child-academic-mentor');
+  const navChildProject = document.getElementById('nav-child-project-mentor');
+
+  // Deactivate all tab pills and sidebar children
+  if (tabAcademic) tabAcademic.classList.remove('active');
+  if (tabProject) tabProject.classList.remove('active');
+  if (navChildAcademic) navChildAcademic.classList.remove('active');
+  if (navChildProject) navChildProject.classList.remove('active');
+
+  // Strictly separate: Academic Mentor vs Special Project Mentor (never both together)
+  if (tabKey === 'project') {
     if (tabProject) tabProject.classList.add('active');
+    if (navChildProject) navChildProject.classList.add('active');
     if (cardAcademic) cardAcademic.style.display = 'none';
     if (cardProject) cardProject.style.display = 'flex';
+    if (metricAcademic) metricAcademic.style.display = 'none';
+    if (metricProject) metricProject.style.display = 'grid';
+
+    if (btnAcademicAction) btnAcademicAction.style.display = 'none';
+    if (btnProjectAction) btnProjectAction.style.display = 'inline-flex';
+
+    if (titleEl) titleEl.textContent = 'My Special Project Mentor (Dr. Sandeep Kumar Panda)';
+    if (subEl) subEl.textContent = 'Capstone research guide supervising your active project: AI-Powered Real-Time Emotional Analyzer in Cabin R-412.';
   } else {
-    if (tabAll) tabAll.classList.add('active');
+    // Default to Academic Mentor only
+    if (tabAcademic) tabAcademic.classList.add('active');
+    if (navChildAcademic) navChildAcademic.classList.add('active');
     if (cardAcademic) cardAcademic.style.display = 'flex';
-    if (cardProject) cardProject.style.display = 'flex';
+    if (cardProject) cardProject.style.display = 'none';
+    if (metricAcademic) metricAcademic.style.display = 'grid';
+    if (metricProject) metricProject.style.display = 'none';
+
+    if (btnAcademicAction) btnAcademicAction.style.display = 'inline-flex';
+    if (btnProjectAction) btnProjectAction.style.display = 'none';
+
+    if (titleEl) titleEl.textContent = 'My Academic Mentor (Dr. Ramesh Ponnala)';
+    if (subEl) subEl.textContent = 'Assigned Academic Counselor for course evaluations, attendance reviews, and curriculum advisory in Cabin B-304.';
   }
+
+  if (typeof updateScrollHelperState === 'function') {
+    setTimeout(updateScrollHelperState, 100);
+  }
+}
+
+function openAcademicMentor() {
+  switchMentorTab('academic');
+  switchView('my-mentor');
+}
+
+function openProjectMentor() {
+  switchMentorTab('project');
+  switchView('my-mentor');
 }
 
 function filterMentorsInView(query) {
@@ -7519,6 +7669,51 @@ document.addEventListener('keydown', (e) => {
     }
   }
 });
+
+
+/* ═══════════════════════════════════════════════════════
+   SCROLL DOWN / SCROLL TO TOP HELPER CONTROLLER
+   ═══════════════════════════════════════════════════════ */
+function handleScrollHelperClick() {
+  const pageContent = document.querySelector('.page-content');
+  if (!pageContent) return;
+  const isNearBottom = (pageContent.scrollTop + pageContent.clientHeight >= pageContent.scrollHeight - 80);
+  if (isNearBottom) {
+    pageContent.scrollTo({ top: 0, behavior: 'smooth' });
+  } else {
+    pageContent.scrollBy({ top: 520, behavior: 'smooth' });
+  }
+}
+
+function updateScrollHelperState() {
+  const pageContent = document.querySelector('.page-content');
+  const btn = document.getElementById('scroll-helper-btn');
+  const icon = document.getElementById('scroll-helper-icon');
+  const text = document.getElementById('scroll-helper-text');
+  if (!pageContent || !btn || !icon || !text) return;
+
+  const canScroll = pageContent.scrollHeight > (pageContent.clientHeight + 40);
+  btn.style.display = canScroll ? 'flex' : 'none';
+
+  const isNearBottom = (pageContent.scrollTop + pageContent.clientHeight >= pageContent.scrollHeight - 80);
+  if (isNearBottom) {
+    icon.innerHTML = '<polyline points="18 15 12 9 6 15"/>';
+    text.textContent = 'Top';
+  } else {
+    icon.innerHTML = '<polyline points="6 9 12 15 18 9"/>';
+    text.textContent = 'Scroll Down';
+  }
+}
+
+// Bind scroll listeners
+document.addEventListener('DOMContentLoaded', () => {
+  const pageContent = document.querySelector('.page-content');
+  if (pageContent) {
+    pageContent.addEventListener('scroll', updateScrollHelperState);
+  }
+  setTimeout(updateScrollHelperState, 300);
+});
+window.addEventListener('resize', updateScrollHelperState);
 
 </script>
 
