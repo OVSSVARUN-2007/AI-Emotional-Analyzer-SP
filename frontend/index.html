@@ -989,6 +989,14 @@ img{display:block;max-width:100%}
 /* ═══════════════════════════════════════════════════════
    BIXI AI ASSISTANT (Floating Mascot, Speech Bubble & Chat)
    ═══════════════════════════════════════════════════════ */
+
+/* Never show Bixi AI Assistant on Login Page */
+#auth-page:not([style*="display: none"]) ~ #bixi-widget,
+#auth-page:not([style*="display:none"]) ~ #bixi-widget,
+body:has(#auth-page:not([style*="display: none"])) #bixi-widget {
+  display: none !important;
+}
+
 .bixi-widget {
   position: fixed;
   bottom: 26px;
@@ -2153,26 +2161,7 @@ img{display:block;max-width:100%}
     </div>
   </div>
 
-  <!-- Auth page theme toggle -->
-  <div class="auth-theme-toggle">
-    <button class="day-night-toggle" id="auth-day-night-toggle" onclick="toggleDayNight()" title="Toggle Day/Night Theme" aria-label="Toggle Day/Night Theme">
-      <span class="day-night-track">
-        <span class="day-night-label day-label">DAY</span>
-        <span class="day-night-label night-label">NIGHT</span>
-        <span class="day-night-knob">
-          <!-- Sun for Day -->
-          <svg class="knob-icon icon-sun" viewBox="0 0 24 24" fill="none">
-            <circle cx="12" cy="12" r="5" fill="#f5b800"/>
-            <path d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32l1.41 1.41M2 12h2m16 0h2M4.93 19.07l1.41-1.41m11.32-11.32l1.41-1.41" stroke="#f5b800" stroke-width="2.5" stroke-linecap="round"/>
-          </svg>
-          <!-- Moon for Night -->
-          <svg class="knob-icon icon-moon" viewBox="0 0 24 24" fill="#252736">
-            <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/>
-          </svg>
-        </span>
-      </span>
-    </button>
-  </div>
+  
 </div>
 
 <!-- ═══════════════════════════════════════════════════════
@@ -2999,7 +2988,7 @@ img{display:block;max-width:100%}
 <!-- ═══════════════════════════════════════════════════════
      BIXI AI ASSISTANT (Floating Widget, Bubble & Chat)
      ═══════════════════════════════════════════════════════ -->
-<div class="bixi-widget" id="bixi-widget" aria-label="Bixi AI Assistant">
+<div class="bixi-widget" id="bixi-widget" style="display:none;" aria-label="Bixi AI Assistant">
   <!-- Interactive speech bubble popping out of Bixi -->
   <div class="bixi-bubble" id="bixi-bubble" onclick="Bixi.openChat()">
     <button class="bixi-bubble-close" onclick="Bixi.dismissBubble(event)" title="Dismiss message" aria-label="Dismiss">✕</button>
@@ -3226,6 +3215,8 @@ function quickFillLogin(email, password) {
 function enterDashboard() {
   document.getElementById('auth-page').style.display = 'none';
   document.getElementById('app-shell').classList.add('active');
+  const bixiWidget = document.getElementById('bixi-widget');
+  if (bixiWidget) bixiWidget.style.display = 'flex';
 
   const role = (currentUser.role || '').toUpperCase();
   const isStudent = role === 'STUDENT';
@@ -3273,6 +3264,8 @@ function logout() {
   currentUser = null;
   document.getElementById('app-shell').classList.remove('active');
   document.getElementById('auth-page').style.display = 'flex';
+  const bixiWidget = document.getElementById('bixi-widget');
+  if (bixiWidget) bixiWidget.style.display = 'none';
   showLogin();
 }
 
@@ -3915,6 +3908,8 @@ async function populateClassFilters() {
     } catch { /* fall through to login */ }
   }
   document.getElementById('auth-page').style.display = 'flex';
+  const bixiWidget = document.getElementById('bixi-widget');
+  if (bixiWidget) bixiWidget.style.display = 'none';
   populateClassFilters();
 })();
 
