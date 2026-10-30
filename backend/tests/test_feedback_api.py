@@ -51,3 +51,14 @@ def test_get_missing_feedback():
 
     assert response.status_code == 404
     assert response.json()["detail"] == "Feedback not found"
+
+def test_student_mentors():
+    response = client.get('/feedback/student-mentors')
+    assert response.status_code == 200
+    data = response.json()
+    assert 'academic_mentor' in data
+    assert 'project_mentor' in data
+    assert 'Dr. Ramesh Ponnala' in data['academic_mentor']['name']
+    assert 'Cabin B-304' in data['academic_mentor']['cabin_no']
+    assert 'Dr. Sandeep Kumar Panda' in data['project_mentor']['name']
+    assert 'Cabin R-412' in data['project_mentor']['cabin_no']

@@ -2141,6 +2141,308 @@ img{display:block;max-width:100%}
 }
 
 
+/* ─── SPOTLIGHT / SETTINGS-STYLE RESPONSIVE SEARCH ─── */
+.search-results-dropdown {
+  display: none;
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  width: 380px;
+  max-width: 92vw;
+  max-height: 440px;
+  overflow-y: auto;
+  background: var(--card-solid);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.22);
+  z-index: 10020;
+  padding: 8px;
+  scrollbar-width: thin;
+}
+[data-theme="dark"] .search-results-dropdown {
+  background: #131b2e;
+  border-color: rgba(99, 102, 241, 0.35);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7);
+}
+.search-results-dropdown.show {
+  display: block;
+  animation: bixi-bubble-in 0.18s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.search-result-group-title {
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--muted);
+  padding: 6px 10px 4px;
+  border-top: 1px solid var(--border);
+  margin-top: 4px;
+}
+.search-result-group-title:first-child {
+  border-top: none;
+  margin-top: 0;
+}
+.search-result-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s ease;
+  text-decoration: none;
+}
+.search-result-item:hover, .search-result-item.highlighted {
+  background: var(--bg-subtle);
+  transform: translateX(2px);
+}
+.search-result-icon {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 15px;
+}
+.search-result-content {
+  flex: 1;
+  min-width: 0;
+}
+.search-result-title {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.search-result-sub {
+  font-size: 0.74rem;
+  color: var(--muted);
+  line-height: 1.35;
+}
+.search-result-highlight {
+  background: rgba(99, 102, 241, 0.25);
+  color: var(--primary);
+  font-weight: 800;
+  padding: 0 3px;
+  border-radius: 3px;
+}
+.search-result-tag {
+  font-size: 9px;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: var(--primary-bg);
+  color: var(--primary);
+  text-transform: uppercase;
+}
+.search-empty-state {
+  padding: 1.5rem 1rem;
+  text-align: center;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+/* ─── MY MENTORS & SPECIAL PROJECTS VIEW STYLING ─── */
+.mentors-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+  gap: 1.5rem;
+  margin-top: 1.25rem;
+}
+.mentor-card {
+  background: var(--card-solid);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.25s ease, border-color 0.25s ease;
+  position: relative;
+  overflow: hidden;
+}
+.mentor-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.12);
+  border-color: rgba(99, 102, 241, 0.4);
+}
+[data-theme="dark"] .mentor-card:hover {
+  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.6), 0 0 20px rgba(99, 102, 241, 0.15);
+}
+.mentor-badge-top {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  margin-bottom: 1rem;
+  align-self: flex-start;
+}
+.mentor-badge-academic {
+  background: rgba(99, 102, 241, 0.15);
+  color: var(--primary);
+  border: 1px solid rgba(99, 102, 241, 0.3);
+}
+.mentor-badge-project {
+  background: rgba(16, 185, 129, 0.15);
+  color: #10b981;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+.mentor-profile-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 1.25rem;
+}
+.mentor-avatar-lg {
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+  color: #fff;
+  font-size: 1.35rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 6px 16px rgba(99, 102, 241, 0.3);
+  position: relative;
+}
+.mentor-avatar-lg.project-avatar {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  box-shadow: 0 6px 16px rgba(16, 185, 129, 0.3);
+}
+.mentor-online-dot {
+  position: absolute;
+  bottom: 2px;
+  right: 2px;
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  background: #10b981;
+  border: 2px solid var(--card-solid);
+}
+.mentor-details-table {
+  background: var(--bg-subtle);
+  border-radius: var(--radius-sm);
+  padding: 1rem;
+  border: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 1.25rem;
+}
+.mentor-detail-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 0.83rem;
+}
+.mentor-detail-label {
+  color: var(--muted);
+  font-weight: 600;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.mentor-detail-val {
+  color: var(--text);
+  font-weight: 700;
+  text-align: right;
+  word-break: break-word;
+}
+.mentor-cabin-tag {
+  background: rgba(99, 102, 241, 0.12);
+  color: var(--primary);
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+.project-highlight-box {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-left: 4px solid #10b981;
+  border-radius: var(--radius-sm);
+  padding: 1rem 1.15rem;
+  margin-bottom: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.project-progress-track {
+  width: 100%;
+  height: 8px;
+  background: var(--bg-subtle);
+  border-radius: 999px;
+  overflow: hidden;
+  margin-top: 4px;
+}
+.project-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #10b981, #34d399);
+  border-radius: 999px;
+  transition: width 0.4s ease;
+}
+.mentor-actions-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: auto;
+  flex-wrap: wrap;
+}
+
+/* Spotlight element highlight pulse */
+@keyframes elementGlowPulse {
+  0% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.7); border-color: var(--primary); }
+  50% { box-shadow: 0 0 0 14px rgba(99, 102, 241, 0); border-color: var(--primary); }
+  100% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0); }
+}
+.element-focus-glow {
+  animation: elementGlowPulse 1.8s ease-in-out infinite;
+  border-color: var(--primary) !important;
+}
+
+/* Tab filter button styling */
+.filter-tabs-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.filter-tab-pill {
+  padding: 0.5rem 1rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--card-solid);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.filter-tab-pill:hover {
+  background: var(--bg-subtle);
+  color: var(--primary);
+}
+.filter-tab-pill.active {
+  background: var(--primary);
+  color: #fff;
+  border-color: var(--primary);
+}
+
 /* ─── PARENT-CHILD ACCORDION NAVIGATION (ADMIN & MAIN) ─── */
 .nav-parent-item {
   display: flex;
@@ -2722,6 +3024,23 @@ img{display:block;max-width:100%}
         Submit Feedback
       </div>
 
+      <!-- Student: My Mentor Option (Accordion with Academic & Special Project Mentors) -->
+      <div class="nav-parent-item" id="nav-parent-mentors" style="display:none;" onclick="toggleNavAccordion('mentors'); switchView('my-mentor');">
+        <div class="nav-parent-header" style="display:flex;align-items:center;gap:10px;">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 14l9-5-9-5-9 5 9 5z"/><path d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"/><path d="M12 14v7"/></svg>
+          <span>My Mentor</span>
+        </div>
+        <svg class="accordion-chevron" id="chevron-mentors" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="nav-child-container" id="nav-children-mentors">
+        <div class="nav-child-item" data-view="my-mentor" id="nav-child-academic-mentor" onclick="switchMentorTab('academic'); switchView('my-mentor');">
+          <span class="child-bullet"></span> Academic Mentor
+        </div>
+        <div class="nav-child-item" data-view="my-mentor" id="nav-child-project-mentor" onclick="switchMentorTab('project'); switchView('my-mentor');">
+          <span class="child-bullet"></span> Special Project Mentor
+        </div>
+      </div>
+
       <!-- ADMINISTRATION GROUP (Admin Mode Parent-Child Hierarchy) -->
       <div class="sidebar-nav-group" id="nav-admin-group" style="display:none">Administration</div>
       
@@ -2800,9 +3119,13 @@ img{display:block;max-width:100%}
         <h2 class="topbar-title" id="topbar-title">Dashboard</h2>
       </div>
       <div class="topbar-right">
-        <div class="search-box">
+        <div class="search-box" style="position:relative;">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-          <input type="text" placeholder="Search..." id="global-search">
+          <input type="text" placeholder="Search projects, mentors, subjects, cabins..." id="global-search" oninput="handleGlobalSearch(this.value)" onfocus="handleGlobalSearch(this.value)" autocomplete="off">
+          <button id="global-search-clear" onclick="clearGlobalSearch()" style="display:none;background:none;border:none;color:var(--muted);cursor:pointer;padding:0 4px;font-size:16px;line-height:1;" title="Clear search">&times;</button>
+          
+          <!-- Responsive Spotlight / Settings Search Results Dropdown -->
+          <div class="search-results-dropdown" id="global-search-results"></div>
         </div>
 
         <!-- Theme toggle -->
@@ -3458,6 +3781,250 @@ img{display:block;max-width:100%}
         </div>
       </div>
 
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════
+         VIEW: MY MENTOR (Student Access: Academic & Special Project Mentors)
+         ═══════════════════════════════════════════════════════ -->
+    <div class="view" id="view-my-mentor">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:1rem;margin-bottom:1.5rem;">
+        <div>
+          <h2 style="font-size:1.6rem;font-weight:800;color:var(--text);margin-bottom:0.25rem;">My Mentors & Project Advisors</h2>
+          <p style="color:var(--muted);font-size:0.9rem;">Official profiles of your assigned Academic Counselor and Special Project Research Guide with cabin numbers, subject specializations, and project milestones.</p>
+        </div>
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+          <button class="btn btn-secondary" onclick="openBookMentorModal('academic')" style="font-size:0.83rem;padding:0.5rem 0.9rem;">
+            📅 Book Academic Slot
+          </button>
+          <button class="btn btn-primary" onclick="openProjectProgressModal()" style="font-size:0.83rem;padding:0.5rem 0.9rem;background:#10b981;border-color:#10b981;">
+            📤 Submit Project Progress
+          </button>
+        </div>
+      </div>
+
+      <!-- Quick Metrics Strip -->
+      <div class="metrics-grid" style="grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));gap:1rem;margin-bottom:1.5rem;">
+        <div class="metric-card" style="padding:1.15rem;background:var(--card-solid);border:1px solid var(--border);border-radius:var(--radius-md);">
+          <div style="font-size:0.75rem;font-weight:700;color:var(--muted);text-transform:uppercase;margin-bottom:0.35rem;">Academic Mentor</div>
+          <div style="font-size:1.15rem;font-weight:800;color:var(--text);">Dr. Ramesh Ponnala</div>
+          <div style="font-size:0.8rem;color:var(--primary);font-weight:600;margin-top:2px;">Cabin B-304 · Tech Block-B</div>
+        </div>
+        <div class="metric-card" style="padding:1.15rem;background:var(--card-solid);border:1px solid var(--border);border-radius:var(--radius-md);">
+          <div style="font-size:0.75rem;font-weight:700;color:var(--muted);text-transform:uppercase;margin-bottom:0.35rem;">Special Project Mentor</div>
+          <div style="font-size:1.15rem;font-weight:800;color:var(--text);">Dr. Sandeep Kumar Panda</div>
+          <div style="font-size:0.8rem;color:#10b981;font-weight:600;margin-top:2px;">Cabin R-412 · Innovation Wing</div>
+        </div>
+        <div class="metric-card" style="padding:1.15rem;background:var(--card-solid);border:1px solid var(--border);border-radius:var(--radius-md);">
+          <div style="font-size:0.75rem;font-weight:700;color:var(--muted);text-transform:uppercase;margin-bottom:0.35rem;">Active Capstone Project</div>
+          <div style="font-size:1.05rem;font-weight:800;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">AI-Emotional Analyzer</div>
+          <div style="font-size:0.8rem;color:var(--accent);font-weight:600;margin-top:2px;">Phase 3: Fine-Tuning (75%)</div>
+        </div>
+        <div class="metric-card" style="padding:1.15rem;background:var(--card-solid);border:1px solid var(--border);border-radius:var(--radius-md);">
+          <div style="font-size:0.75rem;font-weight:700;color:var(--muted);text-transform:uppercase;margin-bottom:0.35rem;">Upcoming Review</div>
+          <div style="font-size:1.15rem;font-weight:800;color:var(--text);">Nov 7, 2026</div>
+          <div style="font-size:0.8rem;color:var(--muted);font-weight:600;margin-top:2px;">Friday at 11:30 AM (Cabin R-412)</div>
+        </div>
+      </div>
+
+      <!-- Filter Controls & In-View Search -->
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem;margin-bottom:1.25rem;">
+        <div class="filter-tabs-row" id="mentor-tabs-container">
+          <button class="filter-tab-pill active" id="tab-mentor-all" onclick="switchMentorTab('all')">All Mentors (2)</button>
+          <button class="filter-tab-pill" id="tab-mentor-academic" onclick="switchMentorTab('academic')">🎓 Academic Mentor</button>
+          <button class="filter-tab-pill" id="tab-mentor-project" onclick="switchMentorTab('project')">🚀 Special Project Mentor</button>
+        </div>
+
+        <div style="min-width:260px;flex:1;max-width:380px;">
+          <input type="text" id="mentor-inview-search" class="form-input" placeholder="🔍 Quick search subject, cabin no, mentor..." oninput="filterMentorsInView(this.value)" style="width:100%;padding:0.5rem 0.85rem;font-size:0.83rem;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--card-solid);color:var(--text);">
+        </div>
+      </div>
+
+      <!-- Mentors Grid -->
+      <div class="mentors-grid" id="mentors-cards-grid">
+        
+        <!-- CARD 1: ACADEMIC MENTOR -->
+        <div class="mentor-card" id="card-mentor-academic" data-mentor-type="academic" data-search-text="academic mentor dr ramesh ponnala oop object oriented programming data structures cabin b-304 b304 tech block-b attendance counselor">
+          <div class="mentor-badge-top mentor-badge-academic">
+            🎓 Official Academic Mentor
+          </div>
+
+          <div class="mentor-profile-header">
+            <div class="mentor-avatar-lg">
+              RP
+              <span class="mentor-online-dot" title="Available for academic consultations"></span>
+            </div>
+            <div>
+              <h3 style="font-size:1.2rem;font-weight:800;color:var(--text);margin:0 0 2px;">Dr. Ramesh Ponnala</h3>
+              <div style="font-size:0.82rem;font-weight:600;color:var(--muted);">Associate Professor & Academic Counselor</div>
+              <div style="font-size:0.75rem;color:var(--text-secondary);margin-top:2px;">Department of Computer Science & Engineering</div>
+            </div>
+          </div>
+
+          <!-- Academic Mentor Details Box -->
+          <div class="mentor-details-table">
+            <div class="mentor-detail-row">
+              <span class="mentor-detail-label">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+                Subject / Specialization:
+              </span>
+              <span class="mentor-detail-val">Object-Oriented Programming (OOP) & Architecture</span>
+            </div>
+            <div class="mentor-detail-row">
+              <span class="mentor-detail-label">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                Cabin Location:
+              </span>
+              <span class="mentor-detail-val">
+                <span class="mentor-cabin-tag">Tech Block-B, Cabin B-304 (3rd Floor)</span>
+              </span>
+            </div>
+            <div class="mentor-detail-row">
+              <span class="mentor-detail-label">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                Cabin Visiting Hours:
+              </span>
+              <span class="mentor-detail-val">Mon, Wed, Fri: 2:30 PM – 4:30 PM</span>
+            </div>
+            <div class="mentor-detail-row">
+              <span class="mentor-detail-label">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                Official Email:
+              </span>
+              <span class="mentor-detail-val" style="color:var(--primary);">ramesh.ponnala@faculty.university.edu</span>
+            </div>
+            <div class="mentor-detail-row">
+              <span class="mentor-detail-label">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"/></svg>
+                Cabin Intercom / Contact:
+              </span>
+              <span class="mentor-detail-val">+91 (040) 2345-3042 · Ext: 304</span>
+            </div>
+          </div>
+
+          <!-- Academic Status Summary -->
+          <div style="background:var(--bg);border:1px solid var(--border);border-left:4px solid var(--primary);border-radius:var(--radius-sm);padding:0.9rem 1rem;margin-bottom:1.25rem;">
+            <div style="font-size:0.75rem;font-weight:800;color:var(--primary);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">Academic Mentorship Record</div>
+            <div style="font-size:0.83rem;color:var(--text);margin-bottom:4px;"><strong>Student:</strong> Arunn Reddy (Section 3A, Sem 5) · Attendance: <span style="color:#10b981;font-weight:700;">92.4%</span> · CGPA: <strong>8.92</strong></div>
+            <div style="font-size:0.78rem;color:var(--muted);"><strong>Next 1-on-1 Session:</strong> Wednesday, Nov 5, 2026 at 3:00 PM (Cabin B-304)</div>
+          </div>
+
+          <!-- Actions -->
+          <div class="mentor-actions-row">
+            <button class="btn btn-primary" onclick="openBookMentorModal('academic')" style="flex:1;font-size:0.82rem;padding:0.55rem;">
+              📅 Book Cabin Appointment
+            </button>
+            <button class="btn btn-secondary" onclick="openMessageMentorModal('academic')" style="font-size:0.82rem;padding:0.55rem 0.9rem;">
+              💬 Message
+            </button>
+          </div>
+        </div>
+
+
+        <!-- CARD 2: SPECIAL PROJECT MENTOR -->
+        <div class="mentor-card" id="card-mentor-project" data-mentor-type="project" data-search-text="special project mentor dr sandeep kumar panda nlp sentiment emotion classification deep learning ai machine learning cabin r-412 r412 innovation wing capstone lead developer bert bilstm">
+          <div class="mentor-badge-top mentor-badge-project">
+            🚀 Special Project Mentor & Research Guide
+          </div>
+
+          <div class="mentor-profile-header">
+            <div class="mentor-avatar-lg project-avatar">
+              SP
+              <span class="mentor-online-dot" title="Available for project reviews"></span>
+            </div>
+            <div>
+              <h3 style="font-size:1.2rem;font-weight:800;color:var(--text);margin:0 0 2px;">Dr. Sandeep Kumar Panda</h3>
+              <div style="font-size:0.82rem;font-weight:600;color:var(--muted);">Professor & Capstone Project Director</div>
+              <div style="font-size:0.75rem;color:var(--text-secondary);margin-top:2px;">School of Artificial Intelligence & Emerging Tech</div>
+            </div>
+          </div>
+
+          <!-- Special Project Mentor Details Box -->
+          <div class="mentor-details-table">
+            <div class="mentor-detail-row">
+              <span class="mentor-detail-label">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+                Subject / Research Domain:
+              </span>
+              <span class="mentor-detail-val">Natural Language Processing, Deep Learning & Sentiment AI</span>
+            </div>
+            <div class="mentor-detail-row">
+              <span class="mentor-detail-label">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                Cabin Location:
+              </span>
+              <span class="mentor-detail-val">
+                <span class="mentor-cabin-tag" style="background:rgba(16,185,129,0.12);color:#10b981;">Innovation Wing, Cabin R-412 (4th Floor)</span>
+              </span>
+            </div>
+            <div class="mentor-detail-row">
+              <span class="mentor-detail-label">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                Cabin Office Hours:
+              </span>
+              <span class="mentor-detail-val">Tue, Thu: 11:00 AM – 1:00 PM | Sat: 10:00 AM – 12:00 PM</span>
+            </div>
+            <div class="mentor-detail-row">
+              <span class="mentor-detail-label">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                Official Email:
+              </span>
+              <span class="mentor-detail-val" style="color:var(--primary);">sandeep.panda@faculty.university.edu</span>
+            </div>
+            <div class="mentor-detail-row">
+              <span class="mentor-detail-label">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"/></svg>
+                Cabin Intercom / Contact:
+              </span>
+              <span class="mentor-detail-val">+91 (040) 2345-4120 · Ext: 412</span>
+            </div>
+          </div>
+
+          <!-- Prominent Special Project Details Container -->
+          <div class="project-highlight-box">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <span style="font-size:10px;font-weight:800;letter-spacing:0.6px;color:#10b981;text-transform:uppercase;">🚀 ASSIGNED SPECIAL PROJECT</span>
+              <span style="font-size:10px;font-weight:700;color:var(--muted);background:var(--bg-subtle);padding:2px 6px;border-radius:4px;">ID: PRJ-2026-AI09</span>
+            </div>
+
+            <h4 style="font-size:0.98rem;font-weight:800;color:var(--text);margin:0;">
+              AI-Powered Real-Time Student Emotional Analyzer & Feedback Portal
+            </h4>
+            
+            <p style="font-size:0.8rem;color:var(--muted);margin:0;line-height:1.4;">
+              Transformer-based NLP framework for classifying student course feedback into multi-sentiment states, detecting faculty workload spikes, and preserving privacy.
+            </p>
+
+            <div style="margin-top:4px;">
+              <div style="display:flex;justify-content:space-between;font-size:0.75rem;font-weight:700;margin-bottom:2px;">
+                <span style="color:var(--text-secondary);">Phase 3: Model Fine-Tuning & Live Testing</span>
+                <span style="color:#10b981;">75% Complete</span>
+              </div>
+              <div class="project-progress-track">
+                <div class="project-progress-fill" style="width:75%;"></div>
+              </div>
+            </div>
+
+            <div style="font-size:0.76rem;color:var(--muted);margin-top:4px;display:flex;align-items:center;gap:6px;">
+              <span>📅 Next Review:</span>
+              <strong style="color:var(--text);">Friday, Nov 7, 2026 at 11:30 AM (Cabin R-412)</strong>
+            </div>
+          </div>
+
+          <!-- Actions -->
+          <div class="mentor-actions-row">
+            <button class="btn btn-primary" onclick="openProjectProgressModal()" style="flex:1;font-size:0.82rem;padding:0.55rem;background:#10b981;border-color:#10b981;">
+              📤 Submit Project Progress
+            </button>
+            <button class="btn btn-secondary" onclick="openBookMentorModal('project')" style="font-size:0.82rem;padding:0.55rem 0.9rem;">
+              📅 Review Slot
+            </button>
+            <button class="btn btn-secondary" onclick="openMessageMentorModal('project')" style="font-size:0.82rem;padding:0.55rem 0.9rem;">
+              💬 Message
+            </button>
+          </div>
+        </div>
+
+      </div>
     </div>
 
     <!-- ═══════════════════════════════════════════════════════
@@ -4168,6 +4735,9 @@ function enterDashboard() {
   const navRequest = document.getElementById('nav-item-request-feedback');
   const navSubmit = document.getElementById('nav-item-submit-feedback');
 
+  const pMentors = document.getElementById('nav-parent-mentors');
+  const cMentors = document.getElementById('nav-children-mentors');
+
   if (isStudent) {
     if (navFeedback) navFeedback.style.display = 'none';
     if (navMyStudents) navMyStudents.style.display = 'none';
@@ -4176,7 +4746,15 @@ function enterDashboard() {
     if (navModelLab) navModelLab.style.display = 'none';
     if (navRequest) navRequest.style.display = 'none';
     if (navSubmit) navSubmit.style.display = 'flex';
+    // Show and automatically open "My Mentor" accordion in student mode
+    if (pMentors) {
+      pMentors.style.display = 'flex';
+      pMentors.classList.add('open');
+    }
+    if (cMentors) cMentors.classList.add('show');
   } else {
+    if (pMentors) pMentors.style.display = 'none';
+    if (cMentors) cMentors.classList.remove('show');
     // Faculty & Admin
     if (navFeedback) navFeedback.style.display = 'flex';
     if (navMyStudents) navMyStudents.style.display = 'flex'; // Show "My Students"
@@ -4277,7 +4855,8 @@ function switchView(name) {
     'submit-feedback': 'Submit Course Feedback',
     'admin-students': 'Student Management Directory',
     'admin-faculty': 'Faculty Directory & Allocations',
-    departments: 'Departments & Academic Units'
+    departments: 'Departments & Academic Units',
+    'my-mentor': 'My Mentors & Projects'
   };
   document.getElementById('topbar-title').textContent = titles[name] || 'Dashboard';
 
@@ -4289,6 +4868,7 @@ function switchView(name) {
   if (name === 'departments') loadDepartments();
   if (name === 'analytics') loadAnalytics();
   if (name === 'courses') renderCourses();
+  if (name === 'my-mentor') loadStudentMentors();
 }
 
 function selectModelEngine(engine) {
@@ -6470,6 +7050,476 @@ document.addEventListener('keydown', (e) => {
   }
 });
 
+
+/* ═══════════════════════════════════════════════════════
+   RESPONSIVE SETTINGS & SPOTLIGHT GLOBAL SEARCH TOOL
+   ═══════════════════════════════════════════════════════ */
+const GLOBAL_SEARCH_INDEX = [
+  // ── 1. SPECIAL PROJECTS ──
+  {
+    category: 'Special Project',
+    icon: '🚀',
+    title: 'AI-Powered Real-Time Student Emotional Analyzer',
+    subtitle: 'Mentor: Dr. Sandeep Kumar Panda · Cabin: R-412 · Subject: NLP & Emotion AI',
+    keywords: 'project special project emotional analyzer feedback system bixi nlp bert bilstm sentiment classification deep learning machine learning capstone sandeep kumar panda r412 cabin r-412 innovation',
+    action: () => {
+      switchMentorTab('project');
+      switchView('my-mentor');
+      highlightElement('card-mentor-project');
+    }
+  },
+  {
+    category: 'Special Project',
+    icon: '⚡',
+    title: 'IoT Campus Smart Energy & Sensor Mesh',
+    subtitle: 'Mentor: Prof. K. V. Raman · Cabin: H-102 · Subject: Embedded Systems',
+    keywords: 'project special project iot energy sensor mesh smart campus raman h102 cabin h-102 embedded hardware',
+    action: () => {
+      switchMentorTab('project');
+      switchView('my-mentor');
+      highlightElement('card-mentor-project');
+    }
+  },
+
+  // ── 2. MENTORS & ADVISORS ──
+  {
+    category: 'Academic Mentor',
+    icon: '🎓',
+    title: 'Dr. Ramesh Ponnala (Academic Mentor)',
+    subtitle: 'Subject: OOP & Architecture · Cabin: Tech Block-B, B-304 · Visiting: Mon/Wed/Fri 2:30 PM',
+    keywords: 'academic mentor dr ramesh ponnala oop object oriented programming data structures cabin b-304 b304 tech block-b attendance consultation counselor advisor',
+    action: () => {
+      switchMentorTab('academic');
+      switchView('my-mentor');
+      highlightElement('card-mentor-academic');
+    }
+  },
+  {
+    category: 'Special Project Mentor',
+    icon: '🔬',
+    title: 'Dr. Sandeep Kumar Panda (Special Project Mentor)',
+    subtitle: 'Subject: NLP & Deep Learning · Cabin: Innovation Wing, R-412 · Capstone Guide',
+    keywords: 'special project mentor dr sandeep kumar panda nlp deep learning machine learning sentiment cabin r-412 r412 innovation wing ai research guide director',
+    action: () => {
+      switchMentorTab('project');
+      switchView('my-mentor');
+      highlightElement('card-mentor-project');
+    }
+  },
+
+  // ── 3. COURSES & TIMETABLE SUBJECTS ──
+  {
+    category: 'Courses & Subjects',
+    icon: '📚',
+    title: '[CS305] Software Engineering',
+    subtitle: 'Faculty: Dr. Sandeep Kumar Panda · Cabin: R-412 · Semester 5',
+    keywords: 'cs305 software engineering sandeep kumar panda r412 cabin r-412 course subject class 3a semester 5',
+    action: () => {
+      switchView('courses');
+    }
+  },
+  {
+    category: 'Courses & Subjects',
+    icon: '📚',
+    title: '[AI501] Natural Language Processing',
+    subtitle: 'Faculty: Dr. A. Sharma · Cabin: B-210 · Semester 5',
+    keywords: 'ai501 natural language processing nlp sharma b210 cabin b-210 course subject semester 5',
+    action: () => {
+      switchView('courses');
+    }
+  },
+  {
+    category: 'Courses & Subjects',
+    icon: '📚',
+    title: '[CS201] Object Oriented Programming Concepts',
+    subtitle: 'Faculty: Dr. Ramesh Ponnala · Cabin: B-304 · Semester 3',
+    keywords: 'cs201 oop object oriented programming ramesh ponnala b304 cabin b-304 course subject semester 3',
+    action: () => {
+      switchView('courses');
+    }
+  },
+
+  // ── 4. CABIN LOCATIONS ──
+  {
+    category: 'Faculty Cabin',
+    icon: '🏢',
+    title: 'Cabin B-304 (Tech Block-B, 3rd Floor)',
+    subtitle: 'Occupant: Dr. Ramesh Ponnala (Academic Mentor & OOP Faculty)',
+    keywords: 'cabin b-304 cabin 304 b304 tech block b ramesh ponnala oop location room office',
+    action: () => {
+      switchMentorTab('academic');
+      switchView('my-mentor');
+      highlightElement('card-mentor-academic');
+    }
+  },
+  {
+    category: 'Faculty Cabin',
+    icon: '🏢',
+    title: 'Cabin R-412 (Innovation Wing, 4th Floor)',
+    subtitle: 'Occupant: Dr. Sandeep Kumar Panda (Special Project Mentor & AI Lab)',
+    keywords: 'cabin r-412 cabin 412 r412 innovation wing ai lab sandeep panda software engineering project location room office',
+    action: () => {
+      switchMentorTab('project');
+      switchView('my-mentor');
+      highlightElement('card-mentor-project');
+    }
+  },
+
+  // ── 5. PORTAL SETTINGS & ACTIONS ──
+  {
+    category: 'Settings & Quick Actions',
+    icon: '🌓',
+    title: 'Toggle Day / Night Mode',
+    subtitle: 'Switch between warm eye-comfort Day glow and vibrant Night mode',
+    keywords: 'settings setting theme dark mode night mode light mode day mode color display switch',
+    action: () => {
+      toggleDayNight();
+    }
+  },
+  {
+    category: 'Settings & Quick Actions',
+    icon: '👤',
+    title: 'View Academic Profile & Account Settings',
+    subtitle: 'Inspect official student / faculty ID, section, and credentials',
+    keywords: 'settings setting profile account student user password email info credentials',
+    action: () => {
+      openAccountModal();
+    }
+  },
+  {
+    category: 'Settings & Quick Actions',
+    icon: '📝',
+    title: 'Submit Course Feedback',
+    subtitle: 'Share authentic classroom experience and emotional sentiment',
+    keywords: 'submit feedback rating course evaluation teaching survey review student',
+    action: () => {
+      switchView('submit-feedback');
+    }
+  },
+  {
+    category: 'Settings & Quick Actions',
+    icon: '📊',
+    title: 'View Dashboard & Sentiment Overview',
+    subtitle: 'Navigate to real-time emotional health and response breakdown',
+    keywords: 'dashboard overview home analytics sentiment metrics responses emotional health',
+    action: () => {
+      switchView('overview');
+    }
+  }
+];
+
+function handleGlobalSearch(query) {
+  const dropdown = document.getElementById('global-search-results');
+  const clearBtn = document.getElementById('global-search-clear');
+  if (!dropdown) return;
+
+  const rawQuery = (query || '').trim();
+  if (clearBtn) clearBtn.style.display = rawQuery ? 'block' : 'none';
+
+  if (!rawQuery) {
+    dropdown.innerHTML = '';
+    dropdown.classList.remove('show');
+    return;
+  }
+
+  const queryTerms = rawQuery.toLowerCase().split(/\s+/).filter(Boolean);
+
+  // Match items where ALL terms match somewhere in title, subtitle, or keywords
+  const matched = GLOBAL_SEARCH_INDEX.filter(item => {
+    const haystack = `${item.title} ${item.subtitle} ${item.keywords}`.toLowerCase();
+    return queryTerms.every(term => haystack.includes(term));
+  });
+
+  if (matched.length === 0) {
+    dropdown.innerHTML = `
+      <div class="search-empty-state">
+        <div style="font-size:1.5rem;margin-bottom:6px;">🔍</div>
+        <div>No matching project, mentor, or setting found for <strong>"${escapeHtml(rawQuery)}"</strong></div>
+        <div style="font-size:0.75rem;margin-top:4px;color:var(--muted);">Try typing <em>"project"</em>, <em>"mentor"</em>, <em>"cabin 304"</em>, <em>"cabin 412"</em>, <em>"sandeep"</em>, or <em>"night"</em></div>
+      </div>
+    `;
+    dropdown.classList.add('show');
+    return;
+  }
+
+  // Group matched results by category
+  const grouped = {};
+  matched.forEach((item, index) => {
+    if (!grouped[item.category]) grouped[item.category] = [];
+    grouped[item.category].push({ item, index });
+  });
+
+  let html = '';
+  for (const [category, items] of Object.entries(grouped)) {
+    html += `<div class="search-result-group-title">${escapeHtml(category)} (${items.length})</div>`;
+    items.forEach(({ item }) => {
+      const highlightedTitle = highlightSearchTerms(item.title, queryTerms);
+      const highlightedSub = highlightSearchTerms(item.subtitle, queryTerms);
+
+      html += `
+        <div class="search-result-item" onclick="triggerSearchResult('${escapeHtml(item.title)}')">
+          <div class="search-result-icon">${item.icon}</div>
+          <div class="search-result-content">
+            <div class="search-result-title">${highlightedTitle}</div>
+            <div class="search-result-sub">${highlightedSub}</div>
+          </div>
+        </div>
+      `;
+    });
+  }
+
+  dropdown.innerHTML = html;
+  dropdown.classList.add('show');
+}
+
+function triggerSearchResult(title) {
+  const item = GLOBAL_SEARCH_INDEX.find(x => x.title === title);
+  if (item && item.action) {
+    item.action();
+  }
+  clearGlobalSearch();
+}
+
+function clearGlobalSearch() {
+  const input = document.getElementById('global-search');
+  const dropdown = document.getElementById('global-search-results');
+  const clearBtn = document.getElementById('global-search-clear');
+  if (input) input.value = '';
+  if (clearBtn) clearBtn.style.display = 'none';
+  if (dropdown) {
+    dropdown.innerHTML = '';
+    dropdown.classList.remove('show');
+  }
+}
+
+function highlightSearchTerms(text, terms) {
+  if (!terms || terms.length === 0) return escapeHtml(text);
+  let safeText = escapeHtml(text);
+  terms.forEach(term => {
+    if (term.length < 2) return;
+    const re = new RegExp(`(${term.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&')})`, 'gi');
+    safeText = safeText.replace(re, '<span class="search-result-highlight">$1</span>');
+  });
+  return safeText;
+}
+
+function highlightElement(elementId) {
+  setTimeout(() => {
+    const el = document.getElementById(elementId);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      el.classList.add('element-focus-glow');
+      setTimeout(() => el.classList.remove('element-focus-glow'), 2800);
+    }
+  }, 120);
+}
+
+
+/* ═══════════════════════════════════════════════════════
+   MY MENTORS VIEW CONTROLLERS & FILTERING
+   ═══════════════════════════════════════════════════════ */
+function switchMentorTab(tabKey) {
+  const tabAll = document.getElementById('tab-mentor-all');
+  const tabAcademic = document.getElementById('tab-mentor-academic');
+  const tabProject = document.getElementById('tab-mentor-project');
+
+  const cardAcademic = document.getElementById('card-mentor-academic');
+  const cardProject = document.getElementById('card-mentor-project');
+
+  [tabAll, tabAcademic, tabProject].forEach(btn => {
+    if (btn) btn.classList.remove('active');
+  });
+
+  if (tabKey === 'academic') {
+    if (tabAcademic) tabAcademic.classList.add('active');
+    if (cardAcademic) cardAcademic.style.display = 'flex';
+    if (cardProject) cardProject.style.display = 'none';
+  } else if (tabKey === 'project') {
+    if (tabProject) tabProject.classList.add('active');
+    if (cardAcademic) cardAcademic.style.display = 'none';
+    if (cardProject) cardProject.style.display = 'flex';
+  } else {
+    if (tabAll) tabAll.classList.add('active');
+    if (cardAcademic) cardAcademic.style.display = 'flex';
+    if (cardProject) cardProject.style.display = 'flex';
+  }
+}
+
+function filterMentorsInView(query) {
+  const q = (query || '').toLowerCase().trim();
+  const cardAcademic = document.getElementById('card-mentor-academic');
+  const cardProject = document.getElementById('card-mentor-project');
+
+  const matchAcademic = !q || (cardAcademic && cardAcademic.dataset.searchText.toLowerCase().includes(q));
+  const matchProject = !q || (cardProject && cardProject.dataset.searchText.toLowerCase().includes(q));
+
+  if (cardAcademic) cardAcademic.style.display = matchAcademic ? 'flex' : 'none';
+  if (cardProject) cardProject.style.display = matchProject ? 'flex' : 'none';
+}
+
+async function loadStudentMentors() {
+  try {
+    const res = await fetch(`${API_BASE}/feedback/student-mentors`);
+    if (res.ok) {
+      const data = await res.json();
+      console.log('Loaded student mentors:', data);
+    }
+  } catch (err) {
+    console.warn('Using local student mentor configuration:', err);
+  }
+}
+
+
+/* ─── MODAL CONTROLLERS: BOOKING, PROGRESS, AND MESSAGE ─── */
+function openBookMentorModal(type) {
+  const modal = document.getElementById('modal-book-mentor');
+  if (!modal) return;
+
+  const isAcademic = type === 'academic';
+  document.getElementById('book-mentor-type').value = type;
+  document.getElementById('book-mentor-modal-title').textContent = isAcademic 
+    ? 'Book Academic Mentor Appointment' 
+    : 'Book Special Project Review Session';
+
+  const nameDisp = document.getElementById('book-mentor-name-display');
+  const cabinDisp = document.getElementById('book-mentor-cabin-display');
+  
+  if (isAcademic) {
+    if (nameDisp) nameDisp.textContent = 'Dr. Ramesh Ponnala (Academic Mentor)';
+    if (cabinDisp) cabinDisp.textContent = 'Cabin: Tech Block-B, B-304 · Visiting: Mon/Wed/Fri 2:30 PM - 4:30 PM';
+  } else {
+    if (nameDisp) nameDisp.textContent = 'Dr. Sandeep Kumar Panda (Special Project Mentor)';
+    if (cabinDisp) cabinDisp.textContent = 'Cabin: Innovation Wing, R-412 · Visiting: Tue/Thu 11 AM - 1 PM, Sat 10 AM - 12 PM';
+  }
+
+  // Set default date to tomorrow
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const dateInput = document.getElementById('book-mentor-date');
+  if (dateInput) dateInput.value = tomorrow.toISOString().split('T')[0];
+
+  modal.classList.add('show');
+}
+
+function closeBookMentorModal() {
+  const modal = document.getElementById('modal-book-mentor');
+  if (modal) modal.classList.remove('show');
+}
+
+function submitBookMentorAppointment(e) {
+  e.preventDefault();
+  const type = document.getElementById('book-mentor-type').value;
+  const dateVal = document.getElementById('book-mentor-date').value;
+  const slotVal = document.getElementById('book-mentor-slot').value;
+  const mentorName = type === 'academic' ? 'Dr. Ramesh Ponnala' : 'Dr. Sandeep Kumar Panda';
+  const cabinNo = type === 'academic' ? 'Cabin B-304' : 'Cabin R-412';
+
+  closeBookMentorModal();
+  toast(`Appointment confirmed with ${mentorName} (${cabinNo}) on ${dateVal} for ${slotVal}!`);
+
+  // Add confirmation notification
+  const notif = {
+    id: 'appt-' + Date.now(),
+    type: 'MENTOR_APPOINTMENT',
+    title: `📅 Mentor Appointment: ${mentorName}`,
+    message: `Slot confirmed on ${dateVal} (${slotVal}) in ${cabinNo}. Please arrive on time.`,
+    course_name: 'Mentorship & Guidance',
+    faculty_name: mentorName,
+    time: 'Just now'
+  };
+  ACTIVE_NOTIFICATIONS.unshift(notif);
+  renderNotifications();
+}
+
+function openProjectProgressModal() {
+  const modal = document.getElementById('modal-project-progress');
+  if (modal) modal.classList.add('show');
+}
+
+function closeProjectProgressModal() {
+  const modal = document.getElementById('modal-project-progress');
+  if (modal) modal.classList.remove('show');
+}
+
+function submitProjectProgress(e) {
+  e.preventDefault();
+  const milestone = document.getElementById('project-milestone-select').value;
+  closeProjectProgressModal();
+  toast('Special project progress submitted successfully to Dr. Sandeep Kumar Panda!');
+
+  const notif = {
+    id: 'proj-' + Date.now(),
+    type: 'PROJECT_PROGRESS',
+    title: '🚀 Project Progress Delivered',
+    message: `Status recorded: ${milestone}. Dr. Panda will review it prior to Friday consultation.`,
+    course_name: 'AI-Powered Real-Time Emotional Analyzer',
+    faculty_name: 'Dr. Sandeep Kumar Panda',
+    time: 'Just now'
+  };
+  ACTIVE_NOTIFICATIONS.unshift(notif);
+  renderNotifications();
+}
+
+function openMessageMentorModal(type) {
+  const modal = document.getElementById('modal-message-mentor');
+  if (!modal) return;
+
+  const isAcademic = type === 'academic';
+  document.getElementById('message-mentor-type').value = type;
+  document.getElementById('message-mentor-title').textContent = isAcademic 
+    ? 'Message Academic Mentor' 
+    : 'Message Special Project Guide';
+
+  const nameDisp = document.getElementById('message-mentor-name');
+  const detailsDisp = document.getElementById('message-mentor-details');
+
+  if (isAcademic) {
+    if (nameDisp) nameDisp.textContent = 'Dr. Ramesh Ponnala (Academic Mentor)';
+    if (detailsDisp) detailsDisp.textContent = 'Cabin B-304 (Tech Block-B) · ramesh.ponnala@faculty.university.edu';
+  } else {
+    if (nameDisp) nameDisp.textContent = 'Dr. Sandeep Kumar Panda (Special Project Guide)';
+    if (detailsDisp) detailsDisp.textContent = 'Cabin R-412 (Innovation Wing) · sandeep.panda@faculty.university.edu';
+  }
+
+  modal.classList.add('show');
+}
+
+function closeMessageMentorModal() {
+  const modal = document.getElementById('modal-message-mentor');
+  if (modal) modal.classList.remove('show');
+}
+
+function submitMentorMessage(e) {
+  e.preventDefault();
+  const type = document.getElementById('message-mentor-type').value;
+  const subj = document.getElementById('message-mentor-subject').value;
+  const mentorName = type === 'academic' ? 'Dr. Ramesh Ponnala' : 'Dr. Sandeep Kumar Panda';
+
+  closeMessageMentorModal();
+  toast(`Message regarding "${subj}" sent to ${mentorName}!`);
+}
+
+
+/* ─── GLOBAL CLICK TO DISMISS SEARCH DROPDOWN ─── */
+document.addEventListener('click', (e) => {
+  const searchBox = document.querySelector('.search-box');
+  const dropdown = document.getElementById('global-search-results');
+  if (dropdown && dropdown.classList.contains('show')) {
+    if (searchBox && !searchBox.contains(e.target)) {
+      dropdown.classList.remove('show');
+    }
+  }
+});
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    const dropdown = document.getElementById('global-search-results');
+    if (dropdown && dropdown.classList.contains('show')) {
+      dropdown.classList.remove('show');
+    }
+  }
+});
+
 </script>
 
 
@@ -6786,6 +7836,131 @@ document.addEventListener('keydown', (e) => {
   </div>
 </div>
 
+
+<!-- ═══════════════════════════════════════════════════════
+     MODAL: BOOK MENTOR CONSULTATION SLOT
+     ═══════════════════════════════════════════════════════ -->
+<div class="custom-modal-backdrop" id="modal-book-mentor" onclick="if(event.target===this)closeBookMentorModal()">
+  <div class="custom-modal-content">
+    <div class="custom-modal-header">
+      <h3 style="font-size:1.15rem;font-weight:700;color:var(--text);margin:0;" id="book-mentor-modal-title">Book Mentor Appointment</h3>
+      <button class="icon-btn" onclick="closeBookMentorModal()" style="border:none;background:none;font-size:20px;cursor:pointer;">&times;</button>
+    </div>
+    <form id="form-book-mentor" onsubmit="submitBookMentorAppointment(event)">
+      <input type="hidden" id="book-mentor-type" value="academic">
+      <div class="custom-modal-body">
+        <div id="book-mentor-summary-box" style="padding:0.75rem 1rem;background:var(--bg-subtle);border-radius:var(--radius-sm);font-size:0.85rem;color:var(--text);border-left:3px solid var(--primary);margin-bottom:1rem;">
+          <div style="font-weight:700;" id="book-mentor-name-display">Dr. Ramesh Ponnala (Academic Mentor)</div>
+          <div style="font-size:0.8rem;color:var(--muted);" id="book-mentor-cabin-display">Cabin: Tech Block-B, B-304 · Subject: OOP & Architecture</div>
+        </div>
+
+        <div class="form-group" style="margin-bottom:1rem;">
+          <label class="form-label" style="font-weight:600;font-size:0.84rem;margin-bottom:4px;display:block;">Select Preferred Date</label>
+          <input type="date" id="book-mentor-date" class="form-input" required style="width:100%;padding:0.6rem;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg);color:var(--text);">
+        </div>
+
+        <div class="form-group" style="margin-bottom:1rem;">
+          <label class="form-label" style="font-weight:600;font-size:0.84rem;margin-bottom:4px;display:block;">Select Consultation Slot (Cabin Visiting Hours)</label>
+          <select id="book-mentor-slot" class="form-select" required style="width:100%;padding:0.6rem;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg);color:var(--text);">
+            <option value="Slot 1: 02:30 PM - 03:00 PM">02:30 PM – 03:00 PM (Regular Slot)</option>
+            <option value="Slot 2: 03:00 PM - 03:30 PM" selected>03:00 PM – 03:30 PM (Recommended)</option>
+            <option value="Slot 3: 03:30 PM - 04:00 PM">03:30 PM – 04:00 PM (Late Afternoon)</option>
+            <option value="Slot 4: 04:00 PM - 04:30 PM">04:00 PM – 04:30 PM (Quick Consultation)</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" style="font-weight:600;font-size:0.84rem;margin-bottom:4px;display:block;">Meeting Agenda / Discussion Points</label>
+          <textarea id="book-mentor-agenda" rows="3" class="form-textarea" placeholder="Detail the specific questions, course topics, or project items you wish to discuss..." required style="width:100%;padding:0.6rem;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg);color:var(--text);font-family:inherit;"></textarea>
+        </div>
+      </div>
+      <div class="custom-modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="closeBookMentorModal()">Cancel</button>
+        <button type="submit" class="btn btn-primary">Confirm Appointment</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════
+     MODAL: SUBMIT SPECIAL PROJECT PROGRESS
+     ═══════════════════════════════════════════════════════ -->
+<div class="custom-modal-backdrop" id="modal-project-progress" onclick="if(event.target===this)closeProjectProgressModal()">
+  <div class="custom-modal-content">
+    <div class="custom-modal-header">
+      <h3 style="font-size:1.15rem;font-weight:700;color:var(--text);margin:0;">Submit Special Project Progress Report</h3>
+      <button class="icon-btn" onclick="closeProjectProgressModal()" style="border:none;background:none;font-size:20px;cursor:pointer;">&times;</button>
+    </div>
+    <form id="form-project-progress" onsubmit="submitProjectProgress(event)">
+      <div class="custom-modal-body">
+        <div style="padding:0.75rem 1rem;background:var(--bg-subtle);border-radius:var(--radius-sm);font-size:0.85rem;color:var(--text);border-left:3px solid #10b981;margin-bottom:1rem;">
+          <div style="font-weight:700;">Project: AI-Powered Real-Time Student Emotional Analyzer</div>
+          <div style="font-size:0.8rem;color:var(--muted);">Guide: Dr. Sandeep Kumar Panda · Cabin R-412 · Innovation Wing</div>
+        </div>
+
+        <div class="form-group" style="margin-bottom:1rem;">
+          <label class="form-label" style="font-weight:600;font-size:0.84rem;margin-bottom:4px;display:block;">Current Sprint / Milestone Progress</label>
+          <select id="project-milestone-select" class="form-select" required style="width:100%;padding:0.6rem;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg);color:var(--text);">
+            <option value="Phase 3: Model Fine-Tuning (75% Complete)" selected>Phase 3: Model Fine-Tuning & Live Feedback (75%)</option>
+            <option value="Phase 4: Dashboard Integration & UI Optimization (85%)">Phase 4: Dashboard Integration & UI Optimization (85%)</option>
+            <option value="Phase 5: Capstone Verification & Final Report (95%)">Phase 5: Capstone Verification & Final Report (95%)</option>
+          </select>
+        </div>
+
+        <div class="form-group" style="margin-bottom:1rem;">
+          <label class="form-label" style="font-weight:600;font-size:0.84rem;margin-bottom:4px;display:block;">Code Repository / Git Commit Link</label>
+          <input type="text" id="project-repo-link" class="form-input" placeholder="e.g. github.com/user/AI-Emotional-Analyzer-SP (branch abhinav)" value="https://github.com/OVSSVARUN-2007/AI-Emotional-Analyzer-SP" required style="width:100%;padding:0.6rem;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg);color:var(--text);">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" style="font-weight:600;font-size:0.84rem;margin-bottom:4px;display:block;">Sprint Summary / Blockers for Mentor</label>
+          <textarea id="project-progress-summary" rows="3" class="form-textarea" placeholder="Summarize achievements (e.g. BERT tokenizer integration, sentiment distribution charts, Bixi AI fixes) and any technical challenges..." required style="width:100%;padding:0.6rem;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg);color:var(--text);font-family:inherit;">Completed neural network model validation and enhanced the responsive navigation search tool. Awaiting Dr. Panda's feedback for Friday's review.</textarea>
+        </div>
+      </div>
+      <div class="custom-modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="closeProjectProgressModal()">Cancel</button>
+        <button type="submit" class="btn btn-primary" style="background:#10b981;border-color:#10b981;">Submit to Mentor</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════
+     MODAL: SEND MESSAGE TO MENTOR
+     ═══════════════════════════════════════════════════════ -->
+<div class="custom-modal-backdrop" id="modal-message-mentor" onclick="if(event.target===this)closeMessageMentorModal()">
+  <div class="custom-modal-content">
+    <div class="custom-modal-header">
+      <h3 style="font-size:1.15rem;font-weight:700;color:var(--text);margin:0;" id="message-mentor-title">Send Direct Message to Mentor</h3>
+      <button class="icon-btn" onclick="closeMessageMentorModal()" style="border:none;background:none;font-size:20px;cursor:pointer;">&times;</button>
+    </div>
+    <form id="form-message-mentor" onsubmit="submitMentorMessage(event)">
+      <input type="hidden" id="message-mentor-type" value="academic">
+      <div class="custom-modal-body">
+        <div id="message-mentor-info" style="padding:0.75rem 1rem;background:var(--bg-subtle);border-radius:var(--radius-sm);font-size:0.85rem;color:var(--text);border-left:3px solid var(--primary);margin-bottom:1rem;">
+          <div style="font-weight:700;" id="message-mentor-name">Dr. Ramesh Ponnala</div>
+          <div style="font-size:0.8rem;color:var(--muted);" id="message-mentor-details">Cabin B-304 · Visiting Hours: Mon/Wed/Fri 2:30-4:30 PM</div>
+        </div>
+
+        <div class="form-group" style="margin-bottom:1rem;">
+          <label class="form-label" style="font-weight:600;font-size:0.84rem;margin-bottom:4px;display:block;">Subject / Query Type</label>
+          <input type="text" id="message-mentor-subject" class="form-input" placeholder="e.g. Query regarding Mid-term Assignment 2" required style="width:100%;padding:0.6rem;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg);color:var(--text);">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" style="font-weight:600;font-size:0.84rem;margin-bottom:4px;display:block;">Message Content</label>
+          <textarea id="message-mentor-body" rows="4" class="form-textarea" placeholder="Write your message to your mentor..." required style="width:100%;padding:0.6rem;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg);color:var(--text);font-family:inherit;"></textarea>
+        </div>
+      </div>
+      <div class="custom-modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="closeMessageMentorModal()">Cancel</button>
+        <button type="submit" class="btn btn-primary">Send Message</button>
+      </div>
+    </form>
+  </div>
+</div>
 
 <!-- ═══════════════════════════════════════════════════════
      MODAL: RESOLVE / UPDATE COMPLAINT ACTION

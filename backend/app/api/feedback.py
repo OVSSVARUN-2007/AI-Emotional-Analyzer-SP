@@ -203,6 +203,58 @@ def get_allotted_subjects(
     }
 
 
+@router.get("/student-mentors", summary="Fetch official academic and special project mentors for a student")
+def get_student_mentors(
+    student_id: Optional[int] = Query(None, description="Student ID"),
+    semester: Optional[int] = Query(5, description="Student Semester"),
+    class_section: Optional[str] = Query("Class 3A", description="Student Section"),
+):
+    """Returns assigned Academic Mentor and Special Project Mentor with cabin and research info."""
+    return {
+        "student_name": "Arunn Reddy",
+        "class_section": class_section or "Class 3A",
+        "semester": semester or 5,
+        "academic_mentor": {
+            "name": "Dr. Ramesh Ponnala",
+            "type": "ACADEMIC",
+            "role_title": "Academic Mentor & Counselor",
+            "department": "Department of Computer Science & Engineering",
+            "designation": "Associate Professor & Faculty Advisor",
+            "subject": "Object-Oriented Programming (OOP) & Advanced Data Structures",
+            "cabin_no": "Tech Block-B, Cabin B-304 (3rd Floor)",
+            "email": "ramesh.ponnala@faculty.university.edu",
+            "phone": "+91 (040) 2345-3042 (Ext: 304)",
+            "visiting_hours": "Mon, Wed, Fri: 2:30 PM - 4:30 PM",
+            "focus_areas": "Semester-V Curriculum Progression, Attendance Tracking, Electives Advisory",
+            "student_attendance": "92.4%",
+            "student_cgpa": "8.92",
+            "next_consultation": "Wednesday, Nov 5, 2026 (Cabin B-304)"
+        },
+        "project_mentor": {
+            "name": "Dr. Sandeep Kumar Panda",
+            "type": "SPECIAL_PROJECT",
+            "role_title": "Special Project Mentor & Capstone Guide",
+            "department": "School of Artificial Intelligence & Emerging Tech",
+            "designation": "Professor & Research Project Director",
+            "subject": "Natural Language Processing, Deep Learning & Sentiment Mining",
+            "cabin_no": "Innovation & Research Wing, Cabin R-412 (4th Floor)",
+            "email": "sandeep.panda@faculty.university.edu",
+            "phone": "+91 (040) 2345-4120 (Ext: 412)",
+            "visiting_hours": "Tue, Thu: 11:00 AM - 1:00 PM | Sat: 10:00 AM - 12:00 PM",
+            "project_title": "AI-Powered Real-Time Student Emotional Analyzer & Feedback Portal",
+            "project_id": "PRJ-2026-AI09",
+            "project_domain": "NLP, Transformer Models (BERT/BiLSTM), Multi-Emotion Sentiment Mining",
+            "project_phase": "Phase 3: Model Fine-Tuning & Multi-Section Live Testing (75% Complete)",
+            "next_review": "Friday, Nov 7, 2026 at 11:30 AM (Cabin R-412)",
+            "deliverables": [
+                "Real-time feedback sentiment scoring & emotion classification (Joy, Sadness, etc.)",
+                "Faculty workload spike alerting & burnout prevention",
+                "Privacy-preserving anonymous student submission gateway"
+            ]
+        }
+    }
+
+
 
 @router.get("/courses", summary="Get all subjects, course codes, departments, and faculty ICs")
 def get_all_courses(
