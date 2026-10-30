@@ -997,13 +997,26 @@ body:has(#auth-page:not([style*="display: none"])) #bixi-widget {
   display: none !important;
 }
 
+/* ── BIXI AI ASSISTANT: STRICTLY HIDDEN BEFORE LOGIN ── */
+.bixi-widget,
+.bixi-chat-panel {
+  display: none !important;
+}
+
+.app-shell.active .bixi-widget {
+  display: flex !important;
+}
+
+.app-shell.active .bixi-chat-panel.open {
+  display: flex !important;
+}
+
 .bixi-widget {
   position: fixed;
   bottom: 26px;
   right: 26px;
   z-index: 9999;
   font-family: var(--font, 'Inter', system-ui, sans-serif);
-  display: flex;
   flex-direction: column;
   align-items: flex-end;
   pointer-events: none;
@@ -2979,13 +2992,9 @@ body:has(#auth-page:not([style*="display: none"])) #bixi-widget {
 
     </div>
   </div>
-</div>
-
-<!-- Toast -->
-<div class="toast" id="toast"></div>
 
 
-<!-- ═══════════════════════════════════════════════════════
+  <!-- ═══════════════════════════════════════════════════════
      BIXI AI ASSISTANT (Floating Widget, Bubble & Chat)
      ═══════════════════════════════════════════════════════ -->
 <div class="bixi-widget" id="bixi-widget" style="display:none;" aria-label="Bixi AI Assistant">
@@ -3072,6 +3081,12 @@ body:has(#auth-page:not([style*="display: none"])) #bixi-widget {
     </form>
   </div>
 </div>
+
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
 
 <script>
 /* ═══════════════════════════════════════════════════════
@@ -3215,8 +3230,9 @@ function quickFillLogin(email, password) {
 function enterDashboard() {
   document.getElementById('auth-page').style.display = 'none';
   document.getElementById('app-shell').classList.add('active');
-  const bixiWidget = document.getElementById('bixi-widget');
-  if (bixiWidget) bixiWidget.style.display = 'flex';
+  if (typeof Bixi !== 'undefined' && Bixi.init) {
+    Bixi.init();
+  }
 
   const role = (currentUser.role || '').toUpperCase();
   const isStudent = role === 'STUDENT';
@@ -3264,8 +3280,10 @@ function logout() {
   currentUser = null;
   document.getElementById('app-shell').classList.remove('active');
   document.getElementById('auth-page').style.display = 'flex';
-  const bixiWidget = document.getElementById('bixi-widget');
-  if (bixiWidget) bixiWidget.style.display = 'none';
+  if (typeof Bixi !== 'undefined') {
+    if (Bixi.rotationTimer) clearInterval(Bixi.rotationTimer);
+    if (Bixi.closeChat) Bixi.closeChat();
+  }
   showLogin();
 }
 
@@ -3908,8 +3926,10 @@ async function populateClassFilters() {
     } catch { /* fall through to login */ }
   }
   document.getElementById('auth-page').style.display = 'flex';
-  const bixiWidget = document.getElementById('bixi-widget');
-  if (bixiWidget) bixiWidget.style.display = 'none';
+  if (typeof Bixi !== 'undefined') {
+    if (Bixi.rotationTimer) clearInterval(Bixi.rotationTimer);
+    if (Bixi.closeChat) Bixi.closeChat();
+  }
   populateClassFilters();
 })();
 
@@ -4115,11 +4135,17 @@ const Bixi = {
   }
 };
 
-// Initialize Bixi on page load
+// Initialize Bixi ONLY after login
 if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', () => Bixi.init());
+  document.addEventListener('DOMContentLoaded', () => {
+    if (currentUser && document.getElementById('app-shell') && document.getElementById('app-shell').classList.contains('active')) {
+      Bixi.init();
+    }
+  });
 } else {
-  Bixi.init();
+  if (currentUser && document.getElementById('app-shell') && document.getElementById('app-shell').classList.contains('active')) {
+    Bixi.init();
+  }
 }
 
 
