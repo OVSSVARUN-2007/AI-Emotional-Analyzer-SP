@@ -373,9 +373,9 @@ def get_class_summary(
         neu_count = sum(1 for r in rows if (r[4] or "").upper() in ("NEUTRAL", "MIXED"))
         neg_count = sum(1 for r in rows if (r[4] or "").upper() == "NEGATIVE")
 
-        pos_pct = round((pos_count / total * 100)) if total > 0 else 78
-        neu_pct = round((neu_count / total * 100)) if total > 0 else 12
-        neg_pct = round((neg_count / total * 100)) if total > 0 else 10
+        pos_pct = round((pos_count / total * 100)) if total > 0 else 0
+        neu_pct = round((neu_count / total * 100)) if total > 0 else 0
+        neg_pct = round((neg_count / total * 100)) if total > 0 else 0
 
         emotion_map = {"satisfaction": 0, "frustration": 0, "confusion": 0}
         for r in rows:
@@ -390,24 +390,25 @@ def get_class_summary(
                 emotion_map["satisfaction"] += 1
 
         em_total = sum(emotion_map.values())
-        satisfaction_pct = round(emotion_map["satisfaction"] / em_total * 100) if em_total > 0 else 62
-        frustration_pct = round(emotion_map["frustration"] / em_total * 100) if em_total > 0 else 18
-        confusion_pct = 100 - satisfaction_pct - frustration_pct if em_total > 0 else 20
+        satisfaction_pct = round(emotion_map["satisfaction"] / em_total * 100) if em_total > 0 else 0
+        frustration_pct = round(emotion_map["frustration"] / em_total * 100) if em_total > 0 else 0
+        confusion_pct = 100 - satisfaction_pct - frustration_pct if em_total > 0 else 0
         if confusion_pct < 0:
             confusion_pct = 0
 
-        if satisfaction_pct >= 50:
+        cls_label = class_section if (class_section and class_section != "ALL") else "All Classes"
+        if total == 0:
+            primary_emotion = "Awaiting Submissions"
+            action_needed = f"No feedback submitted yet for {cls_label}"
+        elif satisfaction_pct >= 50:
             primary_emotion = "Satisfaction / Clarity"
+            action_needed = f"Pacing steady in {cls_label} — High student satisfaction"
         elif frustration_pct > confusion_pct:
             primary_emotion = "High Workload / Frustration"
+            action_needed = f"High workload flagged in {cls_label} — Review assignments"
         else:
             primary_emotion = "Pacing Confusion"
-
-        cls_label = class_section if (class_section and class_section != "ALL") else "All Classes"
-        if neg_count > 0 or frustration_pct > 25:
-            action_needed = f"High workload flagged in {cls_label} — Review Assignment 2"
-        else:
-            action_needed = f"Pacing steady in {cls_label} — High student satisfaction"
+            action_needed = f"Pacing confusion in {cls_label} — Clarification recommended"
 
         fb_ids = [r[0] for r in rows]
         topic_counts = {"Lectures": 0, "Assignments": 0, "Pace": 0, "Exams": 0}
@@ -821,15 +822,17 @@ def get_notifications(
                     "complaint_id": c[0]
                 })
 
-        # 3. Workload alert
-        notifs.append({
-            "id": "alert-workload",
-            "type": "ALERT",
-            "title": "Action Needed: High Workload",
-            "message": "Heavy workload flagged across classes for Assignment 2 & Midterms.",
-            "time": "Today",
-            "request_id": None
-        })
+        # 3. Workload alert - only triggered dynamically if negative feedback or active high complaints exist
+        neg_count = conn.execute(text("SELECT COUNT(*) FROM predictions WHERE UPPER(sentiment) = 'NEGATIVE'")).scalar() or 0
+        if neg_count >= 3:
+            notifs.append({
+                "id": "alert-workload",
+                "type": "ALERT",
+                "title": "Action Needed: Elevated Negative Feedback",
+                "message": f"Elevated negative feedback ({neg_count} items) detected. Faculty review advised.",
+                "time": "Today",
+                "request_id": None
+            })
 
     return {"notifications": notifs, "unread_count": len(notifs)}
 

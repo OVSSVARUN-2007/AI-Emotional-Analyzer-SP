@@ -31,17 +31,32 @@ def test_database_health():
 
 
 def test_get_existing_feedback():
-    response = client.get("/feedback/5")
+    # Submit a feedback first to test retrieval and analysis
+    create_payload = {
+        "student_id": 1,
+        "offering_id": 1,
+        "feedback_text": "The graph algorithm explanations and visualization slides made difficult concepts much simpler to grasp.",
+        "is_anonymous": True,
+        "semester": 5,
+        "class_section": "Class 3A",
+        "course_code": "AI501",
+        "course_name": "Natural Language Processing"
+    }
+    create_res = client.post("/feedback/", json=create_payload)
+    assert create_res.status_code == 200
+    created_id = create_res.json()["feedback"]["feedback_id"]
+
+    response = client.get(f"/feedback/{created_id}")
 
     assert response.status_code == 200
 
     data = response.json()
 
-    assert data["feedback"]["feedback_id"] == 5
+    assert data["feedback"]["feedback_id"] == created_id
     assert data["feedback"]["status"] == "ANALYZED"
 
     assert data["prediction"] is not None
-    assert data["prediction"]["feedback_id"] == 5
+    assert data["prediction"]["feedback_id"] == created_id
 
     assert isinstance(data["aspects"], list)
 

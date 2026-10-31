@@ -237,54 +237,27 @@ if engine is None:
                 ('Rahul Verma', 'rahul@univ.edu', '2024-AI-077', 5, 'Class 3B', 'AI & Data Science'),
                 ('Ananya Sen', 'ananya@univ.edu', '2026-CS-005', 1, 'Class 1A', 'Computer Science');
             """))
-
-        # Ensure feedback rows 1 to 5 exist for test compatibility and class-wise analytics
-        fb5 = conn.execute(text("SELECT feedback_id FROM feedback WHERE feedback_id = 5")).fetchone()
-        if not fb5:
-            conn.execute(text("""
-                INSERT OR REPLACE INTO feedback (
-                    feedback_id, student_id, offering_id, feedback_text, status, is_anonymous,
-                    semester, class_section, course_code, course_name
-                ) VALUES (
-                    5, 2, 9,
-                    'The graph algorithm explanations and visualization slides made difficult concepts much simpler to grasp.',
-                    'ANALYZED', 1, 3, 'Class 2A', 'CS201', 'Data Structures & Algorithms'
-                );
-            """))
-            conn.execute(text("""
-                INSERT OR REPLACE INTO predictions (
-                    prediction_id, feedback_id, model_version_id, sentiment, sentiment_confidence,
-                    emotion, emotion_confidence
-                ) VALUES (
-                    5, 5, 1, 'POSITIVE', 0.95, 'satisfaction', 0.92
-                );
-            """))
-            conn.execute(text("""
-                INSERT INTO feedback_aspects (feedback_id, aspect, aspect_sentiment, confidence) VALUES
-                (5, 'Teaching', 'POSITIVE', 0.95),
-                (5, 'Materials', 'POSITIVE', 0.91);
-            """))
-
-        # Update initial feedbacks to have proper class and semester
+        # Ensure complaints table exists
         conn.execute(text("""
-            UPDATE feedback SET semester = 5, class_section = 'Class 3A', course_code = 'AI501', course_name = 'Natural Language Processing'
-            WHERE feedback_id = 1;
-        """))
-        conn.execute(text("""
-            UPDATE feedback SET semester = 5, class_section = 'Class 3A', course_code = 'AI502', course_name = 'Machine Learning'
-            WHERE feedback_id = 2;
-        """))
-        conn.execute(text("""
-            UPDATE feedback SET semester = 5, class_section = 'Class 3B', course_code = 'AI501', course_name = 'Natural Language Processing'
-            WHERE feedback_id = 3;
-        """))
-        conn.execute(text("""
-            UPDATE feedback SET semester = 5, class_section = 'Class 3A', course_code = 'CS501', course_name = 'Computer Networks'
-            WHERE feedback_id = 4;
+            CREATE TABLE IF NOT EXISTS complaints (
+                complaint_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                student_name VARCHAR(100) DEFAULT 'Anonymous Student',
+                student_roll VARCHAR(50) DEFAULT 'N/A',
+                course_code VARCHAR(30) NOT NULL,
+                course_name VARCHAR(150) NOT NULL,
+                faculty_name VARCHAR(100) DEFAULT 'Faculty In-Charge',
+                class_section VARCHAR(50) DEFAULT 'Section A',
+                category VARCHAR(50) DEFAULT 'General Issue',
+                severity VARCHAR(20) DEFAULT 'MEDIUM',
+                title VARCHAR(200) NOT NULL,
+                description TEXT NOT NULL,
+                status VARCHAR(20) DEFAULT 'PENDING',
+                action_taken TEXT DEFAULT '',
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                resolved_at DATETIME
+            );
         """))
 
-
-        
         # Ensure feedback_requests table exists
         conn.execute(text("""
             CREATE TABLE IF NOT EXISTS feedback_requests (
