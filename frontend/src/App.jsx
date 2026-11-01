@@ -1353,6 +1353,96 @@ function Auth({ onAuthenticated, addToast }) {
               : 'Enter your registered email address or roll number to receive a 6-digit reset code.'}
           </p>
 
+          {/* Quick 1-Click Login Bypass */}
+          <div style={{
+            background: 'rgba(99, 102, 241, 0.08)',
+            border: '1px solid rgba(99, 102, 241, 0.25)',
+            borderRadius: '12px',
+            padding: '12px',
+            marginBottom: '18px',
+            textAlign: 'center'
+          }}>
+            <div style={{ fontSize: '0.78rem', fontWeight: 700, color: '#818cf8', marginBottom: '8px', letterSpacing: '0.5px' }}>
+              ⚡ ONE-CLICK BYPASS LOGIN (NO PASSWORD NEEDED)
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
+              <button
+                type="button"
+                style={{
+                  padding: '8px 4px',
+                  fontSize: '0.78rem',
+                  borderRadius: '8px',
+                  border: '1px solid rgba(99, 102, 241, 0.3)',
+                  background: 'rgba(99, 102, 241, 0.18)',
+                  color: '#e0e7ff',
+                  cursor: 'pointer',
+                  fontWeight: 600
+                }}
+                onClick={() => onAuthenticated({
+                  user_id: 1,
+                  student_id: 1,
+                  name: 'Arunn Reddy',
+                  roll_no: '2024-AI-042',
+                  email: 'student@univ.edu',
+                  role: 'STUDENT',
+                  semester: 5,
+                  class_section: 'Class 3A'
+                }, 'dev-bypass-token')}
+              >
+                🎓 Student
+              </button>
+              <button
+                type="button"
+                style={{
+                  padding: '8px 4px',
+                  fontSize: '0.78rem',
+                  borderRadius: '8px',
+                  border: '1px solid rgba(16, 185, 129, 0.3)',
+                  background: 'rgba(16, 185, 129, 0.18)',
+                  color: '#d1fae5',
+                  cursor: 'pointer',
+                  fontWeight: 600
+                }}
+                onClick={() => onAuthenticated({
+                  user_id: 2,
+                  name: 'Dr. A. Sharma',
+                  roll_no: 'FACULTY-001',
+                  email: 'faculty@univ.edu',
+                  role: 'FACULTY',
+                  department: 'Science & Technology',
+                  semester: 5,
+                  class_section: 'Class 3A'
+                }, 'dev-bypass-token')}
+              >
+                👨‍🏫 Faculty
+              </button>
+              <button
+                type="button"
+                style={{
+                  padding: '8px 4px',
+                  fontSize: '0.78rem',
+                  borderRadius: '8px',
+                  border: '1px solid rgba(245, 158, 11, 0.3)',
+                  background: 'rgba(245, 158, 11, 0.18)',
+                  color: '#fef3c7',
+                  cursor: 'pointer',
+                  fontWeight: 600
+                }}
+                onClick={() => onAuthenticated({
+                  user_id: 3,
+                  name: 'Dean Academics',
+                  roll_no: 'ADMIN-001',
+                  email: 'admin@univ.edu',
+                  role: 'ADMIN',
+                  semester: 5,
+                  class_section: 'Class 3A'
+                }, 'dev-bypass-token')}
+              >
+                🛡️ Dean/Admin
+              </button>
+            </div>
+          </div>
+
           <form onSubmit={handleSubmit} className="auth-form-body">
             {mode === 'register' && (
               <>
@@ -2366,7 +2456,7 @@ function BoxBreathingGuide() {
 // ═══════════════════════════════════════════════════════
 // STUDENT DASHBOARD (NORMAL VIEW)
 // ═══════════════════════════════════════════════════════
-function StudentDashboard({ user, token, onLogout, addToast, onUserUpdated }) {
+function StudentDashboard({ user, token, onLogout, onSwitchRole, addToast, onUserUpdated }) {
   const [profileModalOpen, setProfileModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('submit');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -3042,6 +3132,50 @@ function StudentDashboard({ user, token, onLogout, addToast, onUserUpdated }) {
               </div>
             </button>
 
+            {onSwitchRole && (
+              <select
+                className="role-switcher-select"
+                value={user.role}
+                onChange={(e) => onSwitchRole(e.target.value)}
+                style={{
+                  padding: '6px 10px',
+                  borderRadius: '8px',
+                  background: 'rgba(99, 102, 241, 0.12)',
+                  border: '1px solid rgba(99, 102, 241, 0.3)',
+                  color: '#e0e7ff',
+                  fontSize: '0.8rem',
+                  fontWeight: 600,
+                  cursor: 'pointer'
+                }}
+                title="Bypass & Switch Role"
+              >
+                <option value="STUDENT" style={{ background: '#1e1b4b', color: '#fff' }}>🎓 Student</option>
+                <option value="FACULTY" style={{ background: '#1e1b4b', color: '#fff' }}>👨‍🏫 Faculty</option>
+                <option value="ADMIN" style={{ background: '#1e1b4b', color: '#fff' }}>🛡️ Dean/Admin</option>
+              </select>
+            )}
+            {onSwitchRole && (
+              <select
+                className="role-switcher-select"
+                value={user.role}
+                onChange={(e) => onSwitchRole(e.target.value)}
+                style={{
+                  padding: '6px 10px',
+                  borderRadius: '8px',
+                  background: 'rgba(99, 102, 241, 0.12)',
+                  border: '1px solid rgba(99, 102, 241, 0.3)',
+                  color: '#e0e7ff',
+                  fontSize: '0.8rem',
+                  fontWeight: 600,
+                  cursor: 'pointer'
+                }}
+                title="Bypass & Switch Role"
+              >
+                <option value="STUDENT" style={{ background: '#1e1b4b', color: '#fff' }}>🎓 Student</option>
+                <option value="FACULTY" style={{ background: '#1e1b4b', color: '#fff' }}>👨‍🏫 Faculty</option>
+                <option value="ADMIN" style={{ background: '#1e1b4b', color: '#fff' }}>🛡️ Dean/Admin</option>
+              </select>
+            )}
             <button type="button" className="logout-btn" onClick={onLogout} title="Sign Out">
               <LogOut size={16} /> Sign Out
             </button>
@@ -4319,7 +4453,7 @@ function StudentDashboard({ user, token, onLogout, addToast, onUserUpdated }) {
 // ═══════════════════════════════════════════════════════
 // ADMIN DASHBOARD (EXECUTIVE & FACULTY VIEW)
 // ═══════════════════════════════════════════════════════
-function AdminDashboard({ user, token, onLogout, addToast, onUserUpdated }) {
+function AdminDashboard({ user, token, onLogout, onSwitchRole, addToast, onUserUpdated }) {
   const [profileModalOpen, setProfileModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -7944,14 +8078,37 @@ export default function App() {
   const [user, setUser] = useState(() => {
     try {
       const stored = localStorage.getItem('sentio_user') || localStorage.getItem('feedback_user');
-      return stored ? JSON.parse(stored) : null;
+      if (stored) return JSON.parse(stored);
+      // Auto-bypass login by default (Student: Arunn Reddy)
+      const defaultUser = {
+        user_id: 1,
+        student_id: 1,
+        name: 'Arunn Reddy',
+        roll_no: '2024-AI-042',
+        email: 'student@univ.edu',
+        role: 'STUDENT',
+        semester: 5,
+        class_section: 'Class 3A',
+      };
+      localStorage.setItem('sentio_user', JSON.stringify(defaultUser));
+      localStorage.setItem('sentio_token', 'dev-bypass-token');
+      return defaultUser;
     } catch {
-      return null;
+      return {
+        user_id: 1,
+        student_id: 1,
+        name: 'Arunn Reddy',
+        roll_no: '2024-AI-042',
+        email: 'student@univ.edu',
+        role: 'STUDENT',
+        semester: 5,
+        class_section: 'Class 3A',
+      };
     }
   });
 
   const [token, setToken] = useState(() => {
-    return localStorage.getItem('sentio_token') || null;
+    return localStorage.getItem('sentio_token') || 'dev-bypass-token';
   });
 
   const [toasts, setToasts] = useState([]);
@@ -7965,9 +8122,54 @@ export default function App() {
     setToasts((prev) => prev.filter((t) => t.id !== id));
   }, []);
 
+  const handleSwitchRole = (targetRole) => {
+    let newUser;
+    if (targetRole === 'STUDENT') {
+      newUser = {
+        user_id: 1,
+        student_id: 1,
+        name: 'Arunn Reddy',
+        roll_no: '2024-AI-042',
+        email: 'student@univ.edu',
+        role: 'STUDENT',
+        semester: 5,
+        class_section: 'Class 3A',
+      };
+    } else if (targetRole === 'FACULTY') {
+      newUser = {
+        user_id: 2,
+        name: 'Dr. A. Sharma',
+        roll_no: 'FACULTY-001',
+        email: 'faculty@univ.edu',
+        role: 'FACULTY',
+        department: 'Science & Technology',
+        semester: 5,
+        class_section: 'Class 3A',
+      };
+    } else {
+      newUser = {
+        user_id: 3,
+        name: 'Dean Academics',
+        roll_no: 'ADMIN-001',
+        email: 'admin@univ.edu',
+        role: 'ADMIN',
+        semester: 5,
+        class_section: 'Class 3A',
+      };
+    }
+    setUser(newUser);
+    localStorage.setItem('sentio_user', JSON.stringify(newUser));
+    localStorage.setItem('feedback_user', JSON.stringify(newUser));
+    addToast({
+      title: 'Switched Role',
+      message: `Bypassed to ${newUser.name} (${newUser.role})`,
+      type: 'info',
+    });
+  };
+
   const handleAuthenticated = (userData, userToken) => {
     setUser(userData);
-    setToken(userToken);
+    setToken(userToken || 'dev-bypass-token');
     addToast({
       title: 'Welcome to Sentio',
       message: `Signed in as ${userData.name} (${userData.role})`,
@@ -8005,6 +8207,7 @@ export default function App() {
           user={user}
           token={token}
           onLogout={handleLogout}
+          onSwitchRole={handleSwitchRole}
           addToast={addToast}
           onUserUpdated={handleUserUpdated}
         />
@@ -8013,6 +8216,7 @@ export default function App() {
           user={user}
           token={token}
           onLogout={handleLogout}
+          onSwitchRole={handleSwitchRole}
           addToast={addToast}
           onUserUpdated={handleUserUpdated}
         />
