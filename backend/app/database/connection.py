@@ -1,3 +1,4 @@
+import json
 import os
 from pathlib import Path
 from dotenv import load_dotenv
@@ -63,6 +64,12 @@ if engine is None:
             ("class_section", "VARCHAR(50) DEFAULT 'Class 3A'"),
             ("course_code", "VARCHAR(30) DEFAULT 'AI501'"),
             ("course_name", "VARCHAR(150) DEFAULT 'Natural Language Processing'"),
+            ("upvotes", "INTEGER DEFAULT 0"),
+            ("acoustic_prosody", "TEXT"),
+            ("slide_image_url", "TEXT"),
+            ("slide_analysis", "TEXT"),
+            ("facial_emotion", "VARCHAR(30)"),
+            ("multilingual_lang", "VARCHAR(20) DEFAULT 'en'"),
         ]:
             if col_name not in fb_cols:
                 conn.execute(text(f"ALTER TABLE feedback ADD COLUMN {col_name} {col_type}"))
@@ -89,13 +96,65 @@ if engine is None:
             );
         """))
         conn.execute(text("""
+            CREATE TABLE IF NOT EXISTS feedback_responses (
+                response_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                feedback_id INTEGER NOT NULL,
+                responder_name VARCHAR(100) NOT NULL,
+                response_text TEXT NOT NULL,
+                status VARCHAR(30) DEFAULT 'ACTION_TAKEN',
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            );
+        """))
+        conn.execute(text("""
+            CREATE TABLE IF NOT EXISTS announcements (
+                announcement_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                title VARCHAR(180) NOT NULL,
+                message TEXT NOT NULL,
+                target_section VARCHAR(50) DEFAULT 'ALL',
+                author_name VARCHAR(100) NOT NULL,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            );
+        """))
+        conn.execute(text("""
+            CREATE TABLE IF NOT EXISTS complaints (
+                complaint_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                student_name VARCHAR(100),
+                student_roll VARCHAR(50),
+                course_code VARCHAR(50),
+                course_name VARCHAR(150),
+                faculty_name VARCHAR(100),
+                class_section VARCHAR(50),
+                category VARCHAR(50),
+                severity VARCHAR(20) DEFAULT 'MEDIUM',
+                title VARCHAR(200) NOT NULL,
+                description TEXT NOT NULL,
+                status VARCHAR(30) DEFAULT 'PENDING',
+                action_taken TEXT,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                resolved_at DATETIME
+            );
+        """))
+        conn.execute(text("""
+            CREATE TABLE IF NOT EXISTS model_versions (
+                model_version_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                model_name VARCHAR(100) NOT NULL,
+                model_type VARCHAR(50),
+                version_tag VARCHAR(50),
+                metrics TEXT,
+                is_active BOOLEAN DEFAULT 1,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            );
+        """))
+        conn.execute(text("""
             CREATE TABLE IF NOT EXISTS users (
                 user_id INTEGER PRIMARY KEY AUTOINCREMENT,
                 name VARCHAR(100) NOT NULL,
+                roll_no VARCHAR(50),
                 email VARCHAR(150) UNIQUE NOT NULL,
                 password_hash VARCHAR(255) NOT NULL,
                 role VARCHAR(20) NOT NULL,
                 is_active BOOLEAN DEFAULT 1,
+                is_verified BOOLEAN DEFAULT 1,
                 semester INTEGER DEFAULT 5,
                 class_section VARCHAR(50) DEFAULT 'Class 3A',
                 created_at DATETIME DEFAULT CURRENT_TIMESTAMP
@@ -104,11 +163,33 @@ if engine is None:
 
         user_cols = [r[1] for r in conn.execute(text("PRAGMA table_info(users)")).fetchall()]
         for col_name, col_type in [
+            ("roll_no", "VARCHAR(50)"),
+            ("is_verified", "BOOLEAN DEFAULT 1"),
             ("semester", "INTEGER DEFAULT 5"),
             ("class_section", "VARCHAR(50) DEFAULT 'Class 3A'"),
         ]:
             if col_name not in user_cols:
                 conn.execute(text(f"ALTER TABLE users ADD COLUMN {col_name} {col_type}"))
+
+        conn.execute(text("""
+            CREATE TABLE IF NOT EXISTS otps (
+                otp_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                email VARCHAR(150) NOT NULL,
+                otp_code VARCHAR(10) NOT NULL,
+                purpose VARCHAR(30) DEFAULT 'REGISTER',
+                expires_at DATETIME NOT NULL,
+                is_used BOOLEAN DEFAULT 0,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            );
+        """))
+
+        conn.execute(text("""
+            CREATE TABLE IF NOT EXISTS system_settings (
+                setting_key VARCHAR(100) PRIMARY KEY,
+                setting_value TEXT NOT NULL,
+                updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            );
+        """))
 
         conn.execute(text("""
             CREATE TABLE IF NOT EXISTS courses (
@@ -117,9 +198,23 @@ if engine is None:
                 course_name VARCHAR(150) NOT NULL,
                 credits INTEGER DEFAULT 4,
                 department_name VARCHAR(100) DEFAULT 'AI & Data Science',
-                semester INTEGER NOT NULL
+                program VARCHAR(50),
+                semester INTEGER NOT NULL,
+                exam_slot VARCHAR(100)
             );
         """))
+
+        # Upgrade databases created before official exam-schedule course data was
+        # added.  CREATE TABLE IF NOT EXISTS does not modify an existing schema.
+        course_cols = [r[1] for r in conn.execute(text("PRAGMA table_info(courses)")).fetchall()]
+        for col_name, col_type in [
+            ("program", "VARCHAR(50)"),
+            ("exam_slot", "VARCHAR(100)"),
+            ("course_type", "VARCHAR(50) DEFAULT 'Core'"),
+            ("syllabus_summary", "TEXT"),
+        ]:
+            if col_name not in course_cols:
+                conn.execute(text(f"ALTER TABLE courses ADD COLUMN {col_name} {col_type}"))
 
         conn.execute(text("""
             CREATE TABLE IF NOT EXISTS sections (
@@ -155,19 +250,156 @@ if engine is None:
             );
         """))
 
+        conn.execute(text("""
+            CREATE TABLE IF NOT EXISTS community_posts (
+                post_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                author_name VARCHAR(100) DEFAULT 'Anonymous Student',
+                author_role VARCHAR(20) DEFAULT 'STUDENT',
+                class_section VARCHAR(50) DEFAULT 'Class 3A',
+                category VARCHAR(50) DEFAULT 'CAMPUS_LIFE',
+                title VARCHAR(200) NOT NULL,
+                content TEXT NOT NULL,
+                upvotes INTEGER DEFAULT 1,
+                status VARCHAR(30) DEFAULT 'OPEN',
+                official_response TEXT,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            );
+        """))
+
+        conn.execute(text("""
+            CREATE TABLE IF NOT EXISTS community_upvotes (
+                upvote_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                post_id INTEGER NOT NULL,
+                user_identifier VARCHAR(100) NOT NULL,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            );
+        """))
+
+        conn.execute(text("""
+            CREATE TABLE IF NOT EXISTS remedial_lesson_plans (
+                plan_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                course_code VARCHAR(30) NOT NULL,
+                course_name VARCHAR(150) NOT NULL,
+                topic VARCHAR(100) NOT NULL,
+                confusion_rate FLOAT DEFAULT 0.45,
+                lesson_title VARCHAR(200),
+                recap_plan TEXT NOT NULL,
+                practice_questions TEXT,
+                curated_resources TEXT,
+                generated_by VARCHAR(50) DEFAULT 'Gemini 1.5 Flash',
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            );
+        """))
+
+        conn.execute(text("""
+            CREATE TABLE IF NOT EXISTS clarification_broadcasts (
+                broadcast_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                course_code VARCHAR(30) NOT NULL,
+                course_name VARCHAR(150) NOT NULL,
+                topic VARCHAR(100) NOT NULL,
+                faculty_name VARCHAR(100) NOT NULL,
+                title VARCHAR(200) NOT NULL,
+                message TEXT NOT NULL,
+                remedial_links TEXT,
+                target_section VARCHAR(50) DEFAULT 'ALL',
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            );
+        """))
+
+        conn.execute(text("""
+            CREATE TABLE IF NOT EXISTS study_pods (
+                pod_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                course_code VARCHAR(30) NOT NULL,
+                topic VARCHAR(100) NOT NULL,
+                pod_name VARCHAR(150) NOT NULL,
+                description TEXT,
+                max_members INTEGER DEFAULT 5,
+                current_members INTEGER DEFAULT 1,
+                guidance_prompt TEXT,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            );
+        """))
+
+        conn.execute(text("""
+            CREATE TABLE IF NOT EXISTS webhook_integrations (
+                integration_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                platform VARCHAR(50) DEFAULT 'SLACK',
+                webhook_url TEXT NOT NULL,
+                is_enabled BOOLEAN DEFAULT 1,
+                notify_critical_distress BOOLEAN DEFAULT 1,
+                notify_weekly_digest BOOLEAN DEFAULT 1,
+                updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            );
+        """))
+
+        conn.execute(text("""
+            CREATE TABLE IF NOT EXISTS semesters (
+                semester_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                semester_number INTEGER UNIQUE NOT NULL,
+                term_name VARCHAR(100) NOT NULL,
+                academic_year VARCHAR(50) DEFAULT '2026-2027',
+                is_active BOOLEAN DEFAULT 0,
+                start_date VARCHAR(50),
+                end_date VARCHAR(50),
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            );
+        """))
+
+        conn.execute(text("""
+            CREATE TABLE IF NOT EXISTS lectures (
+                lecture_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                offering_id INTEGER,
+                course_id INTEGER,
+                course_code VARCHAR(30) NOT NULL,
+                course_name VARCHAR(150) NOT NULL,
+                faculty_name VARCHAR(100) NOT NULL,
+                class_section VARCHAR(50) NOT NULL,
+                semester INTEGER NOT NULL,
+                day_of_week VARCHAR(20) NOT NULL,
+                start_time VARCHAR(20) NOT NULL,
+                end_time VARCHAR(20) NOT NULL,
+                room_number VARCHAR(50) DEFAULT 'Hall 301',
+                topic VARCHAR(200) NOT NULL,
+                lecture_type VARCHAR(50) DEFAULT 'Theory',
+                status VARCHAR(50) DEFAULT 'SCHEDULED',
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            );
+        """))
+
+        conn.execute(text("""
+            CREATE TABLE IF NOT EXISTS student_enrollments (
+                enrollment_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                student_id INTEGER NOT NULL,
+                course_id INTEGER NOT NULL,
+                semester INTEGER NOT NULL,
+                enrollment_type VARCHAR(50) DEFAULT 'Core',
+                status VARCHAR(50) DEFAULT 'ENROLLED',
+                enrolled_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE(student_id, course_id, semester)
+            );
+        """))
+
         user_count = conn.execute(text("SELECT COUNT(*) FROM users")).scalar()
         if user_count == 0:
             conn.execute(text("""
-                INSERT INTO users (name, email, password_hash, role, semester, class_section) VALUES
-                ('Arunn Reddy', 'student@univ.edu', 'pass123', 'STUDENT', 5, 'Class 3A'),
-                ('Dr. A. Sharma', 'faculty@univ.edu', 'pass123', 'FACULTY', 5, 'Class 3A'),
-                ('Dean Academics', 'admin@univ.edu', 'pass123', 'ADMIN', 5, 'Class 3A'),
-                ('Test Student', 'student@test.com', 'pass123', 'STUDENT', 5, 'Class 3A'),
-                ('Test Faculty', 'faculty@test.com', 'pass123', 'FACULTY', 5, 'Class 3A'),
-                ('Test Admin', 'admin@test.com', 'pass123', 'ADMIN', 5, 'Class 3A'),
-                ('Priya Patel', 'priya@univ.edu', 'pass123', 'STUDENT', 3, 'Class 2A'),
-                ('Rahul Verma', 'rahul@univ.edu', 'pass123', 'STUDENT', 5, 'Class 3B');
+                INSERT INTO users (name, roll_no, email, password_hash, role, semester, class_section, is_verified) VALUES
+                ('Arunn Reddy', '2024-AI-042', 'student@univ.edu', 'pass123', 'STUDENT', 5, 'Class 3A', 1),
+                ('Dr. A. Sharma', 'FACULTY-001', 'faculty@univ.edu', 'pass123', 'FACULTY', 5, 'Class 3A', 1),
+                ('Dean Academics', 'ADMIN-001', 'admin@univ.edu', 'pass123', 'ADMIN', 5, 'Class 3A', 1),
+                ('Test Student', 'TEST-AIDS-001', 'student@test.com', 'pass123', 'STUDENT', 5, 'Class 3A', 1),
+                ('Test Faculty', 'FACULTY-002', 'faculty@test.com', 'pass123', 'FACULTY', 5, 'Class 3A', 1),
+                ('Test Admin', 'ADMIN-002', 'admin@test.com', 'pass123', 'ADMIN', 5, 'Class 3A', 1),
+                ('Priya Patel', '2025-CS-018', 'priya@univ.edu', 'pass123', 'STUDENT', 3, 'Class 2A', 1),
+                ('Rahul Verma', '2024-AI-077', 'rahul@univ.edu', 'pass123', 'STUDENT', 5, 'Class 3B', 1);
             """))
+        else:
+            conn.execute(text("UPDATE users SET roll_no = '2024-AI-042', is_verified = 1 WHERE email = 'student@univ.edu' AND (roll_no IS NULL OR roll_no = '')"))
+            conn.execute(text("UPDATE users SET roll_no = '2025-CS-018', is_verified = 1 WHERE email = 'priya@univ.edu' AND (roll_no IS NULL OR roll_no = '')"))
+            conn.execute(text("UPDATE users SET roll_no = '2024-AI-077', is_verified = 1 WHERE email = 'rahul@univ.edu' AND (roll_no IS NULL OR roll_no = '')"))
+            conn.execute(text("UPDATE users SET roll_no = 'TEST-AIDS-001', is_verified = 1 WHERE email = 'student@test.com' AND (roll_no IS NULL OR roll_no = '')"))
+            conn.execute(text("UPDATE users SET roll_no = 'ADMIN-001', is_verified = 1 WHERE email IN ('admin@univ.edu', 'admin@test.com') AND (roll_no IS NULL OR roll_no = '')"))
+            conn.execute(text("UPDATE users SET roll_no = 'FACULTY-001', is_verified = 1 WHERE email IN ('faculty@univ.edu', 'faculty@test.com') AND (roll_no IS NULL OR roll_no = '')"))
+
 
         # Seed Courses
         course_count = conn.execute(text("SELECT COUNT(*) FROM courses")).scalar()
@@ -238,6 +470,43 @@ if engine is None:
                 ('Ananya Sen', 'ananya@univ.edu', '2026-CS-005', 1, 'Class 1A', 'Computer Science');
             """))
 
+        # Seed Semesters
+        sem_count = conn.execute(text("SELECT COUNT(*) FROM semesters")).scalar()
+        if sem_count == 0:
+            conn.execute(text("""
+                INSERT INTO semesters (semester_number, term_name, academic_year, is_active) VALUES
+                (1, 'Fall 2024', '2024-2025', 0),
+                (2, 'Spring 2025', '2024-2025', 0),
+                (3, 'Fall 2025', '2025-2026', 0),
+                (4, 'Spring 2026', '2025-2026', 0),
+                (5, 'Fall 2026', '2026-2027', 1),
+                (6, 'Spring 2027', '2026-2027', 0),
+                (7, 'Fall 2027', '2027-2028', 0),
+                (8, 'Spring 2028', '2027-2028', 0);
+            """))
+
+        # Seed Lectures & Class Timetable
+        lec_count = conn.execute(text("SELECT COUNT(*) FROM lectures")).scalar()
+        if lec_count == 0:
+            conn.execute(text("""
+                INSERT INTO lectures (course_code, course_name, faculty_name, class_section, semester, day_of_week, start_time, end_time, room_number, topic, lecture_type, status) VALUES
+                ('AI501', 'Natural Language Processing', 'Dr. A. Sharma', 'Class 3A', 5, 'Monday', '09:30 AM', '10:30 AM', 'Hall 301', 'Attention Mechanisms & Multi-Head Projections', 'Theory', 'SCHEDULED'),
+                ('AI502', 'Machine Learning', 'Prof. R. Menon', 'Class 3A', 5, 'Monday', '10:45 AM', '11:45 AM', 'Hall 301', 'Gradient Boosting & XGBoost Hyperparameters', 'Theory', 'SCHEDULED'),
+                ('AI501', 'Natural Language Processing Lab', 'Dr. A. Sharma', 'Class 3A', 5, 'Monday', '02:00 PM', '04:00 PM', 'AI Lab 4', 'PyTorch HuggingFace Tokenizers & Attention Matrices', 'Lab', 'SCHEDULED'),
+                ('CS501', 'Computer Networks', 'Dr. S. Nair', 'Class 3A', 5, 'Tuesday', '09:30 AM', '10:30 AM', 'Hall 301', 'TCP Congestion Control & Window Flow Mechanisms', 'Theory', 'SCHEDULED'),
+                ('CS502', 'Database Management Systems', 'Dr. K. Iyer', 'Class 3A', 5, 'Tuesday', '11:00 AM', '12:00 PM', 'Hall 301', 'ACID Transactions & Two-Phase Locking Protocol', 'Theory', 'SCHEDULED'),
+                ('AI504', 'Deep Learning Architectures', 'Dr. A. Sharma', 'Class 3A', 5, 'Tuesday', '02:00 PM', '03:00 PM', 'Hall 302', 'Transformer Attention vs Recurrent Memory Blocks', 'Theory', 'SCHEDULED'),
+                ('AI501', 'Natural Language Processing', 'Dr. A. Sharma', 'Class 3A', 5, 'Wednesday', '09:30 AM', '10:30 AM', 'Hall 301', 'Cross-Attention & Masked Language Modeling', 'Theory', 'SCHEDULED'),
+                ('AI502', 'Machine Learning', 'Prof. R. Menon', 'Class 3A', 5, 'Wednesday', '10:45 AM', '11:45 AM', 'Hall 301', 'Support Vector Machines & Kernel Tricks', 'Theory', 'SCHEDULED'),
+                ('DS302', 'Statistical Machine Learning', 'Dr. M. Sen', 'Class 3A', 5, 'Wednesday', '01:30 PM', '02:30 PM', 'Hall 204', 'Hypothesis Testing & p-Value Statistical Significance', 'Theory', 'SCHEDULED'),
+                ('CS501', 'Computer Networks', 'Dr. S. Nair', 'Class 3A', 5, 'Thursday', '10:00 AM', '11:00 AM', 'Hall 301', 'Border Gateway Protocol (BGP) & Autonomous Systems', 'Theory', 'SCHEDULED'),
+                ('CS502', 'Database Management Systems', 'Dr. K. Iyer', 'Class 3A', 5, 'Thursday', '11:15 AM', '12:15 PM', 'Hall 301', 'B+ Tree Indexing & Query Cost Optimization', 'Theory', 'SCHEDULED'),
+                ('AI502', 'ML Evaluation & Benchmarking Lab', 'Prof. R. Menon', 'Class 3A', 5, 'Thursday', '02:00 PM', '04:00 PM', 'Lab 2', 'Scikit-learn ROC-AUC & Confusion Matrix Curves', 'Lab', 'SCHEDULED'),
+                ('AI501', 'Natural Language Processing', 'Dr. A. Sharma', 'Class 3A', 5, 'Friday', '09:30 AM', '10:30 AM', 'Hall 301', 'Positional Encodings & Rotary RoPE Embeddings', 'Theory', 'SCHEDULED'),
+                ('AI504', 'Deep Learning Architectures', 'Dr. A. Sharma', 'Class 3A', 5, 'Friday', '10:45 AM', '11:45 AM', 'Hall 302', 'Backpropagation Through Time Matrix Chain Rule', 'Theory', 'SCHEDULED'),
+                ('AI505', 'AI Industry Seminar & Case Studies', 'Dean Academics', 'Class 3A', 5, 'Friday', '02:00 PM', '03:30 PM', 'Auditorium', 'Production LLM Serving: KV Cache & Latency', 'Seminar', 'SCHEDULED');
+            """))
+
         # Ensure feedback rows 1 to 5 exist for test compatibility and class-wise analytics
         fb5 = conn.execute(text("SELECT feedback_id FROM feedback WHERE feedback_id = 5")).fetchone()
         if not fb5:
@@ -302,6 +571,17 @@ if engine is None:
             );
         """))
 
+        conn.execute(text("""
+            CREATE TABLE IF NOT EXISTS poll_votes (
+                vote_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                request_id INTEGER NOT NULL,
+                option_index INTEGER NOT NULL,
+                option_text VARCHAR(150),
+                student_id INTEGER DEFAULT 1,
+                voted_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            );
+        """))
+
         # Ensure faculty table exists
         conn.execute(text("""
             CREATE TABLE IF NOT EXISTS faculty (
@@ -341,6 +621,103 @@ if engine is None:
                 INSERT OR IGNORE INTO faculty (name, department, email)
                 VALUES (:name, 'Faculty of Science & Technology', :email)
             """), {"name": fac_name, "email": clean_email})
+
+        # Seed sample complaints if empty
+        complaint_count = conn.execute(text("SELECT COUNT(*) FROM complaints")).scalar()
+        if complaint_count == 0:
+            conn.execute(text("""
+                INSERT INTO complaints (
+                    student_name, student_roll, course_code, course_name, faculty_name,
+                    class_section, category, severity, title, description, status, action_taken, created_at
+                ) VALUES (
+                    'Arunn Reddy', '2024-AI-042', 'AI501', 'Natural Language Processing', 'Dr. A. Sharma',
+                    'Class 3A', 'Assignments', 'HIGH', 'Assignment 2 Deadline Clashing with Mid-Term Exam',
+                    'The NLP assignment deadline is on the same afternoon as the Mid-Term exam. Requesting a 3-day extension.',
+                    'IN_REVIEW', 'Faculty notified to evaluate extension schedule.', datetime('now', '-2 days')
+                ), (
+                    'Priya Patel', '2025-CS-018', 'CS201', 'Data Structures & Algorithms', 'Dr. A. Sharma',
+                    'Class 2A', 'Lab Infrastructure', 'MEDIUM', 'Lab Machine #14 PyTorch GPU Driver Mismatch',
+                    'CUDA runtime fails on workstation 14 during practical sessions.',
+                    'RESOLVED', 'Lab technician updated NVIDIA driver and CUDA toolkit.', datetime('now', '-4 days')
+                );
+            """))
+
+        # Seed default model version if empty
+        mv_count = conn.execute(text("SELECT COUNT(*) FROM model_versions")).scalar()
+        if mv_count == 0:
+            conn.execute(text("""
+                INSERT INTO model_versions (model_name, model_type, version_tag, is_active)
+                VALUES ('TF-IDF Sentiment & Emotion Suite', 'LogisticRegression', 'v1.0.0', 1);
+            """))
+
+        # Seed sample active pulse request if empty
+        req_count = conn.execute(text("SELECT COUNT(*) FROM feedback_requests")).scalar()
+        if req_count == 0:
+            sample_queries = json.dumps([
+                "How was the pace of today's lecture on Transformer Attention Mechanisms?",
+                "Too fast (Need recap)",
+                "Comfortable & clear",
+                "Too slow",
+                "Need more practical PyTorch code examples"
+            ])
+            conn.execute(text("""
+                INSERT INTO feedback_requests (
+                    request_id, faculty_name, course_code, course_name, target_section,
+                    allow_text, allow_rating, queries_json, status, created_at
+                ) VALUES (
+                    1, 'Dr. A. Sharma', 'AI501', 'Natural Language Processing', 'ALL',
+                    1, 1, :qjson, 'ACTIVE', datetime('now', '-1 hours')
+                );
+            """), {"qjson": sample_queries})
+
+            # Seed a couple of initial votes
+            conn.execute(text("""
+                INSERT INTO poll_votes (request_id, option_index, option_text, student_id) VALUES
+                (1, 1, 'Comfortable & clear', 1),
+                (1, 1, 'Comfortable & clear', 2),
+                (1, 3, 'Need more practical PyTorch code examples', 3);
+            """))
+
+        # Seed sample upvotes on initial feedbacks
+        conn.execute(text("UPDATE feedback SET upvotes = 12 WHERE feedback_id = 5"))
+        conn.execute(text("UPDATE feedback SET upvotes = 7 WHERE feedback_id = 1"))
+        conn.execute(text("UPDATE feedback SET upvotes = 4 WHERE feedback_id = 2"))
+
+        # Seed sample Community Posts (Campus Pulse & Upvoting)
+        comm_count = conn.execute(text("SELECT COUNT(*) FROM community_posts")).scalar()
+        if comm_count == 0:
+            conn.execute(text("""
+                INSERT INTO community_posts (author_name, author_role, class_section, category, title, content, upvotes, status, official_response) VALUES
+                ('Anonymous Student', 'STUDENT', 'Class 3A', 'ACADEMIC_WORKLOAD', 'Overlap between NLP Assignment 2 and Computer Vision Lab Midterm', 'Both major deliverables are scheduled for Thursday 11:59 PM. Can the lab submission be extended to Sunday to give us breathing room?', 24, 'UNDER_REVIEW', 'Dean Academics: We have notified the department chair to stagger the deadlines by 72 hours.'),
+                ('Anonymous Student', 'STUDENT', 'Class 3A', 'FACILITY', 'GPU Server Memory Constraints during Deep Learning Practicals', 'Several of us got CUDA Out of Memory errors during Tuesday lab session because shared allocated memory was capped at 4GB per container.', 18, 'ACTION_TAKEN', 'Systems Admin: Memory quotas increased to 12GB per student session.'),
+                ('Anonymous Student', 'STUDENT', 'Class 2A', 'PEDAGOGY', 'Request for recorded PyTorch code walkthroughs for Attention Mechanisms', 'The theoretical derivations in lecture were great, but we would really benefit from a step-by-step notebook review.', 15, 'RESOLVED', 'Dr. Sharma has posted a 15-minute supplementary Colab walkthrough in the course materials.');
+            """))
+
+        # Seed sample Clarification Broadcasts
+        broad_count = conn.execute(text("SELECT COUNT(*) FROM clarification_broadcasts")).scalar()
+        if broad_count == 0:
+            conn.execute(text("""
+                INSERT INTO clarification_broadcasts (course_code, course_name, topic, faculty_name, title, message, remedial_links, target_section) VALUES
+                ('AI501', 'Natural Language Processing', 'Self-Attention Scaling Factor (1/sqrt(d_k))', 'Dr. A. Sharma', 'Why We Scale by sqrt(d_k) in Transformer Attention', 'Several students expressed confusion regarding why dot products grow large for large dimensions d_k, pushing softmax into near-zero gradient regions. Attached is a quick 3-slide derivation and an interactive Colab snippet visualizing softmax temperature.', 'https://colab.research.google.com/drive/transformer-attention-math', 'ALL'),
+                ('DS306', 'Deep Learning', 'Vanishing Gradients in Deep RNNs vs LSTMs', 'Dr. Srinivasa Rao Kongara', 'Remedial Note: Additive Cell State in LSTMs', 'Following yesterday''s feedback, here is an intuitive 1-page visual cheat sheet showing how LSTM forget/input gates preserve gradient highways compared to vanilla recurrent loops.', 'https://deeplearning.edu/lstm-gradient-notes', 'ALL');
+            """))
+
+        # Seed sample Study Pods
+        pod_count = conn.execute(text("SELECT COUNT(*) FROM study_pods")).scalar()
+        if pod_count == 0:
+            conn.execute(text("""
+                INSERT INTO study_pods (course_code, topic, pod_name, description, max_members, current_members, guidance_prompt) VALUES
+                ('AI501', 'Attention & Transformers', 'NLP Transformers Peer Mastery Pod #1', 'Connecting students who scored high clarity on Scaled Dot-Product Attention with peers wanting interactive review.', 5, 3, 'Review: 1) What is Q, K, V intuitive meaning? 2) Why is causal masking needed in decoder? 3) Code a 1-head self-attention module in PyTorch.'),
+                ('AI304', 'Optimization & Gradient Descent', 'Backpropagation & Chain Rule Study Circle', 'Peer problem solving on multivariate chain rule calculus and computational graphs.', 5, 4, 'Walk through an explicit 2-layer MLP backward pass step-by-step on whiteboard.');
+            """))
+
+        # Seed default webhook integration
+        wh_count = conn.execute(text("SELECT COUNT(*) FROM webhook_integrations")).scalar()
+        if wh_count == 0:
+            conn.execute(text("""
+                INSERT INTO webhook_integrations (platform, webhook_url, is_enabled, notify_critical_distress, notify_weekly_digest)
+                VALUES ('SLACK', 'https://example.com/webhooks/sentio/mock-campus-alerts', 1, 1, 1);
+            """))
 
 SessionLocal = sessionmaker(
     autocommit=False,

@@ -38,7 +38,7 @@ def test_get_existing_feedback():
     data = response.json()
 
     assert data["feedback"]["feedback_id"] == 5
-    assert data["feedback"]["status"] == "ANALYZED"
+    assert data["feedback"]["status"] in ["ANALYZED", "ACTION_TAKEN"]
 
     assert data["prediction"] is not None
     assert data["prediction"]["feedback_id"] == 5

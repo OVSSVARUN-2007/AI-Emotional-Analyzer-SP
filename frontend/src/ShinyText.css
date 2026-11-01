@@ -1,0 +1,32 @@
+.shiny-text {
+  --shiny-highlight: rgba(255, 255, 255, 0.95);
+
+  background: linear-gradient(
+    120deg,
+    currentColor 0%,
+    currentColor 38%,
+    var(--shiny-highlight) 50%,
+    currentColor 62%,
+    currentColor 100%
+  );
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  display: inline-block;
+  animation: shinySweep 4s linear infinite;
+}
+
+@keyframes shinySweep {
+  0% {
+    background-position: 150% 0;
+  }
+  100% {
+    background-position: -150% 0;
+  }
+}
+
+.shiny-text.disabled {
+  animation: none;
+  -webkit-text-fill-color: currentColor;
+}

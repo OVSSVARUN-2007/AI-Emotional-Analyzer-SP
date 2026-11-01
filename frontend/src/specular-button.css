@@ -1,0 +1,163 @@
+.specular-button {
+  --specular-x: 50%;
+  --specular-y: 15%;
+  --specular-intensity: 0.35;
+  --specular-radius: 18px;
+  --specular-thickness: 1.2px;
+  --specular-base: #4f46e5;
+  --specular-text: #ffffff;
+  --specular-line: #818cf8;
+  --specular-tint: #ffffff;
+  --specular-tint-opacity: 0.05;
+  --specular-shine-size: 12%;
+  --specular-shine-fade: 36%;
+  --specular-glow: 1.2;
+
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+  font-family: inherit;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  user-select: none;
+  border: none;
+  outline: none;
+  isolation: isolate;
+  border-radius: var(--specular-radius);
+  background-color: var(--specular-base);
+  color: var(--specular-text);
+  overflow: hidden;
+  transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.22s ease,
+              opacity 0.2s ease,
+              filter 0.2s ease;
+  box-shadow:
+    0 2px 4px rgba(0, 0, 0, 0.12),
+    0 6px 18px rgba(79, 70, 229, 0.22),
+    0 0 calc(var(--specular-glow) * 14px) rgba(255, 255, 255, calc(var(--specular-intensity) * 0.15));
+}
+
+.specular-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow:
+    0 4px 10px rgba(0, 0, 0, 0.14),
+    0 10px 26px rgba(79, 70, 229, 0.32),
+    0 0 calc(var(--specular-glow) * 18px) rgba(255, 255, 255, calc(var(--specular-intensity) * 0.22));
+}
+
+.specular-button:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+/* Size Variants */
+.specular-button--sm {
+  height: 36px;
+  padding: 0 1rem;
+  font-size: 0.82rem;
+  gap: 0.4rem;
+}
+
+.specular-button--md {
+  height: 44px;
+  padding: 0 1.35rem;
+  font-size: 0.92rem;
+  gap: 0.5rem;
+}
+
+.specular-button--lg {
+  height: 52px;
+  padding: 0 1.85rem;
+  font-size: 1.02rem;
+  gap: 0.6rem;
+}
+
+/* Base Tint Layer */
+.specular-button .specular-tint {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background-color: var(--specular-tint);
+  opacity: var(--specular-tint-opacity);
+  pointer-events: none;
+}
+
+/* Specular Border Highlight (Chamfer Rim Reflection) */
+.specular-button::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: var(--specular-thickness);
+  background: radial-gradient(
+    circle at var(--specular-x) var(--specular-y),
+    var(--specular-line) 0%,
+    rgba(255, 255, 255, calc(var(--specular-intensity) * 0.75)) var(--specular-shine-size),
+    rgba(255, 255, 255, calc(var(--specular-intensity) * 0.22)) var(--specular-shine-fade),
+    rgba(255, 255, 255, 0.08) 100%
+  );
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+  opacity: calc(0.35 + var(--specular-intensity) * 0.65);
+  transition: opacity 0.12s ease;
+}
+
+/* Specular Surface Glare */
+.specular-button::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(
+    circle at var(--specular-x) var(--specular-y),
+    rgba(255, 255, 255, calc(var(--specular-intensity) * 0.42)) 0%,
+    rgba(255, 255, 255, calc(var(--specular-intensity) * 0.14)) var(--specular-shine-size),
+    transparent var(--specular-shine-fade)
+  );
+  pointer-events: none;
+  mix-blend-mode: overlay;
+  transition: opacity 0.12s ease;
+}
+
+/* Inner Content Wrapper */
+.specular-button .specular-content {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: inherit;
+  pointer-events: none;
+}
+
+/* Hover, Active, and Focus States */
+.specular-button:hover:not(:disabled) {
+  transform: translateY(-1.5px);
+  box-shadow:
+    0 2px 4px rgba(0, 0, 0, 0.2),
+    0 8px 22px rgba(0, 0, 0, 0.28),
+    0 0 calc(var(--specular-glow) * 20px) rgba(255, 255, 255, calc(var(--specular-intensity) * 0.18));
+}
+
+.specular-button:active:not(:disabled) {
+  transform: translateY(0.5px) scale(0.985);
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.3),
+    0 3px 8px rgba(0, 0, 0, 0.2);
+}
+
+.specular-button:focus-visible {
+  outline: 2px solid #8574ff;
+  outline-offset: 3px;
+}
+
+.specular-button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}

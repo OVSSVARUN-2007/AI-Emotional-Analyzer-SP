@@ -69,15 +69,57 @@ Main Topic:
 
 ---
 
-# ✨ Key Features
+# ✨ Key Features & Architecture
 
-## 👨‍🎓 Student Features
+## 🔐 Authentication, Registration & Security
+- **Registration**: Name, Roll Number / Staff ID, University Email, Password, and Role selection.
+- **Email OTP Verification**: Secure 6-digit one-time password dispatched to university email with 10-minute expiry to verify student and faculty identity.
+- **JWT Authorization**: Cryptographically signed JSON Web Tokens (Bearer tokens) with role verification (`STUDENT` vs `ADMIN` / `FACULTY`).
+- **Secure Password Hashing**: Passwords stored using `bcrypt` salted hashes.
 
-- Student registration and login
-- Secure authentication
-- Submit feedback
-- Select course/faculty
-- Anonymous feedback option
+## 🤖 Zero-Hallucination AI (Google Gemini 1.5 Flash)
+- **Direct Gemini Token Integration**: Configure your `GEMINI_API_KEY` in the Admin Dashboard or `.env` to eliminate hallucinations and achieve zero-shot emotional reasoning.
+- **6-Axis Emotional Radar**: Normalized tracking of Joy, Clarity, Frustration, Fatigue, Satisfaction, and Curiosity.
+- **Academic Wellbeing & Stress Gauge**: Real-time 0–100 mental health & academic burnout index.
+- **Bixi AI Academic Assistant**: Gemini-powered conversational counselor answering student and administrative questions truthfully.
+
+## 👨‍🎓 1. Student Dashboard (Normal View)
+- **Submit Course Feedback**:
+  - Filtered strictly to student's enrolled semester subjects and instructors.
+  - Speech-to-Text Microphone voice dictation with live audio wave pulse.
+  - Client-side Privacy Shield scanner warning if email or phone number is accidentally typed.
+  - Interactive `<SpecularButton>` for submission.
+- **Community Feed & Upvoting**:
+  - Real-time peer feedback feed with sentiment and emotion tags.
+  - Community upvoting button (`POST /feedback/{id}/upvote`).
+  - Toggle between **"🔥 Top Priorities"** (most upvoted) and **"⏱️ Latest"**.
+  - Visible official faculty action plans on addressed concerns.
+- **60-Second Lecture Pulse Polls**:
+  - Live in-class clarity polls with interactive voting and real-time community vote percentages.
+- **My Courses & Academic Mentors**:
+  - Semester course schedule, exam slots, credits, and dedicated Academic Mentors (`Dr. Ramesh Ponnala` & `Dr. Sandeep Kumar Panda`).
+- **Confidential Grievance Box**:
+  - File formal complaints directly to the Academic Oversight Board with resolution tracking.
+
+## 🏛️ 2. Admin & Faculty Dashboard (Executive View)
+- **Institutional Overview & Analytics**:
+  - Academic Wellbeing Gauge (0–100 index).
+  - 6-Axis Emotional Radar spider chart.
+  - Milestone Sentiment & Alert Timeline tracking satisfaction vs alerts.
+  - Key performance indicator banners.
+- **Pedagogical AI Advice Hub**:
+  - Priority-triaged instructional and curricular intervention cards (`High`, `Normal`, `Low`).
+- **Feedback Oversight & Department Filters**:
+  - Filter feedback by Section (`Class 3A`, `Class 3B`, `Class 2A`, `All`), Semester, or Sentiment.
+  - Modal to publish official administrative responses to student feedback.
+- **Grievance Redressal Desk**:
+  - Centralized queue of student complaints with status tracking (`PENDING`, `IN_REVIEW`, `RESOLVED`, `REJECTED`) and action recording.
+- **Pulse Poll Manager**:
+  - Create and broadcast new 60-Second Lecture Pulse Polls to any section.
+- **Gemini Token Hub & Test Bench**:
+  - Form to input and verify `GEMINI_API_KEY` against Google Gemini API with instant latency testing.
+  - Live NLP comparison test bench (Google Gemini vs BERT vs TF-IDF).
+
 - View submitted feedback
 - View previous feedback
 - AI-generated feedback analysis
@@ -719,20 +761,65 @@ http://localhost:8000/docs
 
 ---
 
-## Frontend
+## Web application
+
+The Sentio Student Emotional Analyzer frontend is a modern React application built with Vite, Lucide icons, and interactive specular physics buttons (`SpecularButton`). It can be run via Vite dev server or built and served directly by FastAPI.
+
+### Option A: Direct FastAPI Serving (Production Build)
+
+FastAPI serves the built application directly at `http://localhost:8000`:
 
 ```bash
+# 1. Build frontend distribution
 cd frontend
+npm install
+npm run build
+cd ..
 
+# 2. Launch FastAPI backend
+python -m uvicorn backend.app.main:app --reload --host 127.0.0.1 --port 8000
+```
+
+### Option B: Vite Frontend Development Server (Hot Reload)
+
+```bash
+# Terminal 1: Backend
+python -m uvicorn backend.app.main:app --reload --host 127.0.0.1 --port 8000
+
+# Terminal 2: Frontend
+cd frontend
 npm install
 npm run dev
+# Open http://localhost:5173
 ```
 
-Frontend:
+### Real-time updates and Kafka
 
-```text
-http://localhost:5173
+Open dashboards receive feedback, complaint, and feedback-request updates via
+`/ws/events`. This works locally without any extra service. With Kafka
+configured, every server instance publishes and consumes those events, so
+dashboards connected to different instances stay in sync.
+
+```bash
+pip install -r backend/requirements.txt
+export KAFKA_BOOTSTRAP_SERVERS=localhost:9092
+# Optional: defaults to student-feedback-events
+export KAFKA_TOPIC=student-feedback-events
+python -m uvicorn backend.app.main:app --reload --host 127.0.0.1 --port 8000
 ```
+
+If Kafka is unavailable, the application logs a warning and continues with
+local WebSocket updates; feedback submission is not interrupted.
+
+### Dynamic portal features
+
+- Live dashboard refreshes for feedback, complaints, faculty action updates, and announcements.
+- Course directory and submission choices sourced from the database.
+- AI-style weekly feedback summary with recommended action and workload alerts.
+- CSV feedback-report export at `/feedback/export.csv`.
+- Faculty/admin announcements, scoped to a class section or all students.
+- Faculty action records via `POST /feedback/{feedback_id}/response`.
+- Motion effects respect the user's reduced-motion accessibility preference.
 
 ---
 
@@ -851,11 +938,11 @@ cd backend
 pytest
 ```
 
-Run frontend tests:
+Run frontend build verification:
 
 ```bash
 cd frontend
-npm test
+npm run build
 ```
 
 Run integration tests:
