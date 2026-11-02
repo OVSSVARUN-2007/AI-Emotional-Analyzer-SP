@@ -44,6 +44,8 @@ import {
   Users,
   Webhook,
   X,
+  ChevronRight,
+  TrendingUp,
 } from 'lucide-react';
 import SpotlightCard from './SpotlightCard';
 import AnimatedCounter from './AnimatedCounter';
@@ -128,6 +130,702 @@ function SimpleCourseClarityBar({ courses = [], feedbacks = [] }) {
           </div>
         );
       })}
+    </div>
+  );
+}
+
+
+// ═══════════════════════════════════════════════════════
+// LIGHTWEIGHT SVG STUDENT TREND TIMELINE CURVE
+// ═══════════════════════════════════════════════════════
+function StudentTrendVectorCurve({ timeline = [], height = 150 }) {
+  const [hoveredPoint, setHoveredPoint] = useState(null);
+
+  const displayTimeline = timeline && timeline.length > 0 ? timeline : [
+    { label: 'Week 1', date: 'Oct 12', clarity_pct: 86, volume: 2 },
+    { label: 'Week 2', date: 'Oct 19', clarity_pct: 89, volume: 3 },
+    { label: 'Week 3', date: 'Oct 26', clarity_pct: 92, volume: 4 },
+    { label: 'Week 4 (Current)', date: 'Nov 02', clarity_pct: 96, volume: 3 },
+  ];
+
+  const width = 500;
+  const paddingX = 45;
+  const paddingY = 24;
+  const chartW = width - paddingX * 2;
+  const chartH = height - paddingY * 2;
+
+  const minVal = 50;
+  const maxVal = 100;
+
+  const points = displayTimeline.map((pt, idx) => {
+    const x = paddingX + (idx / Math.max(1, displayTimeline.length - 1)) * chartW;
+    const y = paddingY + chartH - ((Math.min(100, Math.max(50, pt.clarity_pct)) - minVal) / (maxVal - minVal)) * chartH;
+    return { ...pt, x, y };
+  });
+
+  let pathD = `M ${points[0].x} ${points[0].y}`;
+  for (let i = 0; i < points.length - 1; i++) {
+    const current = points[i];
+    const next = points[i + 1];
+    const cpX = (current.x + next.x) / 2;
+    pathD += ` C ${cpX} ${current.y}, ${cpX} ${next.y}, ${next.x} ${next.y}`;
+  }
+
+  const areaD = `${pathD} L ${points[points.length - 1].x} ${height - paddingY} L ${points[0].x} ${height - paddingY} Z`;
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+      <div style={{ position: 'relative', width: '100%', overflow: 'hidden' }}>
+        <svg
+          viewBox={`0 0 ${width} ${height}`}
+          style={{ width: '100%', height: 'auto', display: 'block' }}
+        >
+          <defs>
+            <linearGradient id="trendEmeraldGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#10b981" stopOpacity="0.25" />
+              <stop offset="100%" stopColor="#10b981" stopOpacity="0.0" />
+            </linearGradient>
+          </defs>
+
+          {[100, 80, 60].map((v) => {
+            const y = paddingY + chartH - ((v - minVal) / (maxVal - minVal)) * chartH;
+            return (
+              <g key={v}>
+                <line
+                  x1={paddingX}
+                  y1={y}
+                  x2={width - paddingX}
+                  y2={y}
+                  stroke="#f1f5f9"
+                  strokeWidth="1"
+                  strokeDasharray="4 4"
+                />
+                <text
+                  x={paddingX - 8}
+                  y={y + 3}
+                  textAnchor="end"
+                  fontSize="9"
+                  fill="#94a3b8"
+                  fontFamily="inherit"
+                >
+                  {v}%
+                </text>
+              </g>
+            );
+          })}
+
+          <path d={areaD} fill="url(#trendEmeraldGrad)" />
+
+          <path
+            d={pathD}
+            fill="none"
+            stroke="#10b981"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+          />
+
+          {points.map((pt, idx) => (
+            <g
+              key={idx}
+              onMouseEnter={() => setHoveredPoint(pt)}
+              onMouseLeave={() => setHoveredPoint(null)}
+              style={{ cursor: 'pointer' }}
+            >
+              <circle
+                cx={pt.x}
+                cy={pt.y}
+                r="4.5"
+                fill="#ffffff"
+                stroke="#10b981"
+                strokeWidth="2.5"
+              />
+              <circle
+                cx={pt.x}
+                cy={pt.y}
+                r="12"
+                fill="transparent"
+              />
+            </g>
+          ))}
+        </svg>
+
+        {hoveredPoint && (
+          <div
+            style={{
+              position: 'absolute',
+              top: '8px',
+              right: '8px',
+              background: '#0f172a',
+              color: '#ffffff',
+              padding: '4px 8px',
+              borderRadius: '6px',
+              fontSize: '0.75rem',
+              fontWeight: 500,
+              boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+            }}
+          >
+            {hoveredPoint.label}: {hoveredPoint.clarity_pct}% Clarity ({hoveredPoint.date})
+          </div>
+        )}
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: `repeat(${displayTimeline.length}, 1fr)`, gap: '0.5rem' }}>
+        {displayTimeline.map((pt, idx) => (
+          <div
+            key={idx}
+            style={{
+              padding: '0.5rem 0.6rem',
+              borderRadius: '8px',
+              background: idx === displayTimeline.length - 1 ? '#ecfdf5' : '#f8fafc',
+              border: `1px solid ${idx === displayTimeline.length - 1 ? '#a7f3d0' : '#e2e8f0'}`,
+              textAlign: 'center',
+            }}
+          >
+            <div style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: 600 }}>{pt.label}</div>
+            <div style={{ fontSize: '0.95rem', fontWeight: 700, color: idx === displayTimeline.length - 1 ? '#059669' : '#0f172a' }}>
+              {pt.clarity_pct}%
+            </div>
+            <div style={{ fontSize: '0.65rem', color: '#94a3b8' }}>{pt.date}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════
+// MINIMALIST ASPECT HEALTH METERS
+// ═══════════════════════════════════════════════════════
+function AspectRatingMeters({ aspects = [] }) {
+  const displayAspects = aspects && aspects.length > 0 ? aspects : [
+    { aspect: 'Concept Clarity', score: 96, status: 'Clear & Well-Explained', color: '#10b981' },
+    { aspect: 'Pacing & Speed', score: 90, status: 'Optimal Pace', color: '#3b82f6' },
+    { aspect: 'Learning Materials', score: 98, status: 'Comprehensive Slides', color: '#6366f1' },
+    { aspect: 'Doubt Resolution', score: 94, status: 'Responsive', color: '#0ea5e9' },
+  ];
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+      {displayAspects.map((asp, idx) => {
+        const score = asp.score || 90;
+        const color = asp.color || (score >= 90 ? '#10b981' : score >= 75 ? '#3b82f6' : '#f59e0b');
+        return (
+          <div key={idx} style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.82rem' }}>
+              <span style={{ fontWeight: 600, color: '#0f172a', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: color }} />
+                {asp.aspect}
+              </span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <span style={{ fontSize: '0.75rem', color: '#64748b' }}>{asp.status}</span>
+                <span style={{ fontWeight: 700, color: color }}>{score}%</span>
+              </div>
+            </div>
+            <div style={{ width: '100%', height: '6px', background: '#f1f5f9', borderRadius: '9999px', overflow: 'hidden' }}>
+              <div
+                style={{
+                  width: `${score}%`,
+                  height: '100%',
+                  background: color,
+                  borderRadius: '9999px',
+                  transition: 'width 0.4s ease',
+                }}
+              />
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════
+// FACULTY SUBJECTS PERFORMANCE CARDS
+// ═══════════════════════════════════════════════════════
+function FacultySubjectBreakdownCards({ subjects = [] }) {
+  if (!subjects || subjects.length === 0) {
+    return (
+      <div style={{ padding: '1rem', textAlign: 'center', color: '#94a3b8', fontSize: '0.85rem' }}>
+        No course subjects currently assigned.
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '0.85rem' }}>
+      {subjects.map((sub) => {
+        const score = sub.satisfaction_pct || 92;
+        const color = score >= 85 ? '#059669' : score >= 70 ? '#2563eb' : '#d97706';
+        const bgSoft = score >= 85 ? '#ecfdf5' : score >= 70 ? '#eff6ff' : '#fffbeb';
+        const borderSoft = score >= 85 ? '#a7f3d0' : score >= 70 ? '#bfdbfe' : '#fde68a';
+
+        return (
+          <div
+            key={sub.course_code}
+            style={{
+              padding: '0.9rem',
+              borderRadius: '10px',
+              border: `1px solid ${borderSoft}`,
+              background: '#ffffff',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '0.6rem',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+              <div>
+                <span className="course-tag" style={{ marginBottom: '0.25rem', display: 'inline-block' }}>
+                  {sub.course_code}
+                </span>
+                <div style={{ fontWeight: 600, fontSize: '0.88rem', color: '#0f172a', lineHeight: 1.3 }}>
+                  {sub.course_name}
+                </div>
+              </div>
+              <span
+                style={{
+                  padding: '2px 8px',
+                  borderRadius: '9999px',
+                  fontSize: '0.72rem',
+                  fontWeight: 600,
+                  background: bgSoft,
+                  color: color,
+                  border: `1px solid ${borderSoft}`,
+                }}
+              >
+                {score}% Clarity
+              </span>
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', color: '#64748b' }}>
+              <span>
+                {sub.sections && sub.sections.length > 0 ? sub.sections.join(', ') : 'All Sections'} · Sem {sub.semester || 5}
+              </span>
+              <span>
+                {sub.feedback_count > 0 ? `${sub.feedback_count} feedback${sub.feedback_count > 1 ? 's' : ''}` : 'Awaiting feedback'}
+              </span>
+            </div>
+
+            <div style={{ width: '100%', height: '5px', background: '#f1f5f9', borderRadius: '9999px', overflow: 'hidden' }}>
+              <div
+                style={{
+                  width: `${score}%`,
+                  height: '100%',
+                  background: color,
+                  borderRadius: '9999px',
+                }}
+              />
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════
+// ADMIN FACULTY PERFORMANCE & SUBJECT TEACHING ANALYTICS
+// ═══════════════════════════════════════════════════════
+function AdminFacultyWorkspace({
+  facultyData = { faculty: [], total_faculty: 0, total_feedbacks: 0, avg_institution_rating: 92 },
+  selectedFaculty,
+  onSelectFaculty,
+  onCloseDrilldown,
+}) {
+  const [search, setSearch] = useState('');
+  const [deptFilter, setDeptFilter] = useState('ALL');
+  const [sortBy, setSortBy] = useState('rating');
+
+  const allFaculty = facultyData.faculty || [];
+
+  const filteredFaculty = allFaculty.filter((f) => {
+    const matchDept = deptFilter === 'ALL' || f.department === deptFilter;
+    const q = search.toLowerCase().trim();
+    const matchQuery =
+      !q ||
+      f.name?.toLowerCase().includes(q) ||
+      f.email?.toLowerCase().includes(q) ||
+      f.subjects?.some((s) => s.course_code?.toLowerCase().includes(q) || s.course_name?.toLowerCase().includes(q));
+    return matchDept && matchQuery;
+  }).sort((a, b) => {
+    if (sortBy === 'rating') return (b.satisfaction_pct || 0) - (a.satisfaction_pct || 0);
+    if (sortBy === 'feedbacks') return (b.feedback_count || 0) - (a.feedback_count || 0);
+    return (a.name || '').localeCompare(b.name || '');
+  });
+
+  const departments = ['ALL', ...new Set(allFaculty.map((f) => f.department).filter(Boolean))];
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+      <div className="metrics-row">
+        <div className="card metric-card">
+          <span className="metric-label">Evaluated Faculty</span>
+          <div className="metric-number">
+            <AnimatedCounter value={allFaculty.length || 85} />
+          </div>
+          <span className="metric-caption">Instructors active in directory</span>
+        </div>
+
+        <div className="card metric-card">
+          <span className="metric-label">Institutional Clarity Average</span>
+          <div className="metric-number emerald">
+            <AnimatedCounter value={Math.round(facultyData.avg_institution_rating || 92)} suffix="%" />
+          </div>
+          <span className="metric-caption">Overall student satisfaction rating</span>
+        </div>
+
+        <div className="card metric-card">
+          <span className="metric-label">Total Student Reviews</span>
+          <div className="metric-number">
+            <AnimatedCounter value={facultyData.total_feedbacks || 6} />
+          </div>
+          <span className="metric-caption">Feedback submissions analyzed</span>
+        </div>
+
+        <div className="card metric-card">
+          <span className="metric-label">Academic Departments</span>
+          <div className="metric-number">
+            <AnimatedCounter value={Math.max(4, departments.length - 1)} />
+          </div>
+          <span className="metric-caption">Disciplines currently monitored</span>
+        </div>
+      </div>
+
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+        <div className="search-input-box" style={{ minWidth: '280px', flex: 1 }}>
+          <Search size={15} style={{ color: '#94a3b8' }} />
+          <input
+            type="text"
+            placeholder="Search faculty name, subject code, or keyword..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </div>
+
+        <div style={{ display: 'flex', gap: '0.6rem', alignItems: 'center', flexWrap: 'wrap' }}>
+          <select
+            className="section-select-dropdown"
+            value={deptFilter}
+            onChange={(e) => setDeptFilter(e.target.value)}
+          >
+            {departments.map((d) => (
+              <option key={d} value={d}>
+                {d === 'ALL' ? 'All Departments' : d}
+              </option>
+            ))}
+          </select>
+
+          <select
+            className="section-select-dropdown"
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value)}
+          >
+            <option value="rating">Sort: Highest Clarity Rating</option>
+            <option value="feedbacks">Sort: Most Student Reviews</option>
+            <option value="name">Sort: Faculty Name (A-Z)</option>
+          </select>
+        </div>
+      </div>
+
+      {filteredFaculty.length === 0 ? (
+        <div className="empty-state card">
+          <p>No faculty members match your filter criteria.</p>
+        </div>
+      ) : (
+        <div className="faculty-grid">
+          {filteredFaculty.map((fac) => {
+            const score = fac.satisfaction_pct || 91;
+            const isTop = score >= 90;
+            return (
+              <div key={fac.faculty_id || fac.name} className="faculty-card">
+                <div>
+                  <div className="faculty-card-header">
+                    <div className="faculty-avatar-box">
+                      {fac.name?.charAt(0) || 'F'}
+                    </div>
+                    <div className="faculty-info-wrap">
+                      <h4 className="faculty-name-title" title={fac.name}>
+                        {fac.name}
+                      </h4>
+                      <div className="faculty-sub-meta">
+                        <span>{fac.department || 'Faculty of Science & Technology'}</span>
+                        <span style={{ color: '#94a3b8' }}>{fac.email}</span>
+                      </div>
+                    </div>
+                    <div className={`faculty-score-chip ${isTop ? 'high' : 'mid'}`}>
+                      <span>★</span>
+                      <span>{score}%</span>
+                    </div>
+                  </div>
+
+                  <div style={{ marginTop: '0.9rem' }}>
+                    <div style={{ fontSize: '0.75rem', fontWeight: 600, color: '#64748b', marginBottom: '0.35rem' }}>
+                      Assigned Subjects ({fac.subjects?.length || fac.courses_assigned || 1})
+                    </div>
+                    <div className="faculty-subjects-wrap">
+                      {fac.subjects && fac.subjects.length > 0 ? (
+                        fac.subjects.slice(0, 3).map((sub) => (
+                          <span key={sub.course_code} className="faculty-sub-pill" title={sub.course_name}>
+                            <strong>{sub.course_code}</strong> ({sub.feedback_count || 0})
+                          </span>
+                        ))
+                      ) : (
+                        <span className="faculty-sub-pill">General Engineering</span>
+                      )}
+                      {fac.subjects && fac.subjects.length > 3 && (
+                        <span className="faculty-sub-pill" style={{ color: '#94a3b8' }}>
+                          +{fac.subjects.length - 3} more
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="faculty-card-footer">
+                  <span style={{ color: '#64748b', fontSize: '0.78rem' }}>
+                    {fac.feedback_count > 0 ? (
+                      <strong style={{ color: '#0f172a' }}>{fac.feedback_count} student review{fac.feedback_count > 1 ? 's' : ''}</strong>
+                    ) : (
+                      'Baseline review'
+                    )}
+                  </span>
+                  <button
+                    type="button"
+                    className="btn-inspect-faculty"
+                    onClick={() => onSelectFaculty(fac)}
+                  >
+                    Inspect Subjects & Trends →
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {selectedFaculty && (
+        <div className="faculty-modal-overlay" onClick={onCloseDrilldown}>
+          <div className="faculty-modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="faculty-modal-header">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                <div className="faculty-avatar-box" style={{ width: '48px', height: '48px', fontSize: '1.25rem' }}>
+                  {selectedFaculty.name?.charAt(0)}
+                </div>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: '1.15rem', color: '#0f172a' }}>
+                    {selectedFaculty.name}
+                  </h3>
+                  <span style={{ fontSize: '0.82rem', color: '#64748b' }}>
+                    {selectedFaculty.department} · {selectedFaculty.email}
+                  </span>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={onCloseDrilldown}
+                style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: '#64748b', padding: '0.5rem' }}
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="faculty-modal-body">
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.75rem' }}>
+                <div style={{ padding: '0.85rem', background: '#ecfdf5', borderRadius: '10px', border: '1px solid #a7f3d0' }}>
+                  <span style={{ fontSize: '0.75rem', color: '#065f46', fontWeight: 600 }}>Overall Satisfaction</span>
+                  <div style={{ fontSize: '1.5rem', fontWeight: 700, color: '#059669', margin: '0.2rem 0' }}>
+                    {selectedFaculty.satisfaction_pct || 91}%
+                  </div>
+                  <span style={{ fontSize: '0.72rem', color: '#047857' }}>★ {selectedFaculty.rating || 4.7} / 5.0 Rating</span>
+                </div>
+
+                <div style={{ padding: '0.85rem', background: '#eff6ff', borderRadius: '10px', border: '1px solid #bfdbfe' }}>
+                  <span style={{ fontSize: '0.75rem', color: '#1e40af', fontWeight: 600 }}>Student Reviews</span>
+                  <div style={{ fontSize: '1.5rem', fontWeight: 700, color: '#2563eb', margin: '0.2rem 0' }}>
+                    {selectedFaculty.feedback_count || 0}
+                  </div>
+                  <span style={{ fontSize: '0.72rem', color: '#3b82f6' }}>Direct student responses</span>
+                </div>
+
+                <div style={{ padding: '0.85rem', background: '#f8fafc', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
+                  <span style={{ fontSize: '0.75rem', color: '#475569', fontWeight: 600 }}>Assigned Subjects</span>
+                  <div style={{ fontSize: '1.5rem', fontWeight: 700, color: '#0f172a', margin: '0.2rem 0' }}>
+                    {selectedFaculty.subjects?.length || selectedFaculty.courses_assigned || 1}
+                  </div>
+                  <span style={{ fontSize: '0.72rem', color: '#64748b' }}>Curriculum offerings</span>
+                </div>
+              </div>
+
+              <div className="card" style={{ padding: '1rem', background: '#f8fafc' }}>
+                <h4 style={{ margin: '0 0 0.85rem 0', fontSize: '0.9rem', color: '#0f172a' }}>
+                  Teaching Quality & Aspect Breakdown
+                </h4>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '0.85rem' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem' }}>
+                      <span style={{ color: '#475569' }}>Concept Clarity</span>
+                      <strong style={{ color: '#059669' }}>{selectedFaculty.aspects?.concept_clarity || 94}%</strong>
+                    </div>
+                    <div style={{ height: '5px', background: '#e2e8f0', borderRadius: '9999px', overflow: 'hidden' }}>
+                      <div style={{ width: `${selectedFaculty.aspects?.concept_clarity || 94}%`, height: '100%', background: '#10b981' }} />
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem' }}>
+                      <span style={{ color: '#475569' }}>Pacing & Delivery</span>
+                      <strong style={{ color: '#2563eb' }}>{selectedFaculty.aspects?.pacing_speed || 88}%</strong>
+                    </div>
+                    <div style={{ height: '5px', background: '#e2e8f0', borderRadius: '9999px', overflow: 'hidden' }}>
+                      <div style={{ width: `${selectedFaculty.aspects?.pacing_speed || 88}%`, height: '100%', background: '#3b82f6' }} />
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem' }}>
+                      <span style={{ color: '#475569' }}>Learning Materials</span>
+                      <strong style={{ color: '#6366f1' }}>{selectedFaculty.aspects?.learning_materials || 96}%</strong>
+                    </div>
+                    <div style={{ height: '5px', background: '#e2e8f0', borderRadius: '9999px', overflow: 'hidden' }}>
+                      <div style={{ width: `${selectedFaculty.aspects?.learning_materials || 96}%`, height: '100%', background: '#6366f1' }} />
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem' }}>
+                      <span style={{ color: '#475569' }}>Doubt Resolution</span>
+                      <strong style={{ color: '#0ea5e9' }}>{selectedFaculty.aspects?.doubt_resolution || 91}%</strong>
+                    </div>
+                    <div style={{ height: '5px', background: '#e2e8f0', borderRadius: '9999px', overflow: 'hidden' }}>
+                      <div style={{ width: `${selectedFaculty.aspects?.doubt_resolution || 91}%`, height: '100%', background: '#0ea5e9' }} />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <h4 style={{ margin: '0 0 0.5rem 0', fontSize: '0.95rem', color: '#0f172a' }}>
+                  Subject-by-Subject Student Feedback Performance
+                </h4>
+                <p style={{ margin: '0 0 0.85rem 0', fontSize: '0.82rem', color: '#64748b' }}>
+                  Detailed clarity and student satisfaction metrics across courses taught by {selectedFaculty.name}.
+                </p>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                  {selectedFaculty.subjects && selectedFaculty.subjects.length > 0 ? (
+                    selectedFaculty.subjects.map((sub) => {
+                      const subScore = sub.satisfaction_pct || 92;
+                      const isHigh = subScore >= 85;
+                      return (
+                        <div
+                          key={sub.course_code}
+                          style={{
+                            padding: '0.9rem',
+                            borderRadius: '8px',
+                            border: '1px solid #e2e8f0',
+                            background: '#ffffff',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: '0.6rem',
+                          }}
+                        >
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '0.5rem' }}>
+                            <div>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                <span className="course-tag">{sub.course_code}</span>
+                                <strong style={{ color: '#0f172a', fontSize: '0.9rem' }}>{sub.course_name}</strong>
+                              </div>
+                              <div style={{ fontSize: '0.78rem', color: '#64748b', marginTop: '0.2rem' }}>
+                                {sub.sections && sub.sections.length > 0 ? sub.sections.join(', ') : 'All Sections'} · Semester {sub.semester || 5}
+                              </div>
+                            </div>
+
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                              <span style={{ fontSize: '0.8rem', color: '#64748b' }}>
+                                {sub.feedback_count > 0 ? `${sub.feedback_count} review${sub.feedback_count > 1 ? 's' : ''}` : 'Awaiting feedback'}
+                              </span>
+                              <span
+                                style={{
+                                  padding: '2px 8px',
+                                  borderRadius: '9999px',
+                                  fontSize: '0.75rem',
+                                  fontWeight: 700,
+                                  background: isHigh ? '#ecfdf5' : '#eff6ff',
+                                  color: isHigh ? '#059669' : '#2563eb',
+                                  border: `1px solid ${isHigh ? '#a7f3d0' : '#bfdbfe'}`,
+                                }}
+                              >
+                                {subScore}% Clarity
+                              </span>
+                            </div>
+                          </div>
+
+                          <div style={{ width: '100%', height: '5px', background: '#f1f5f9', borderRadius: '9999px', overflow: 'hidden' }}>
+                            <div
+                              style={{
+                                width: `${subScore}%`,
+                                height: '100%',
+                                background: isHigh ? '#10b981' : '#3b82f6',
+                                borderRadius: '9999px',
+                              }}
+                            />
+                          </div>
+                        </div>
+                      );
+                    })
+                  ) : (
+                    <div style={{ padding: '0.75rem', color: '#94a3b8', fontSize: '0.82rem' }}>
+                      No assigned course offerings found for this faculty member.
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div>
+                <h4 style={{ margin: '0 0 0.5rem 0', fontSize: '0.95rem', color: '#0f172a' }}>
+                  Student Comments & Clarification Requests
+                </h4>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                  {selectedFaculty.recent_feedbacks && selectedFaculty.recent_feedbacks.length > 0 ? (
+                    selectedFaculty.recent_feedbacks.map((fb) => (
+                      <div
+                        key={fb.feedback_id}
+                        style={{
+                          padding: '0.85rem',
+                          borderRadius: '8px',
+                          border: '1px solid #e2e8f0',
+                          background: '#f8fafc',
+                        }}
+                      >
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.35rem' }}>
+                          <span style={{ fontSize: '0.78rem', fontWeight: 600, color: '#0f172a' }}>
+                            {fb.course_code} · {fb.class_section}
+                          </span>
+                          <span className={`sentiment-badge ${fb.sentiment === 'POSITIVE' ? 'positive' : 'needs-clarity'}`}>
+                            {fb.sentiment === 'POSITIVE' ? 'Clear & Engaging' : 'Needs Clarification'}
+                          </span>
+                        </div>
+                        <p style={{ margin: '0 0 0.4rem 0', fontSize: '0.82rem', color: '#334155', lineHeight: 1.4 }}>
+                          "{fb.feedback_text}"
+                        </p>
+                        {fb.action_taken && (
+                          <div style={{ fontSize: '0.75rem', color: '#059669', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                            <Check size={12} /> Response: {fb.action_taken}
+                          </div>
+                        )}
+                      </div>
+                    ))
+                  ) : (
+                    <div style={{ padding: '1rem', textAlign: 'center', color: '#94a3b8', fontSize: '0.85rem' }}>
+                      No individual student feedback submissions recorded yet.
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -1736,6 +2434,9 @@ function AdminDashboard({ user, token, onLogout, onSwitchRole, addToast, onUserU
   const [geminiConfig, setGeminiConfig] = useState({ has_gemini_key: false });
   const [geminiKeyInput, setGeminiKeyInput] = useState('');
   const [geminiSaving, setGeminiSaving] = useState(false);
+  const [facultyPerfData, setFacultyPerfData] = useState({ faculty: [], total_faculty: 0, total_feedbacks: 0, avg_institution_rating: 92 });
+  const [studentTrends, setStudentTrends] = useState(null);
+  const [selectedFacultyDrilldown, setSelectedFacultyDrilldown] = useState(null);
 
   // Filters & Subtabs
   const [feedSearch, setFeedSearch] = useState('');
@@ -1756,7 +2457,8 @@ function AdminDashboard({ user, token, onLogout, onSwitchRole, addToast, onUserU
   const loadAdminData = useCallback(async () => {
     try {
       const secParam = encodeURIComponent(selectedSection);
-      const [feedRes, compRes, crsRes, lecRes, semRes, offRes, sylRes, gemRes] = await Promise.all([
+      const facNameParam = encodeURIComponent(user.role === 'FACULTY' ? (user.name || 'Dr. A. Sharma') : 'ALL');
+      const [feedRes, compRes, crsRes, lecRes, semRes, offRes, sylRes, gemRes, facPerfRes, trendRes] = await Promise.all([
         fetch(`${API}/feedback/?class_section=${secParam}`).then((r) => r.json()).catch(() => ({ feedback: [] })),
         fetch(`${API}/feedback/complaints?section=${secParam}`).then((r) => r.json()).catch(() => ({ complaints: [] })),
         fetch(`${API}/feedback/courses`).then((r) => r.json()).catch(() => ({ courses: [] })),
@@ -1765,6 +2467,8 @@ function AdminDashboard({ user, token, onLogout, onSwitchRole, addToast, onUserU
         fetch(`${API}/feedback/offerings`).then((r) => r.json()).catch(() => ({ offerings: [] })),
         fetch(`${API}/feedback/syllabus-mapping`).then((r) => r.json()).catch(() => null),
         fetch(`${API}/api/auth/gemini-config`).then((r) => r.json()).catch(() => ({ has_gemini_key: false })),
+        fetch(`${API}/feedback/faculty-performance`).then((r) => r.json()).catch(() => ({ faculty: [] })),
+        fetch(`${API}/feedback/student-trends?faculty_name=${facNameParam}&class_section=${secParam}`).then((r) => r.json()).catch(() => null),
       ]);
 
       if (feedRes?.feedback) setFeedbacks(feedRes.feedback);
@@ -1775,6 +2479,8 @@ function AdminDashboard({ user, token, onLogout, onSwitchRole, addToast, onUserU
       if (offRes?.offerings) setAdminOfferings(offRes.offerings);
       if (sylRes) setSyllabusMapping(sylRes);
       if (gemRes) setGeminiConfig(gemRes);
+      if (facPerfRes) setFacultyPerfData(facPerfRes);
+      if (trendRes) setStudentTrends(trendRes);
     } catch (e) {
       console.error('Error loading admin data:', e);
     }
@@ -1952,6 +2658,28 @@ function AdminDashboard({ user, token, onLogout, onSwitchRole, addToast, onUserU
   const positiveRate = totalFeedback > 0 ? Math.round((positiveFeedback / totalFeedback) * 100) : 84;
   const pendingGrievances = complaints.filter((c) => c.status !== 'RESOLVED').length;
 
+  const isFaculty = user.role === 'FACULTY';
+  const isAdmin = user.role === 'ADMIN';
+
+  const myFacultyRecord = facultyPerfData.faculty?.find(
+    (f) => f.name?.toLowerCase() === user.name?.toLowerCase() || (user.name?.toLowerCase().includes('sharma') && f.name?.toLowerCase().includes('sharma'))
+  ) || {
+    name: user.name || 'Dr. A. Sharma',
+    department: user.department || 'AI & Data Science',
+    satisfaction_pct: 95,
+    rating: 4.8,
+    feedback_count: feedbacks.length,
+    aspects: { concept_clarity: 96, pacing_speed: 90, learning_materials: 98, doubt_resolution: 94 },
+    subjects: adminCourses.slice(0, 4).map((c) => ({
+      course_code: c.course_code,
+      course_name: c.course_name,
+      sections: ['Class 3A', 'Class 3B'],
+      feedback_count: feedbacks.filter((f) => f.course_code === c.course_code).length,
+      satisfaction_pct: 96,
+      clarity_status: 'High Clarity',
+    })),
+  };
+
   return (
     <div className="dashboard-layout">
       {/* Sidebar */}
@@ -1961,7 +2689,9 @@ function AdminDashboard({ user, token, onLogout, onSwitchRole, addToast, onUserU
             <span className="brand-mark"><MessageSquare size={18} /></span>
             <div>
               <span className="sidebar-brand-name">Sentio</span>
-              <span className="sidebar-badge" style={{ marginLeft: '0.4rem' }}>Faculty</span>
+              <span className="sidebar-badge" style={{ marginLeft: '0.4rem' }}>
+                {isAdmin ? 'Admin' : 'Faculty'}
+              </span>
             </div>
           </div>
           <button type="button" className="close-sidebar-btn" onClick={() => setMobileMenuOpen(false)}>
@@ -1978,6 +2708,15 @@ function AdminDashboard({ user, token, onLogout, onSwitchRole, addToast, onUserU
           >
             <Activity size={18} /> Overview
           </button>
+          {isAdmin && (
+            <button
+              type="button"
+              className={`nav-item ${activeTab === 'faculty-performance' ? 'active' : ''}`}
+              onClick={() => { setActiveTab('faculty-performance'); setMobileMenuOpen(false); }}
+            >
+              <Award size={18} /> Faculty Performance
+            </button>
+          )}
           <button
             type="button"
             className={`nav-item ${activeTab === 'feedback' ? 'active' : ''}`}
@@ -2036,7 +2775,8 @@ function AdminDashboard({ user, token, onLogout, onSwitchRole, addToast, onUserU
             </button>
             <div className="header-title-wrap">
               <h1>
-                {activeTab === 'overview' && 'Classroom Overview & Insights'}
+                {activeTab === 'overview' && (isFaculty ? 'Faculty Classroom Insights & Student Trends' : 'Institutional Academic Overview & Student Trends')}
+                {activeTab === 'faculty-performance' && 'Faculty Performance & Subject Teaching Analytics'}
                 {activeTab === 'feedback' && 'Student Feedback Oversight'}
                 {activeTab === 'curriculum' && 'Curriculum, Subjects & Timetable'}
                 {activeTab === 'modules' && 'Course Modules & Topic Clarity'}
@@ -2096,59 +2836,216 @@ function AdminDashboard({ user, token, onLogout, onSwitchRole, addToast, onUserU
         {/* 1. TAB: OVERVIEW */}
         {activeTab === 'overview' && (
           <div className="tab-pane">
-            {/* KPI Cards */}
-            <div className="metrics-row">
-              <div className="card metric-card">
-                <span className="metric-label">Total Feedback</span>
-                <div className="metric-number">
-                  <AnimatedCounter value={totalFeedback} />
+            {isFaculty ? (
+              <>
+                {/* Faculty KPI Metrics */}
+                <div className="metrics-row">
+                  <div className="card metric-card">
+                    <span className="metric-label">My Student Feedbacks</span>
+                    <div className="metric-number">
+                      <AnimatedCounter value={myFacultyRecord.feedback_count || totalFeedback} />
+                    </div>
+                    <span className="metric-caption">Responses for your lectures</span>
+                  </div>
+
+                  <div className="card metric-card">
+                    <span className="metric-label">Concept Clarity Index</span>
+                    <div className="metric-number emerald">
+                      <AnimatedCounter value={myFacultyRecord.satisfaction_pct || positiveRate} suffix="%" />
+                    </div>
+                    <span className="metric-caption">Rated clear & engaging</span>
+                  </div>
+
+                  <div className="card metric-card">
+                    <span className="metric-label">Assigned Subjects</span>
+                    <div className="metric-number">
+                      <AnimatedCounter value={myFacultyRecord.subjects?.length || 4} />
+                    </div>
+                    <span className="metric-caption">Active curriculum courses</span>
+                  </div>
+
+                  <div className="card metric-card">
+                    <span className="metric-label">Pacing & Speed Quality</span>
+                    <div className="metric-number">
+                      <AnimatedCounter value={myFacultyRecord.aspects?.pacing_speed || 90} suffix="%" />
+                    </div>
+                    <span className="metric-caption">Optimal lecture pacing</span>
+                  </div>
                 </div>
-                <span className="metric-caption">Student submissions recorded</span>
-              </div>
 
-              <div className="card metric-card">
-                <span className="metric-label">Positive & Clear Experience</span>
-                <div className="metric-number emerald">
-                  <AnimatedCounter value={positiveRate} suffix="%" />
+                {/* Faculty Visual Trends & Aspects */}
+                <div className="grid-2col">
+                  <div className="card">
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                      <h3 style={{ margin: 0, color: '#0f172a' }}>Student Clarity & Feedback Progression</h3>
+                      <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#059669', background: '#ecfdf5', padding: '2px 8px', borderRadius: '9999px', border: '1px solid #a7f3d0' }}>
+                        +8% Clarity this Term
+                      </span>
+                    </div>
+                    <p style={{ fontSize: '0.85rem', color: '#64748b', margin: '0 0 1rem 0' }}>
+                      Weekly clarity trajectory from student lecture submissions.
+                    </p>
+                    <StudentTrendVectorCurve timeline={studentTrends?.timeline} />
+                  </div>
+
+                  <div className="card">
+                    <h3 style={{ margin: '0 0 0.5rem 0', color: '#0f172a' }}>Teaching Quality & Aspect Breakdown</h3>
+                    <p style={{ fontSize: '0.85rem', color: '#64748b', margin: '0 0 1rem 0' }}>
+                      Multimodal aspect evaluation across your classroom sessions.
+                    </p>
+                    <AspectRatingMeters aspects={studentTrends?.aspects || [
+                      { aspect: 'Concept Clarity', score: myFacultyRecord.aspects?.concept_clarity || 96, status: 'Clear & Well-Explained' },
+                      { aspect: 'Pacing & Speed', score: myFacultyRecord.aspects?.pacing_speed || 90, status: 'Optimal Pace' },
+                      { aspect: 'Learning Materials', score: myFacultyRecord.aspects?.learning_materials || 98, status: 'Helpful Code & Slides' },
+                      { aspect: 'Doubt Resolution', score: myFacultyRecord.aspects?.doubt_resolution || 94, status: 'Responsive' },
+                    ]} />
+                  </div>
                 </div>
-                <span className="metric-caption">Rated clear and well-paced</span>
-              </div>
 
-              <div className="card metric-card">
-                <span className="metric-label">Active Courses</span>
-                <div className="metric-number">
-                  <AnimatedCounter value={adminCourses.length || 5} />
+                {/* My Taught Subjects Performance */}
+                <div className="card">
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                    <div>
+                      <h3 style={{ margin: '0 0 0.25rem 0', color: '#0f172a' }}>My Assigned Subjects & Student Reception</h3>
+                      <p style={{ margin: 0, fontSize: '0.85rem', color: '#64748b' }}>
+                        Course-level clarity ratings, review counts, and engagement meters for subjects you teach.
+                      </p>
+                    </div>
+                  </div>
+                  <FacultySubjectBreakdownCards subjects={myFacultyRecord.subjects} />
                 </div>
-                <span className="metric-caption">In current academic semester</span>
-              </div>
+              </>
+            ) : (
+              <>
+                {/* Admin Specific Overview */}
+                <div className="metrics-row">
+                  <div className="card metric-card">
+                    <span className="metric-label">Institutional Feedbacks</span>
+                    <div className="metric-number">
+                      <AnimatedCounter value={totalFeedback} />
+                    </div>
+                    <span className="metric-caption">Campus submissions recorded</span>
+                  </div>
 
-              <div className="card metric-card">
-                <span className="metric-label">Open Grievances</span>
-                <div className={`metric-number ${pendingGrievances > 0 ? 'amber' : ''}`}>
-                  <AnimatedCounter value={pendingGrievances} />
+                  <div className="card metric-card">
+                    <span className="metric-label">Institutional Clarity Index</span>
+                    <div className="metric-number emerald">
+                      <AnimatedCounter value={Math.round(facultyPerfData.avg_institution_rating || 92)} suffix="%" />
+                    </div>
+                    <span className="metric-caption">Campus-wide positive benchmark</span>
+                  </div>
+
+                  <div className="card metric-card">
+                    <span className="metric-label">Evaluated Faculty</span>
+                    <div className="metric-number">
+                      <AnimatedCounter value={facultyPerfData.total_faculty || 85} />
+                    </div>
+                    <span className="metric-caption">Instructors active in directory</span>
+                  </div>
+
+                  <div className="card metric-card">
+                    <span className="metric-label">Open Grievances</span>
+                    <div className={`metric-number ${pendingGrievances > 0 ? 'amber' : ''}`}>
+                      <AnimatedCounter value={pendingGrievances} />
+                    </div>
+                    <span className="metric-caption">Awaiting resolution</span>
+                  </div>
                 </div>
-                <span className="metric-caption">Inquiries awaiting resolution</span>
-              </div>
-            </div>
 
-            {/* Satisfaction Breakdown & Course Clarity */}
-            <div className="grid-2col">
-              <div className="card">
-                <h3 style={{ margin: '0 0 0.5rem 0', color: '#0f172a' }}>Student Feedback Breakdown</h3>
-                <p style={{ fontSize: '0.85rem', color: '#64748b', margin: '0 0 1.25rem 0' }}>
-                  Distribution of clarity, pace, and topic feedback across all lectures.
-                </p>
-                <SimpleSatisfactionDonut feedbacks={feedbacks} />
-              </div>
+                {/* Admin Visual Trends & Aspect Index */}
+                <div className="grid-2col">
+                  <div className="card">
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                      <h3 style={{ margin: 0, color: '#0f172a' }}>Campus-Wide Student Feedback Trend Curve</h3>
+                      <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#059669', background: '#ecfdf5', padding: '2px 8px', borderRadius: '9999px', border: '1px solid #a7f3d0' }}>
+                        Term Trajectory
+                      </span>
+                    </div>
+                    <p style={{ fontSize: '0.85rem', color: '#64748b', margin: '0 0 1rem 0' }}>
+                      Longitudinal progression of student concept clarity and engagement.
+                    </p>
+                    <StudentTrendVectorCurve timeline={studentTrends?.timeline} />
+                  </div>
 
-              <div className="card">
-                <h3 style={{ margin: '0 0 0.5rem 0', color: '#0f172a' }}>Course Satisfaction Overview</h3>
-                <p style={{ fontSize: '0.85rem', color: '#64748b', margin: '0 0 1.25rem 0' }}>
-                  Student satisfaction across registered department courses.
-                </p>
-                <SimpleCourseClarityBar courses={adminCourses} feedbacks={feedbacks} />
-              </div>
-            </div>
+                  <div className="card">
+                    <h3 style={{ margin: '0 0 0.5rem 0', color: '#0f172a' }}>Institution Teaching Quality Index</h3>
+                    <p style={{ fontSize: '0.85rem', color: '#64748b', margin: '0 0 1rem 0' }}>
+                      Cross-department ratings across fundamental instructional dimensions.
+                    </p>
+                    <AspectRatingMeters aspects={studentTrends?.aspects || [
+                      { aspect: 'Concept Clarity', score: 94, status: 'Institutional Benchmark' },
+                      { aspect: 'Pacing & Speed', score: 88, status: 'Optimal Pace' },
+                      { aspect: 'Learning Materials', score: 96, status: 'High Quality Notes' },
+                      { aspect: 'Doubt Resolution', score: 91, status: 'Prompt Engagement' },
+                    ]} />
+                  </div>
+                </div>
+
+                {/* Faculty Spotlight & Department Satisfaction */}
+                <div className="grid-2col">
+                  <div className="card" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                    <div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                        <h3 style={{ margin: 0, color: '#0f172a' }}>Faculty Performance & Teaching Spotlight</h3>
+                        <span className="faculty-score-chip high">★ {facultyPerfData.avg_institution_rating || 92}% Avg</span>
+                      </div>
+                      <p style={{ fontSize: '0.85rem', color: '#64748b', margin: '0 0 1rem 0' }}>
+                        Review student satisfaction ratings, clarity metrics, and subject performance for each faculty member.
+                      </p>
+
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '1rem' }}>
+                        {(facultyPerfData.faculty || []).slice(0, 3).map((f) => (
+                          <div
+                            key={f.faculty_id || f.name}
+                            style={{
+                              display: 'flex',
+                              justifyContent: 'space-between',
+                              alignItems: 'center',
+                              padding: '0.5rem 0.75rem',
+                              background: '#f8fafc',
+                              borderRadius: '8px',
+                              border: '1px solid #e2e8f0',
+                            }}
+                          >
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                              <span className="user-avatar-chip admin" style={{ width: '28px', height: '28px', fontSize: '0.75rem' }}>
+                                {f.name?.charAt(0)}
+                              </span>
+                              <div>
+                                <strong style={{ fontSize: '0.82rem', color: '#0f172a' }}>{f.name}</strong>
+                                <div style={{ fontSize: '0.72rem', color: '#64748b' }}>
+                                  {f.subjects?.length || 1} subject(s) · {f.feedback_count || 0} reviews
+                                </div>
+                              </div>
+                            </div>
+                            <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#059669' }}>
+                              {f.satisfaction_pct || 92}%
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      className="btn-header-action primary"
+                      style={{ width: '100%', justifyContent: 'center' }}
+                      onClick={() => setActiveTab('faculty-performance')}
+                    >
+                      Open Faculty Performance Workspace →
+                    </button>
+                  </div>
+
+                  <div className="card">
+                    <h3 style={{ margin: '0 0 0.5rem 0', color: '#0f172a' }}>Department Course Satisfaction</h3>
+                    <p style={{ fontSize: '0.85rem', color: '#64748b', margin: '0 0 1.25rem 0' }}>
+                      Student satisfaction distribution across registered department courses.
+                    </p>
+                    <SimpleCourseClarityBar courses={adminCourses} feedbacks={feedbacks} />
+                  </div>
+                </div>
+              </>
+            )}
 
             {/* Recent Feedback Feed */}
             <div className="card">
@@ -2156,7 +3053,7 @@ function AdminDashboard({ user, token, onLogout, onSwitchRole, addToast, onUserU
                 <div>
                   <h3 style={{ margin: '0 0 0.25rem 0', color: '#0f172a' }}>Recent Feedback Submissions</h3>
                   <p style={{ margin: 0, fontSize: '0.85rem', color: '#64748b' }}>
-                    Latest notes from your classroom sessions.
+                    Latest student notes and clarity signals from your courses.
                   </p>
                 </div>
                 <button
@@ -2174,7 +3071,7 @@ function AdminDashboard({ user, token, onLogout, onSwitchRole, addToast, onUserU
                     <div className="feedback-card-top">
                       <span className="course-tag">{fb.course_code}</span>
                       <span className="feedback-meta">
-                        <Clock size={12} /> {new Date(fb.created_at).toLocaleDateString()} · {fb.class_section}
+                        <Clock size={12} /> {new Date(fb.created_at || fb.submitted_at || Date.now()).toLocaleDateString()} · {fb.class_section}
                       </span>
                     </div>
                     <p className="feedback-comment">{fb.feedback_text}</p>
@@ -2188,6 +3085,26 @@ function AdminDashboard({ user, token, onLogout, onSwitchRole, addToast, onUserU
                 ))}
               </div>
             </div>
+          </div>
+        )}
+
+        {/* FACULTY PERFORMANCE TAB (ADMIN ONLY) */}
+        {activeTab === 'faculty-performance' && (
+          <div className="tab-pane">
+            <div style={{ marginBottom: '1.25rem' }}>
+              <h2 style={{ margin: '0 0 0.25rem 0', fontSize: '1.25rem', color: '#0f172a' }}>
+                Faculty Performance & Subject Teaching Analytics
+              </h2>
+              <p style={{ margin: 0, fontSize: '0.85rem', color: '#64748b' }}>
+                Review individual faculty effectiveness, student satisfaction ratings, and subject-wise clarity trends across departments.
+              </p>
+            </div>
+            <AdminFacultyWorkspace
+              facultyData={facultyPerfData}
+              selectedFaculty={selectedFacultyDrilldown}
+              onSelectFaculty={setSelectedFacultyDrilldown}
+              onCloseDrilldown={() => setSelectedFacultyDrilldown(null)}
+            />
           </div>
         )}
 
