@@ -27,6 +27,7 @@ import {
   MicOff,
   Plus,
   Radio,
+  RotateCcw,
   Search,
   Send,
   Settings,
@@ -2819,6 +2820,284 @@ function AdminDashboard({ user, token, onLogout, onSwitchRole, addToast, onUserU
 }
 
 // ═══════════════════════════════════════════════════════
+// MINIMALIST AI ASSISTANT WIDGET
+// ═══════════════════════════════════════════════════════
+function AIAssistant({ user }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [messages, setMessages] = useState(() => {
+    const isStudent = user?.role === 'STUDENT';
+    const welcome = isStudent
+      ? `Hi ${user?.name?.split(' ')[0] || 'there'}! 👋 I'm your Sentio assistant. I can explain complex lecture topics, help you draft constructive feedback, or share tips for balancing coursework. How can I help today?`
+      : `Hello Professor ${user?.name?.split(' ')[0] || ''}! 🎓 I'm your academic assistant. I can help synthesize class sentiment trends, outline 10-minute recap sessions for confused topics, or draft clarification broadcasts. What would you like to explore?`;
+    return [
+      {
+        id: 'welcome',
+        role: 'assistant',
+        text: welcome,
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      },
+    ];
+  });
+  const [input, setInput] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
+  const messagesEndRef = useRef(null);
+  const recognitionRef = useRef(null);
+
+  const isStudent = user?.role === 'STUDENT';
+
+  const quickPrompts = isStudent
+    ? [
+        '💡 Explain a concept simply',
+        '✍️ Help draft course feedback',
+        '🧘 Study-life balance advice',
+        '❓ How to lodge a grievance?',
+      ]
+    : [
+        '📊 Summarize student sentiment',
+        '📝 Draft a clarification note',
+        '⏱️ 10-minute recap lesson plan',
+        '🎯 Review curriculum health',
+      ];
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  useEffect(() => {
+    if (isOpen) {
+      scrollToBottom();
+    }
+  }, [messages, isOpen]);
+
+  const toggleRecording = () => {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      alert('Speech recognition is not supported in this browser.');
+      return;
+    }
+
+    if (isRecording) {
+      recognitionRef.current?.stop();
+      setIsRecording(false);
+      return;
+    }
+
+    try {
+      const recognition = new SpeechRecognition();
+      recognition.lang = 'en-US';
+      recognition.interimResults = false;
+      recognition.continuous = false;
+
+      recognition.onstart = () => setIsRecording(true);
+      recognition.onend = () => setIsRecording(false);
+      recognition.onerror = () => setIsRecording(false);
+
+      recognition.onresult = (event) => {
+        const transcript = event.results[0]?.[0]?.transcript || '';
+        if (transcript) {
+          setInput((prev) => (prev ? `${prev} ${transcript}` : transcript));
+        }
+      };
+
+      recognitionRef.current = recognition;
+      recognition.start();
+    } catch (e) {
+      console.error(e);
+      setIsRecording(false);
+    }
+  };
+
+  const handleSend = async (messageText) => {
+    const textToSend = (messageText || input).trim();
+    if (!textToSend || isLoading) return;
+
+    const userMsg = {
+      id: Date.now().toString(),
+      role: 'user',
+      text: textToSend,
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    };
+
+    setMessages((prev) => [...prev, userMsg]);
+    setInput('');
+    setIsLoading(true);
+
+    try {
+      const historyPayload = messages.slice(-8).map((m) => ({
+        role: m.role,
+        content: m.text,
+      }));
+
+      const res = await fetch(`${API}/api/bixi/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: textToSend,
+          user: {
+            name: user?.name,
+            role: user?.role,
+            email: user?.email,
+            class_section: user?.class_section,
+          },
+          history: historyPayload,
+        }),
+      });
+
+      if (!res.ok) throw new Error('Failed to get response');
+      const data = await res.json();
+
+      const assistantMsg = {
+        id: (Date.now() + 1).toString(),
+        role: 'assistant',
+        text: data.reply || "I'm here to help, but couldn't generate a response right now. Please try again.",
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      };
+
+      setMessages((prev) => [...prev, assistantMsg]);
+    } catch (err) {
+      console.error(err);
+      const errorMsg = {
+        id: (Date.now() + 1).toString(),
+        role: 'assistant',
+        text: "I'm having a brief connection issue. Please check your network or try again shortly.",
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      };
+      setMessages((prev) => [...prev, errorMsg]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleResetChat = () => {
+    const welcome = isStudent
+      ? `Chat reset. What would you like help with next, ${user?.name?.split(' ')[0] || ''}?`
+      : `Session refreshed. How can I assist with your classes or pedagogical insights?`;
+    setMessages([
+      {
+        id: Date.now().toString(),
+        role: 'assistant',
+        text: welcome,
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      },
+    ]);
+  };
+
+  return (
+    <>
+      <button
+        className="ai-assistant-toggle-btn"
+        onClick={() => setIsOpen((prev) => !prev)}
+        aria-label="Toggle Sentio Assistant"
+      >
+        <Sparkles size={16} />
+        <span>{isOpen ? 'Close Assistant' : 'Assistant'}</span>
+      </button>
+
+      {isOpen && (
+        <div className="ai-assistant-window" role="dialog" aria-label="Sentio Assistant Window">
+          <div className="ai-chat-header">
+            <div className="ai-header-info">
+              <div className="ai-header-badge">
+                <Sparkles size={15} />
+              </div>
+              <div className="ai-header-title">
+                <strong>Sentio Assistant</strong>
+                <span>{isStudent ? 'Academic & Study Support' : 'Teaching & Insights Co-Pilot'}</span>
+              </div>
+            </div>
+            <div className="ai-header-actions">
+              <button
+                className="ai-icon-btn"
+                onClick={handleResetChat}
+                title="Restart Conversation"
+                aria-label="Restart Conversation"
+              >
+                <RotateCcw size={14} />
+              </button>
+              <button
+                className="ai-icon-btn"
+                onClick={() => setIsOpen(false)}
+                title="Close"
+                aria-label="Close Assistant"
+              >
+                <X size={16} />
+              </button>
+            </div>
+          </div>
+
+          <div className="ai-chat-messages">
+            {messages.map((m) => (
+              <div key={m.id} className={`ai-msg-wrap ${m.role}`}>
+                <div className="ai-msg-bubble">{m.text}</div>
+                <span className="ai-msg-time">{m.time}</span>
+              </div>
+            ))}
+            {isLoading && (
+              <div className="ai-msg-wrap assistant">
+                <div className="ai-typing-indicator">
+                  <span className="ai-typing-dot" />
+                  <span className="ai-typing-dot" />
+                  <span className="ai-typing-dot" />
+                </div>
+              </div>
+            )}
+            <div ref={messagesEndRef} />
+          </div>
+
+          <div className="ai-quick-prompts">
+            {quickPrompts.map((prompt) => (
+              <button
+                key={prompt}
+                className="ai-prompt-chip"
+                onClick={() => handleSend(prompt)}
+                disabled={isLoading}
+              >
+                {prompt}
+              </button>
+            ))}
+          </div>
+
+          <div className="ai-chat-input-bar">
+            <button
+              type="button"
+              className={`btn-ai-mic ${isRecording ? 'recording' : ''}`}
+              onClick={toggleRecording}
+              title={isRecording ? 'Stop voice recording' : 'Dictate with voice'}
+              aria-label="Dictate with voice"
+            >
+              {isRecording ? <MicOff size={15} /> : <Mic size={15} />}
+            </button>
+            <input
+              type="text"
+              placeholder="Ask anything or pick a prompt..."
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSend();
+                }
+              }}
+              disabled={isLoading}
+            />
+            <button
+              type="button"
+              className="btn-ai-send"
+              onClick={() => handleSend()}
+              disabled={!input.trim() || isLoading}
+              aria-label="Send Message"
+            >
+              <Send size={14} />
+            </button>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
+
+// ═══════════════════════════════════════════════════════
 // ROOT APP COMPONENT
 // ═══════════════════════════════════════════════════════
 export default function App() {
@@ -2948,6 +3227,7 @@ export default function App() {
         />
       )}
 
+      {user && <AIAssistant user={user} />}
       <ToastContainer toasts={toasts} onDismiss={removeToast} />
     </div>
   );
