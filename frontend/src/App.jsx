@@ -3125,6 +3125,7 @@ function StudentDashboard({ user, token, onLogout, onSwitchRole, addToast, onUse
 // ═══════════════════════════════════════════════════════
 function AdminDashboard({ user, token, onLogout, onSwitchRole, addToast, onUserUpdated }) {
   const [profileModalOpen, setProfileModalOpen] = useState(false);
+  const [systemMode, setSystemMode] = useState(() => localStorage.getItem('sentio_system_mode') || 'LIVE_EVAL');
   const [accreditationModalOpen, setAccreditationModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('overview'); // 'overview' | 'feedback' | 'curriculum' | 'modules' | 'grievances' | 'settings'
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
