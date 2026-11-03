@@ -310,10 +310,23 @@ async def query_local_llm(
 
     try:
         async with httpx.AsyncClient(timeout=timeout_sec) as client:
+            # Auto-resolve model from Ollama if running default model
+            actual_model = model
+            if "11434" in url and (not model or model == "llama3"):
+                try:
+                    tags_resp = await client.get("http://localhost:11434/api/tags", timeout=2.0)
+                    if tags_resp.status_code == 200:
+                        avail = [m.get("name") for m in tags_resp.json().get("models", []) if m.get("name")]
+                        if avail:
+                            preferred = [m for m in avail if "llama3.2" in m or "llama3" in m or "qwen" in m]
+                            actual_model = preferred[0] if preferred else avail[0]
+                except Exception:
+                    pass
+
             # 1. OpenAI-compatible API (LM Studio, vLLM, LocalAI, Ollama /v1)
             if "/v1" in url or "chat/completions" in url:
                 payload = {
-                    "model": model,
+                    "model": actual_model,
                     "messages": messages,
                     "temperature": 0.7,
                 }
@@ -327,7 +340,7 @@ async def query_local_llm(
             # 2. Ollama Chat endpoint (/api/chat)
             elif "/api/chat" in url:
                 payload = {
-                    "model": model,
+                    "model": actual_model,
                     "messages": messages,
                     "stream": False,
                 }
@@ -341,7 +354,7 @@ async def query_local_llm(
                 prompt_lines = [f"{m['role'].upper()}: {m['content']}" for m in messages]
                 prompt_lines.append("ASSISTANT:")
                 payload = {
-                    "model": model,
+                    "model": actual_model,
                     "prompt": "\n".join(prompt_lines),
                     "stream": False,
                 }
