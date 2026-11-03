@@ -57,6 +57,31 @@ import ToastContainer from './Toast';
 
 const API = import.meta.env.VITE_API_URL || '';
 
+export function formatFeedbackDate(dateVal) {
+  if (!dateVal) return 'Recently';
+  const str = String(dateVal).trim();
+  const isoStr = str.includes(' ') && !str.includes('T') ? str.replace(' ', 'T') : str;
+  const d = new Date(isoStr);
+  if (isNaN(d.getTime())) return 'Recently';
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+export function getStudentCohortFromEnrollment(rollNo) {
+  if (!rollNo) return { year: 3, semester: 5 };
+  const r = String(rollNo).trim().toUpperCase();
+  if (r.startsWith('24') || r.startsWith('2024')) {
+    return { year: 3, semester: 5 };
+  }
+  if (r.startsWith('25') || r.startsWith('2025')) {
+    return { year: 2, semester: 3 };
+  }
+  if (r.startsWith('26') || r.startsWith('2026')) {
+    return { year: 4, semester: 7 };
+  }
+  return { year: 3, semester: 5 };
+}
+
+
 // ═══════════════════════════════════════════════════════
 // MINIMALIST SATISFACTION BREAKDOWN BAR
 // ═══════════════════════════════════════════════════════
@@ -1425,7 +1450,6 @@ function Auth({ onAuthenticated, addToast }) {
   const [successMsg, setSuccessMsg] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [showRolePicker, setShowRolePicker] = useState(false);
 
   useEffect(() => {
     if (countdown > 0) {
@@ -1530,7 +1554,7 @@ function Auth({ onAuthenticated, addToast }) {
         onAuthenticated(data.user, data.access_token);
         addToast?.({
           title: 'Account Created',
-          message: 'Welcome to CampusTrack! Your profile has been initialized.',
+          message: 'Welcome to Sentio! Your profile has been initialized.',
           type: 'success',
         });
       } else if (mode === 'forgot') {
@@ -1564,91 +1588,9 @@ function Auth({ onAuthenticated, addToast }) {
     }
   };
 
-  const handleFillDemo = (demoRole) => {
-    if (demoRole === 'STUDENT') {
-      setForm((prev) => ({ ...prev, email: 'student@univ.edu', password: 'pass123', role: 'STUDENT' }));
-    } else if (demoRole === 'FACULTY') {
-      setForm((prev) => ({ ...prev, email: 'faculty@univ.edu', password: 'pass123', role: 'FACULTY' }));
-    } else if (demoRole === 'ADMIN') {
-      setForm((prev) => ({ ...prev, email: 'admin@univ.edu', password: 'pass123', role: 'ADMIN' }));
-    }
-    setShowRolePicker(false);
-    addToast?.({
-      title: 'Demo Filled',
-      message: `${demoRole} credentials populated. Click Login to enter.`,
-      type: 'info',
-    });
-  };
-
   return (
     <div className="campus-auth-container">
-      {/* Top Navigation Bar: Change College & Choose Role */}
-      <nav className="campus-top-nav">
-        <button
-          type="button"
-          className="campus-nav-btn"
-          onClick={() => addToast?.({ title: 'Institutional Domain', message: 'Connected to ICFAI Tech School campus portal.', type: 'info' })}
-        >
-          <ArrowLeft size={14} /> Change College
-        </button>
-
-        <div style={{ position: 'relative' }}>
-          <button
-            type="button"
-            className="campus-nav-btn"
-            onClick={() => setShowRolePicker(!showRolePicker)}
-          >
-            Choose Role <User size={14} />
-          </button>
-
-          {showRolePicker && (
-            <div
-              style={{
-                position: 'absolute',
-                top: '115%',
-                right: 0,
-                background: '#ffffff',
-                border: '1px solid #e2e8f0',
-                borderRadius: '10px',
-                boxShadow: '0 10px 25px rgba(0,0,0,0.1)',
-                padding: '0.4rem',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '0.25rem',
-                minWidth: '150px',
-                zIndex: 20,
-              }}
-            >
-              <button
-                type="button"
-                className="campus-demo-chip"
-                style={{ textAlign: 'left', borderRadius: '6px', width: '100%' }}
-                onClick={() => handleFillDemo('STUDENT')}
-              >
-                🎓 Student
-              </button>
-              <button
-                type="button"
-                className="campus-demo-chip"
-                style={{ textAlign: 'left', borderRadius: '6px', width: '100%' }}
-                onClick={() => handleFillDemo('FACULTY')}
-              >
-                👨‍🏫 Faculty
-              </button>
-              <button
-                type="button"
-                className="campus-demo-chip"
-                style={{ textAlign: 'left', borderRadius: '6px', width: '100%' }}
-                onClick={() => handleFillDemo('ADMIN')}
-              >
-                🏛️ Admin
-              </button>
-            </div>
-          )}
-        </div>
-      </nav>
-
-      {/* Main Split Authentication Card */}
+{/* Main Split Authentication Card */}
       <div className="campus-auth-card">
         {/* Left Side: Royal Blue Background with 3D Floating Shapes */}
         <section className="campus-brand-side">
@@ -1661,28 +1603,26 @@ function Auth({ onAuthenticated, addToast }) {
               <div className="campus-brand-icon-box">
                 <GraduationCap size={22} color="#ffffff" />
               </div>
-              <span className="campus-brand-name">CampusTrack</span>
+              <span className="campus-brand-name">Sentio</span>
             </div>
 
             <h1 className="campus-hero-title">Welcome Back!</h1>
             <p className="campus-hero-desc">
-              Sign in to access your ICFAI Tech School portal on CampusTrack.
+              Sign in to access your academic feedback and insights portal on Sentio.
             </p>
           </div>
         </section>
 
         {/* Right Side: Clean White Login Form */}
         <section className="campus-form-side">
-          {/* Top Logo Badge: IcfaiTech */}
-          <div className="icfai-logo-header">
-            <div className="icfai-brand-box">
-              <span className="icfai-logo-title">IcfaiTech</span>
-              <span className="icfai-logo-tagline">Faculty of Science & Technology</span>
-            </div>
-            <h2 className="campus-login-heading">
+          {/* Header */}
+          <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
+            <h2 className="campus-login-heading" style={{ marginTop: 0, fontSize: '1.75rem', fontWeight: 800, color: '#0f172a' }}>
               {mode === 'login' ? 'Login' : mode === 'register' ? 'Register' : 'Reset Password'}
             </h2>
-            <p className="campus-login-sub">Welcome to ICFAI Tech School</p>
+            <p className="campus-login-sub" style={{ margin: '0.25rem 0 0 0', fontSize: '0.88rem', color: '#64748b' }}>
+              Welcome to Sentio Academic Portal
+            </p>
           </div>
 
           {error && <div className="form-alert error" style={{ marginBottom: '1rem' }}>{error}</div>}
@@ -1848,23 +1788,7 @@ function Auth({ onAuthenticated, addToast }) {
             </button>
           </form>
 
-          {/* Quick Demo Shortcuts */}
-          {mode === 'login' && (
-            <div className="campus-demo-row">
-              <span style={{ fontSize: '0.74rem', color: '#64748b' }}>Quick Demo:</span>
-              <button type="button" className="campus-demo-chip" onClick={() => handleFillDemo('STUDENT')}>
-                🎓 Student
-              </button>
-              <button type="button" className="campus-demo-chip" onClick={() => handleFillDemo('FACULTY')}>
-                👨‍🏫 Faculty
-              </button>
-              <button type="button" className="campus-demo-chip" onClick={() => handleFillDemo('ADMIN')}>
-                🏛️ Admin
-              </button>
-            </div>
-          )}
-
-          {/* Toggle Register / Login */}
+{/* Toggle Register / Login */}
           <div style={{ textAlign: 'center', marginTop: '1.25rem', fontSize: '0.82rem', color: '#64748b' }}>
             {mode === 'login' ? (
               <span>
@@ -2306,7 +2230,16 @@ function StudentDashboard({ user, token, onLogout, onSwitchRole, addToast, onUse
   const [feedbacks, setFeedbacks] = useState([]);
   const [allottedSubjects, setAllottedSubjects] = useState([]);
   const [studentLectures, setStudentLectures] = useState([]);
-  const [studentSelectedSem, setStudentSelectedSem] = useState(user.semester || 5);
+  const cohort = useMemo(() => getStudentCohortFromEnrollment(user?.roll_no), [user?.roll_no]);
+  const [studentSelectedSem, setStudentSelectedSem] = useState(() => user.semester || cohort.semester);
+  const [showRecentSubmissions, setShowRecentSubmissions] = useState(false);
+
+  useEffect(() => {
+    if (user?.roll_no) {
+      const c = getStudentCohortFromEnrollment(user.roll_no);
+      setStudentSelectedSem(c.semester);
+    }
+  }, [user?.roll_no]);
   const [studentDayFilter, setStudentDayFilter] = useState('ALL');
   const [coursesViewTab, setCoursesViewTab] = useState('timetable'); // 'timetable' | 'catalog' | 'mentors'
   const [mentors, setMentors] = useState([]);
@@ -2519,13 +2452,43 @@ function StudentDashboard({ user, token, onLogout, onSwitchRole, addToast, onUse
 
         <nav className="nav-menu">
           <span className="nav-section-title">Menu</span>
-          <button
-            type="button"
-            className={`nav-item ${activeTab === 'submit' ? 'active' : ''}`}
-            onClick={() => { setActiveTab('submit'); setMobileMenuOpen(false); }}
-          >
-            <MessageSquarePlus size={18} /> Share Feedback
-          </button>
+          <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+            <button
+              type="button"
+              className={`nav-item ${activeTab === 'submit' ? 'active' : ''}`}
+              onClick={() => { setActiveTab('submit'); setMobileMenuOpen(false); }}
+              style={{ flex: 1, paddingRight: '2.5rem' }}
+            >
+              <MessageSquarePlus size={18} /> Share Feedback
+            </button>
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setActiveTab('submit');
+                setShowRecentSubmissions((prev) => !prev);
+                setMobileMenuOpen(false);
+              }}
+              title="Recent Submissions"
+              style={{
+                position: 'absolute',
+                right: '0.65rem',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: '24px',
+                height: '24px',
+                borderRadius: '6px',
+                background: showRecentSubmissions && activeTab === 'submit' ? '#2563eb' : '#f1f5f9',
+                color: showRecentSubmissions && activeTab === 'submit' ? '#ffffff' : '#64748b',
+                border: 'none',
+                cursor: 'pointer',
+                transition: 'all 0.15s ease',
+              }}
+            >
+              <Clock size={13} />
+            </button>
+          </div>
           <button
             type="button"
             className={`nav-item ${activeTab === 'courses' ? 'active' : ''}`}
@@ -2560,7 +2523,7 @@ function StudentDashboard({ user, token, onLogout, onSwitchRole, addToast, onUse
           <span className="user-avatar-chip">{user.name.charAt(0)}</span>
           <div className="user-details">
             <strong>{user.name}</strong>
-            <span>{user.roll_no ? `${user.roll_no} · ` : ''}Sem {user.semester || 5}</span>
+            <span>{user.roll_no ? `${user.roll_no} · ` : ''}Year {cohort.year} (Sem {cohort.semester})</span>
           </div>
         </div>
       </aside>
@@ -2574,13 +2537,52 @@ function StudentDashboard({ user, token, onLogout, onSwitchRole, addToast, onUse
               <Menu size={20} />
             </button>
             <div className="header-title-wrap">
-              <h1>
-                {activeTab === 'submit' && 'Share Classroom Feedback'}
-                {activeTab === 'courses' && 'Lecture Schedule & Subjects'}
-                {activeTab === 'wellbeing' && 'Student Wellbeing & Pace'}
-                {activeTab === 'community' && 'Campus Discussions & Study Groups'}
-                {activeTab === 'grievance' && 'Confidential Grievance Box'}
-              </h1>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+                <h1 style={{ margin: 0 }}>
+                  {activeTab === 'submit' && 'Share Classroom Feedback'}
+                  {activeTab === 'courses' && 'Lecture Schedule & Subjects'}
+                  {activeTab === 'wellbeing' && 'Student Wellbeing & Pace'}
+                  {activeTab === 'community' && 'Campus Discussions & Study Groups'}
+                  {activeTab === 'grievance' && 'Confidential Grievance Box'}
+                </h1>
+                {activeTab === 'submit' && (
+                  <button
+                    type="button"
+                    className="btn-header-action"
+                    onClick={() => setShowRecentSubmissions((prev) => !prev)}
+                    title={showRecentSubmissions ? 'Hide Recent Submissions' : 'Show Recent Submissions'}
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '0.4rem',
+                      padding: '0.35rem 0.75rem',
+                      borderRadius: '8px',
+                      border: showRecentSubmissions ? '1px solid #2563eb' : '1px solid #cbd5e1',
+                      background: showRecentSubmissions ? '#eff6ff' : '#ffffff',
+                      color: showRecentSubmissions ? '#2563eb' : '#334155',
+                      fontSize: '0.8rem',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      transition: 'all 0.15s ease'
+                    }}
+                  >
+                    <Clock size={14} color={showRecentSubmissions ? '#2563eb' : '#64748b'} />
+                    <span>Recent Submissions</span>
+                    {feedbacks.length > 0 && (
+                      <span style={{
+                        background: showRecentSubmissions ? '#2563eb' : '#f1f5f9',
+                        color: showRecentSubmissions ? '#ffffff' : '#475569',
+                        padding: '1px 6px',
+                        borderRadius: '9999px',
+                        fontSize: '0.68rem',
+                        fontWeight: 700,
+                      }}>
+                        {feedbacks.length}
+                      </span>
+                    )}
+                  </button>
+                )}
+              </div>
             </div>
           </div>
 
@@ -2611,16 +2613,42 @@ function StudentDashboard({ user, token, onLogout, onSwitchRole, addToast, onUse
         {/* 1. TAB: SUBMIT FEEDBACK */}
         {activeTab === 'submit' && (
           <div className="tab-pane">
-            <div className="grid-2col">
+            <div className={showRecentSubmissions ? "grid-2col" : ""} style={!showRecentSubmissions ? { maxWidth: '760px', margin: '0 auto' } : {}}>
               {/* Submission Form Card */}
               <div className="card">
-                <div style={{ marginBottom: '1.25rem' }}>
-                  <h3 style={{ margin: '0 0 0.25rem 0', fontSize: '1.15rem', color: '#0f172a' }}>
-                    How was your lecture today?
-                  </h3>
-                  <p style={{ margin: 0, fontSize: '0.85rem', color: '#64748b' }}>
-                    Your feedback helps professors adjust lecture pacing, give examples, or clarify difficult topics.
-                  </p>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.25rem', gap: '0.75rem' }}>
+                  <div>
+                    <h3 style={{ margin: '0 0 0.25rem 0', fontSize: '1.15rem', color: '#0f172a' }}>
+                      How was your lecture today?
+                    </h3>
+                    <p style={{ margin: 0, fontSize: '0.85rem', color: '#64748b' }}>
+                      Your feedback helps professors adjust lecture pacing, give examples, or clarify difficult topics.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    className="btn-header-action"
+                    onClick={() => setShowRecentSubmissions((prev) => !prev)}
+                    title={showRecentSubmissions ? 'Hide Recent Submissions' : 'View Recent Submissions'}
+                    style={{
+                      flexShrink: 0,
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '0.35rem',
+                      padding: '0.35rem 0.65rem',
+                      borderRadius: '8px',
+                      fontSize: '0.78rem',
+                      fontWeight: 600,
+                      color: showRecentSubmissions ? '#2563eb' : '#475569',
+                      background: showRecentSubmissions ? '#eff6ff' : '#f8fafc',
+                      border: showRecentSubmissions ? '1px solid #bfdbfe' : '1px solid #e2e8f0',
+                      cursor: 'pointer',
+                      whiteSpace: 'nowrap'
+                    }}
+                  >
+                    <Clock size={14} color={showRecentSubmissions ? '#2563eb' : '#64748b'} />
+                    <span>{showRecentSubmissions ? 'Hide Recent' : 'Recent Submissions'}</span>
+                  </button>
                 </div>
 
                 <form onSubmit={handleSubmitFeedback} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
@@ -2699,30 +2727,43 @@ function StudentDashboard({ user, token, onLogout, onSwitchRole, addToast, onUse
               </div>
 
               {/* Recent Submissions List */}
-              <div className="card">
-                <div style={{ marginBottom: '1rem' }}>
-                  <h3 style={{ margin: '0 0 0.25rem 0', fontSize: '1.15rem', color: '#0f172a' }}>
-                    Recent Submissions
-                  </h3>
-                  <p style={{ margin: 0, fontSize: '0.85rem', color: '#64748b' }}>
-                    Track responses and clarifications provided by your instructors.
-                  </p>
-                </div>
-
-                {feedbacks.length === 0 ? (
-                  <div className="empty-state">
-                    <p>No feedback submitted yet. Share your thoughts using the form!</p>
+              {showRecentSubmissions && (
+                <div className="card">
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
+                    <div>
+                      <h3 style={{ margin: '0 0 0.25rem 0', fontSize: '1.15rem', color: '#0f172a' }}>
+                        Recent Submissions
+                      </h3>
+                      <p style={{ margin: 0, fontSize: '0.85rem', color: '#64748b' }}>
+                        Track responses and clarifications provided by your instructors.
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setShowRecentSubmissions(false)}
+                      title="Close Recent Submissions"
+                      style={{ padding: '0.25rem', border: 'none', background: 'transparent', cursor: 'pointer', color: '#64748b' }}
+                    >
+                      <X size={16} />
+                    </button>
                   </div>
-                ) : (
-                  <div className="feedback-list" style={{ maxHeight: '480px', overflowY: 'auto' }}>
-                    {feedbacks.slice(0, 10).map((fb) => (
-                      <div key={fb.feedback_id} className="card feedback-card">
-                        <div className="feedback-card-top">
-                          <span className="course-tag">{fb.course_code}</span>
-                          <span className="feedback-meta">
-                            <Clock size={12} /> {new Date(fb.created_at).toLocaleDateString()}
-                          </span>
-                        </div>
+
+                  {feedbacks.length === 0 ? (
+                    <div className="empty-state">
+                      <p>No feedback submitted yet. Share your thoughts using the form!</p>
+                    </div>
+                  ) : (
+                    <div className="feedback-list" style={{ maxHeight: '480px', overflowY: 'auto' }}>
+                      {feedbacks.slice(0, 10).map((fb) => {
+                        const displayDate = formatFeedbackDate(fb.submitted_at || fb.created_at);
+                        return (
+                          <div key={fb.feedback_id} className="card feedback-card">
+                            <div className="feedback-card-top">
+                              <span className="course-tag">{fb.course_code}</span>
+                              <span className="feedback-meta">
+                                <Clock size={12} /> {displayDate}
+                              </span>
+                            </div>
 
                         <p className="feedback-comment">{fb.feedback_text}</p>
 
@@ -2751,10 +2792,12 @@ function StudentDashboard({ user, token, onLogout, onSwitchRole, addToast, onUse
                           </div>
                         )}
                       </div>
-                    ))}
+                    );
+                  })}
                   </div>
                 )}
               </div>
+              )}
             </div>
           </div>
         )}
@@ -2773,7 +2816,7 @@ function StudentDashboard({ user, token, onLogout, onSwitchRole, addToast, onUse
                   onClick={() => setStudentSelectedSem(s)}
                 >
                   Sem {s}
-                  {(user.semester || 5) === s && <span className="dot-indicator" title="Current Enrolled Semester" />}
+                  {cohort.semester === s && <span className="dot-indicator" title={`Enrolled Cohort: Year ${cohort.year} (Sem ${cohort.semester})`} />}
                 </button>
               ))}
             </div>
@@ -3790,7 +3833,7 @@ function AdminDashboard({ user, token, onLogout, onSwitchRole, addToast, onUserU
                     <div className="feedback-card-top">
                       <span className="course-tag">{fb.course_code}</span>
                       <span className="feedback-meta">
-                        <Clock size={12} /> {new Date(fb.created_at || fb.submitted_at || Date.now()).toLocaleDateString()} · {fb.class_section}
+                        <Clock size={12} /> {formatFeedbackDate(fb.submitted_at || fb.created_at)} · {fb.class_section}
                       </span>
                     </div>
                     <p className="feedback-comment">{fb.feedback_text}</p>
@@ -3884,7 +3927,7 @@ function AdminDashboard({ user, token, onLogout, onSwitchRole, addToast, onUserU
                         <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#0f172a' }}>{fb.course_name}</span>
                       </div>
                       <span className="feedback-meta">
-                        <Clock size={12} /> {new Date(fb.created_at).toLocaleDateString()} · {fb.class_section}
+                        <Clock size={12} /> {formatFeedbackDate(fb.submitted_at || fb.created_at)} · {fb.class_section}
                       </span>
                     </div>
 

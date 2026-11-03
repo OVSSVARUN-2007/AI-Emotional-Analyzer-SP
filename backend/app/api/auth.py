@@ -78,6 +78,30 @@ router = APIRouter(
 security_bearer = HTTPBearer(auto_error=False)
 
 
+def resolve_student_cohort(roll_no: Optional[str], fallback_sem: Optional[int] = None) -> tuple[int, int]:
+    """
+    Enrollment / Roll Number rules:
+    - Starts with 24 (or 2024) -> 3rd Year, Semester 5
+    - Starts with 25 (or 2025) -> 2nd Year, Semester 3
+    - Starts with 26 (or 2026) -> 4th Year, Semester 7
+    Returns: (academic_year, semester)
+    """
+    if not roll_no:
+        sem = int(fallback_sem) if fallback_sem is not None else 5
+        ayear = max(1, min(4, ((sem - 1) // 2) + 1))
+        return (ayear, sem)
+    clean = str(roll_no).strip().upper()
+    if clean.startswith("24") or clean.startswith("2024"):
+        return (3, 5)
+    elif clean.startswith("25") or clean.startswith("2025"):
+        return (2, 3)
+    elif clean.startswith("26") or clean.startswith("2026"):
+        return (4, 7)
+    sem = int(fallback_sem) if fallback_sem is not None else 5
+    ayear = max(1, min(4, ((sem - 1) // 2) + 1))
+    return (ayear, sem)
+
+
 def _enrich_user_profile(user: dict[str, Any]) -> dict[str, Any]:
     """Attach enrolled semester, section, department, contact info, and profile completion tracking."""
     role = str(user.get("role") or "").upper()
@@ -112,7 +136,9 @@ def _enrich_user_profile(user: dict[str, Any]) -> dict[str, Any]:
         user["class_section"] = sec
 
     if role == "STUDENT":
-        user["semester"] = user.get("semester") or 5
+        ayear, asem = resolve_student_cohort(user.get("roll_no"), fallback_sem=user.get("semester"))
+        user["academic_year"] = ayear
+        user["semester"] = asem
         user["program"] = "B.Tech AI & Data Science"
         user["department"] = user.get("department") or "AI & Data Science"
         try:
@@ -126,8 +152,9 @@ def _enrich_user_profile(user: dict[str, Any]) -> dict[str, Any]:
                     user["student_id"] = s_map.get("student_id")
                     if not user.get("roll_no") and s_map.get("roll_number"):
                         user["roll_no"] = s_map.get("roll_number")
-                    if s_map.get("semester"):
-                        user["semester"] = s_map.get("semester")
+                    ayear, asem = resolve_student_cohort(user.get("roll_no"), fallback_sem=s_map.get("semester") or user.get("semester"))
+                    user["academic_year"] = ayear
+                    user["semester"] = asem
                     if s_map.get("class_section") and not str(s_map.get("class_section")).startswith("Class "):
                         user["class_section"] = s_map.get("class_section")
                     if not user.get("phone") and s_map.get("phone"):
@@ -467,7 +494,7 @@ def register(payload: RegisterRequest) -> dict[str, Any]:
         ).fetchone()
 
         pw_hash = hash_password(payload.password)
-        semester = payload.semester if role == "STUDENT" else None
+        semester = resolve_student_cohort(roll_no, fallback_sem=payload.semester)[1] if role == "STUDENT" else None
         class_section = payload.class_section if role == "STUDENT" else None
 
         if existing_user:
@@ -651,15 +678,15 @@ def update_profile(
             if conflict_roll:
                 raise HTTPException(status_code=400, detail=f"Roll Number/ID '{new_roll}' is already in use by another user.")
 
+        new_role = payload.role.upper().strip() if (payload.role and payload.role.strip()) else u_data.get("role") or "STUDENT"
         new_name = payload.name.strip() if (payload.name and payload.name.strip()) else u_data["name"]
-        new_sem = payload.semester if payload.semester is not None else u_data.get("semester")
+        new_sem = resolve_student_cohort(new_roll, fallback_sem=payload.semester if payload.semester is not None else u_data.get("semester"))[1] if new_role == "STUDENT" else (payload.semester if payload.semester is not None else u_data.get("semester"))
         new_sec = payload.class_section if (payload.class_section and not payload.class_section.startswith("Class ")) else u_data.get("class_section") or "Section D"
         new_dept = payload.department.strip() if (payload.department and payload.department.strip()) else u_data.get("department") or "AI & Data Science"
         new_phone = payload.phone.strip() if (payload.phone and payload.phone.strip()) else u_data.get("phone")
         new_emerg = payload.emergency_contact.strip() if (payload.emergency_contact and payload.emergency_contact.strip()) else u_data.get("emergency_contact")
         new_bio = payload.bio.strip() if (payload.bio and payload.bio.strip()) else u_data.get("bio")
         new_desig = payload.designation.strip() if (payload.designation and payload.designation.strip()) else u_data.get("designation")
-        new_role = payload.role.upper().strip() if (payload.role and payload.role.strip()) else u_data.get("role") or "STUDENT"
 
         # Password change handling
         new_pw_hash = u_data["password_hash"]
