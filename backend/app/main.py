@@ -280,12 +280,151 @@ class BixiChatRequest(BaseModel):
     history: list[dict[str, str]] | None = None
 
 
+async def query_local_llm(
+    url: str,
+    model: str,
+    user_msg: str,
+    user_info: dict | None = None,
+    history: list | None = None,
+    timeout_sec: float = 30.0,
+) -> str | None:
+    """Query a local LLM server (Ollama, LM Studio, vLLM, LocalAI) with automatic format detection."""
+    import httpx
+
+    role = (user_info.get("role") if user_info else "STUDENT") or "STUDENT"
+    name = (user_info.get("name") if user_info else "Student") or "Student"
+    sys_prompt = (
+        f"You are Bixi, a friendly, concise, and helpful academic assistant for Sentio, a university student emotional feedback portal. "
+        f"You are chatting with {name} ({role}). Keep responses supportive, constructive, and academically insightful."
+    )
+
+    messages = [{"role": "system", "content": sys_prompt}]
+    if history:
+        for turn in history[-4:]:
+            r = turn.get("role") or turn.get("sender") or "user"
+            role_tag = "assistant" if r in ("bixi", "assistant") else "user"
+            content = turn.get("content") or turn.get("text") or ""
+            if content:
+                messages.append({"role": role_tag, "content": content})
+    messages.append({"role": "user", "content": user_msg})
+
+    try:
+        async with httpx.AsyncClient(timeout=timeout_sec) as client:
+            # Auto-resolve model from Ollama if running default model
+            actual_model = model
+            if "11434" in url and (not model or model == "llama3"):
+                try:
+                    tags_resp = await client.get("http://localhost:11434/api/tags", timeout=2.0)
+                    if tags_resp.status_code == 200:
+                        avail = [m.get("name") for m in tags_resp.json().get("models", []) if m.get("name")]
+                        if avail:
+                            preferred = [m for m in avail if "llama3.2" in m or "llama3" in m or "qwen" in m]
+                            actual_model = preferred[0] if preferred else avail[0]
+                except Exception:
+                    pass
+
+            # 1. OpenAI-compatible API (LM Studio, vLLM, LocalAI, Ollama /v1)
+            if "/v1" in url or "chat/completions" in url:
+                payload = {
+                    "model": actual_model,
+                    "messages": messages,
+                    "temperature": 0.7,
+                }
+                resp = await client.post(url, json=payload)
+                if resp.status_code == 200:
+                    data = resp.json()
+                    choices = data.get("choices", [])
+                    if choices and "message" in choices[0]:
+                        return choices[0]["message"].get("content", "").strip()
+
+            # 2. Ollama Chat endpoint (/api/chat)
+            elif "/api/chat" in url:
+                payload = {
+                    "model": actual_model,
+                    "messages": messages,
+                    "stream": False,
+                }
+                resp = await client.post(url, json=payload)
+                if resp.status_code == 200:
+                    data = resp.json()
+                    return data.get("message", {}).get("content", "").strip()
+
+            # 3. Ollama Generate endpoint (/api/generate or default)
+            else:
+                prompt_lines = [f"{m['role'].upper()}: {m['content']}" for m in messages]
+                prompt_lines.append("ASSISTANT:")
+                payload = {
+                    "model": actual_model,
+                    "prompt": "\n".join(prompt_lines),
+                    "stream": False,
+                }
+                resp = await client.post(url, json=payload)
+                if resp.status_code == 200:
+                    data = resp.json()
+                    return data.get("response", "").strip()
+    except Exception:
+        return None
+    return None
+
+
+@app.get("/api/bixi/status")
+async def bixi_status_endpoint():
+    """Returns connectivity and configuration status for Gemini and Local LLM."""
+    import os
+    import httpx
+    from app.services.gemini_service import get_gemini_api_key
+
+    local_url = os.getenv("LOCAL_LLM_URL", "http://localhost:11434/api/generate")
+    local_model = os.getenv("LOCAL_LLM_MODEL", "llama3")
+    prefer_local = os.getenv("PREFER_LOCAL_LLM", "false").lower() in ("1", "true", "yes")
+    gemini_key = get_gemini_api_key()
+
+    local_online = False
+    try:
+        base_probe = local_url.replace("/api/generate", "").replace("/api/chat", "").replace("/v1/chat/completions", "")
+        async with httpx.AsyncClient(timeout=1.5) as client:
+            probe_resp = await client.get(base_probe)
+            local_online = probe_resp.status_code in (200, 404, 405)
+    except Exception:
+        local_online = False
+
+    return {
+        "gemini_active": bool(gemini_key),
+        "local_llm": {
+            "configured_url": local_url,
+            "model": local_model,
+            "is_reachable": local_online,
+            "preferred_as_primary": prefer_local,
+        },
+        "active_primary_engine": "local_llm" if (prefer_local and local_online) else ("gemini" if gemini_key else ("local_llm" if local_online else "domain_fallback")),
+    }
+
+
 @app.post("/api/bixi/chat")
 async def bixi_chat_endpoint(req: BixiChatRequest):
-    """Bixi AI Assistant chat endpoint powered by Google Gemini with domain fallback."""
+    """Bixi AI Assistant chat endpoint with Local LLM (Ollama / LM Studio) and Google Gemini support."""
+    import os
     from app.services.gemini_service import chat_with_bixi_gemini, get_gemini_api_key
 
-    # 1. High-fidelity reasoning via Google Gemini
+    local_llm_url = os.getenv("LOCAL_LLM_URL", "http://localhost:11434/api/generate")
+    local_llm_model = os.getenv("LOCAL_LLM_MODEL", "llama3")
+    local_timeout = float(os.getenv("LOCAL_LLM_TIMEOUT", "30.0"))
+    prefer_local = os.getenv("PREFER_LOCAL_LLM", "false").lower() in ("1", "true", "yes")
+
+    # 1. Local LLM as primary if PREFER_LOCAL_LLM is true
+    if prefer_local:
+        local_reply = await query_local_llm(
+            url=local_llm_url,
+            model=local_llm_model,
+            user_msg=req.message,
+            user_info=req.user,
+            history=req.history,
+            timeout_sec=local_timeout,
+        )
+        if local_reply:
+            return {"reply": local_reply, "source": f"local_llm ({local_llm_model})"}
+
+    # 2. Cloud AI via Google Gemini (if configured)
     gemini_reply = chat_with_bixi_gemini(
         message=req.message,
         user=req.user,
@@ -294,31 +433,18 @@ async def bixi_chat_endpoint(req: BixiChatRequest):
     if gemini_reply:
         return {"reply": gemini_reply, "source": "gemini_1.5_flash"}
 
-    # 2. Check local LLM if configured
-    import os
-    import httpx
-
-    local_llm_url = os.getenv("LOCAL_LLM_URL", "http://localhost:11434/api/generate")
-    local_llm_model = os.getenv("LOCAL_LLM_MODEL", "llama3")
-
-    try:
-        async with httpx.AsyncClient(timeout=3.0) as client:
-            resp = await client.post(
-                local_llm_url,
-                json={
-                    "model": local_llm_model,
-                    "prompt": (
-                        "You are Bixi, a friendly academic assistant for the Sentio emotional feedback portal. "
-                        f"User says: {req.message}"
-                    ),
-                    "stream": False,
-                },
-            )
-            if resp.status_code == 200:
-                data = resp.json()
-                return {"reply": data.get("response", ""), "source": "local_llm"}
-    except Exception:
-        pass
+    # 3. Local LLM fallback if PREFER_LOCAL_LLM was not set
+    if not prefer_local:
+        local_reply = await query_local_llm(
+            url=local_llm_url,
+            model=local_llm_model,
+            user_msg=req.message,
+            user_info=req.user,
+            history=req.history,
+            timeout_sec=local_timeout,
+        )
+        if local_reply:
+            return {"reply": local_reply, "source": f"local_llm ({local_llm_model})"}
 
     # 3. Context-aware intelligent fallback
     q = req.message.lower()

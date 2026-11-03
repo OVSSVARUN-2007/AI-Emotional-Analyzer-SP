@@ -36,6 +36,13 @@ class UpdateProfileRequest(BaseModel):
     email: Optional[str] = Field(default=None, description="Updated email address")
     semester: Optional[int] = Field(default=None, description="Updated semester")
     class_section: Optional[str] = Field(default=None, description="Updated class section")
+    department: Optional[str] = Field(default=None, description="Academic department")
+    phone: Optional[str] = Field(default=None, description="Mobile / WhatsApp number")
+    emergency_contact: Optional[str] = Field(default=None, description="Emergency contact phone number")
+    bio: Optional[str] = Field(default=None, description="Academic interests or research focus")
+    designation: Optional[str] = Field(default=None, description="Faculty designation / title")
+    role: Optional[str] = Field(default=None, description="User role ('STUDENT', 'FACULTY', 'ADMIN')")
+    old_password: Optional[str] = Field(default=None, description="Current password")
     current_password: Optional[str] = Field(default=None, description="Current password if changing password")
     new_password: Optional[str] = Field(default=None, min_length=4, description="New password if updating password")
 
@@ -47,7 +54,7 @@ class RegisterRequest(BaseModel):
     password: str = Field(..., min_length=4, description="Account password")
     role: str = Field(default="STUDENT", description="Role: 'STUDENT', 'ADMIN', or 'FACULTY'")
     semester: Optional[int] = Field(default=5, description="Academic semester for students")
-    class_section: Optional[str] = Field(default="Class 3A", description="Enrolled class section")
+    class_section: Optional[str] = Field(default="Section A", description="Enrolled class section")
     otp_code: str = Field(..., description="6-digit verification OTP received via email")
 
 
@@ -67,8 +74,14 @@ class UserResponse(BaseModel):
     is_verified: Optional[bool] = True
     semester: Optional[int] = None
     class_section: Optional[str] = None
+    department: Optional[str] = None
+    phone: Optional[str] = None
+    bio: Optional[str] = None
     assigned_classes: Optional[list[str]] = None
     program: Optional[str] = None
+    profile_completion_pct: Optional[int] = 100
+    missing_fields: Optional[list[str]] = None
+    is_profile_complete: Optional[bool] = True
 
 
 class TokenResponse(BaseModel):

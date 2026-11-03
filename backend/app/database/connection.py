@@ -51,7 +51,7 @@ if engine is None:
                 status VARCHAR(20) DEFAULT 'PENDING',
                 is_anonymous BOOLEAN DEFAULT 1,
                 semester INTEGER DEFAULT 5,
-                class_section VARCHAR(50) DEFAULT 'Class 3A',
+                class_section VARCHAR(50) DEFAULT 'Section D',
                 course_code VARCHAR(30) DEFAULT 'AI501',
                 course_name VARCHAR(150) DEFAULT 'Natural Language Processing'
             );
@@ -61,7 +61,7 @@ if engine is None:
         fb_cols = [r[1] for r in conn.execute(text("PRAGMA table_info(feedback)")).fetchall()]
         for col_name, col_type in [
             ("semester", "INTEGER DEFAULT 5"),
-            ("class_section", "VARCHAR(50) DEFAULT 'Class 3A'"),
+            ("class_section", "VARCHAR(50) DEFAULT 'Section D'"),
             ("course_code", "VARCHAR(30) DEFAULT 'AI501'"),
             ("course_name", "VARCHAR(150) DEFAULT 'Natural Language Processing'"),
             ("upvotes", "INTEGER DEFAULT 0"),
@@ -156,7 +156,7 @@ if engine is None:
                 is_active BOOLEAN DEFAULT 1,
                 is_verified BOOLEAN DEFAULT 1,
                 semester INTEGER DEFAULT 5,
-                class_section VARCHAR(50) DEFAULT 'Class 3A',
+                class_section VARCHAR(50) DEFAULT 'Section D',
                 created_at DATETIME DEFAULT CURRENT_TIMESTAMP
             );
         """))
@@ -166,7 +166,7 @@ if engine is None:
             ("roll_no", "VARCHAR(50)"),
             ("is_verified", "BOOLEAN DEFAULT 1"),
             ("semester", "INTEGER DEFAULT 5"),
-            ("class_section", "VARCHAR(50) DEFAULT 'Class 3A'"),
+            ("class_section", "VARCHAR(50) DEFAULT 'Section D'"),
         ]:
             if col_name not in user_cols:
                 conn.execute(text(f"ALTER TABLE users ADD COLUMN {col_name} {col_type}"))
@@ -255,7 +255,7 @@ if engine is None:
                 post_id INTEGER PRIMARY KEY AUTOINCREMENT,
                 author_name VARCHAR(100) DEFAULT 'Anonymous Student',
                 author_role VARCHAR(20) DEFAULT 'STUDENT',
-                class_section VARCHAR(50) DEFAULT 'Class 3A',
+                class_section VARCHAR(50) DEFAULT 'Section D',
                 category VARCHAR(50) DEFAULT 'CAMPUS_LIFE',
                 title VARCHAR(200) NOT NULL,
                 content TEXT NOT NULL,
@@ -383,14 +383,14 @@ if engine is None:
         if user_count == 0:
             conn.execute(text("""
                 INSERT INTO users (name, roll_no, email, password_hash, role, semester, class_section, is_verified) VALUES
-                ('Arunn Reddy', '2024-AI-042', 'student@univ.edu', 'pass123', 'STUDENT', 5, 'Class 3A', 1),
-                ('Dr. A. Sharma', 'FACULTY-001', 'faculty@univ.edu', 'pass123', 'FACULTY', 5, 'Class 3A', 1),
-                ('Dean Academics', 'ADMIN-001', 'admin@univ.edu', 'pass123', 'ADMIN', 5, 'Class 3A', 1),
-                ('Test Student', 'TEST-AIDS-001', 'student@test.com', 'pass123', 'STUDENT', 5, 'Class 3A', 1),
-                ('Test Faculty', 'FACULTY-002', 'faculty@test.com', 'pass123', 'FACULTY', 5, 'Class 3A', 1),
-                ('Test Admin', 'ADMIN-002', 'admin@test.com', 'pass123', 'ADMIN', 5, 'Class 3A', 1),
-                ('Priya Patel', '2025-CS-018', 'priya@univ.edu', 'pass123', 'STUDENT', 3, 'Class 2A', 1),
-                ('Rahul Verma', '2024-AI-077', 'rahul@univ.edu', 'pass123', 'STUDENT', 5, 'Class 3B', 1);
+                ('Arunn Reddy', '2024-AI-042', 'student@univ.edu', 'pass123', 'STUDENT', 5, 'Section D', 1),
+                ('Dr. A. Sharma', 'FACULTY-001', 'faculty@univ.edu', 'pass123', 'FACULTY', 5, 'Section D', 1),
+                ('Dean Academics', 'ADMIN-001', 'admin@univ.edu', 'pass123', 'ADMIN', 5, 'Section D', 1),
+                ('Test Student', 'TEST-AIDS-001', 'student@test.com', 'pass123', 'STUDENT', 5, 'Section D', 1),
+                ('Test Faculty', 'FACULTY-002', 'faculty@test.com', 'pass123', 'FACULTY', 5, 'Section D', 1),
+                ('Test Admin', 'ADMIN-002', 'admin@test.com', 'pass123', 'ADMIN', 5, 'Section D', 1),
+                ('Priya Patel', '2025-CS-018', 'priya@univ.edu', 'pass123', 'STUDENT', 3, 'Section B', 1),
+                ('Rahul Verma', '2024-AI-077', 'rahul@univ.edu', 'pass123', 'STUDENT', 5, 'Section E', 1);
             """))
         else:
             conn.execute(text("UPDATE users SET roll_no = '2024-AI-042', is_verified = 1 WHERE email = 'student@univ.edu' AND (roll_no IS NULL OR roll_no = '')"))
@@ -428,12 +428,12 @@ if engine is None:
         if sec_count == 0:
             conn.execute(text("""
                 INSERT INTO sections (class_name, semester, department_name) VALUES
-                ('Class 1A', 1, 'Computer Science'),
-                ('Class 2A', 3, 'Computer Science'),
-                ('Class 2B', 3, 'Computer Science'),
-                ('Class 3A', 5, 'AI & Data Science'),
-                ('Class 3B', 5, 'AI & Data Science'),
-                ('Class 4A', 7, 'AI & Data Science');
+                ('Section A', 1, 'Computer Science'),
+                ('Section B', 3, 'Computer Science'),
+                ('Section C', 3, 'Computer Science'),
+                ('Section D', 5, 'AI & Data Science'),
+                ('Section E', 5, 'AI & Data Science'),
+                ('Section F', 7, 'AI & Data Science');
             """))
 
         # Seed Course Offerings
@@ -441,21 +441,21 @@ if engine is None:
         if offering_count == 0:
             conn.execute(text("""
                 INSERT INTO course_offerings (offering_id, course_id, faculty_name, class_section, semester, term_name) VALUES
-                (1, 7, 'Dr. A. Sharma', 'Class 3A', 5, 'Fall 2026'),
-                (2, 8, 'Prof. R. Menon', 'Class 3A', 5, 'Fall 2026'),
-                (3, 9, 'Dr. S. Nair', 'Class 3A', 5, 'Fall 2026'),
-                (4, 10, 'Dr. K. Iyer', 'Class 3A', 5, 'Fall 2026'),
-                (5, 7, 'Dr. A. Sharma', 'Class 3B', 5, 'Fall 2026'),
-                (6, 8, 'Prof. R. Menon', 'Class 3B', 5, 'Fall 2026'),
-                (7, 9, 'Dr. S. Nair', 'Class 3B', 5, 'Fall 2026'),
-                (8, 10, 'Dr. K. Iyer', 'Class 3B', 5, 'Fall 2026'),
-                (9, 4, 'Dr. A. Sharma', 'Class 2A', 3, 'Fall 2026'),
-                (10, 5, 'Prof. R. Menon', 'Class 2A', 3, 'Fall 2026'),
-                (11, 6, 'Dr. K. Iyer', 'Class 2A', 3, 'Fall 2026'),
-                (12, 1, 'Dr. A. Sharma', 'Class 1A', 1, 'Fall 2026'),
-                (13, 2, 'Dr. K. Iyer', 'Class 1A', 1, 'Fall 2026'),
-                (14, 3, 'Dr. V. Raman', 'Class 1A', 1, 'Fall 2026'),
-                (15, 14, 'Dr. A. Sharma', 'Class 4A', 7, 'Fall 2026');
+                (1, 7, 'Dr. A. Sharma', 'Section D', 5, 'Fall 2026'),
+                (2, 8, 'Prof. R. Menon', 'Section D', 5, 'Fall 2026'),
+                (3, 9, 'Dr. S. Nair', 'Section D', 5, 'Fall 2026'),
+                (4, 10, 'Dr. K. Iyer', 'Section D', 5, 'Fall 2026'),
+                (5, 7, 'Dr. A. Sharma', 'Section E', 5, 'Fall 2026'),
+                (6, 8, 'Prof. R. Menon', 'Section E', 5, 'Fall 2026'),
+                (7, 9, 'Dr. S. Nair', 'Section E', 5, 'Fall 2026'),
+                (8, 10, 'Dr. K. Iyer', 'Section E', 5, 'Fall 2026'),
+                (9, 4, 'Dr. A. Sharma', 'Section B', 3, 'Fall 2026'),
+                (10, 5, 'Prof. R. Menon', 'Section B', 3, 'Fall 2026'),
+                (11, 6, 'Dr. K. Iyer', 'Section B', 3, 'Fall 2026'),
+                (12, 1, 'Dr. A. Sharma', 'Section A', 1, 'Fall 2026'),
+                (13, 2, 'Dr. K. Iyer', 'Section A', 1, 'Fall 2026'),
+                (14, 3, 'Dr. V. Raman', 'Section A', 1, 'Fall 2026'),
+                (15, 14, 'Dr. A. Sharma', 'Section F', 7, 'Fall 2026');
             """))
 
         # Seed Students
@@ -463,11 +463,11 @@ if engine is None:
         if stud_count == 0:
             conn.execute(text("""
                 INSERT INTO students (name, email, roll_number, semester, class_section, department_name) VALUES
-                ('Arunn Reddy', 'student@univ.edu', '2024-AI-042', 5, 'Class 3A', 'AI & Data Science'),
-                ('Test Student', 'student@test.com', 'TEST-AIDS-001', 5, 'Class 3A', 'AI & Data Science'),
-                ('Priya Patel', 'priya@univ.edu', '2025-CS-018', 3, 'Class 2A', 'Computer Science'),
-                ('Rahul Verma', 'rahul@univ.edu', '2024-AI-077', 5, 'Class 3B', 'AI & Data Science'),
-                ('Ananya Sen', 'ananya@univ.edu', '2026-CS-005', 1, 'Class 1A', 'Computer Science');
+                ('Arunn Reddy', 'student@univ.edu', '2024-AI-042', 5, 'Section D', 'AI & Data Science'),
+                ('Test Student', 'student@test.com', 'TEST-AIDS-001', 5, 'Section D', 'AI & Data Science'),
+                ('Priya Patel', 'priya@univ.edu', '2025-CS-018', 3, 'Section B', 'Computer Science'),
+                ('Rahul Verma', 'rahul@univ.edu', '2024-AI-077', 5, 'Section E', 'AI & Data Science'),
+                ('Ananya Sen', 'ananya@univ.edu', '2026-CS-005', 1, 'Section A', 'Computer Science');
             """))
 
         # Seed Semesters
@@ -490,21 +490,21 @@ if engine is None:
         if lec_count == 0:
             conn.execute(text("""
                 INSERT INTO lectures (course_code, course_name, faculty_name, class_section, semester, day_of_week, start_time, end_time, room_number, topic, lecture_type, status) VALUES
-                ('AI501', 'Natural Language Processing', 'Dr. A. Sharma', 'Class 3A', 5, 'Monday', '09:30 AM', '10:30 AM', 'Hall 301', 'Attention Mechanisms & Multi-Head Projections', 'Theory', 'SCHEDULED'),
-                ('AI502', 'Machine Learning', 'Prof. R. Menon', 'Class 3A', 5, 'Monday', '10:45 AM', '11:45 AM', 'Hall 301', 'Gradient Boosting & XGBoost Hyperparameters', 'Theory', 'SCHEDULED'),
-                ('AI501', 'Natural Language Processing Lab', 'Dr. A. Sharma', 'Class 3A', 5, 'Monday', '02:00 PM', '04:00 PM', 'AI Lab 4', 'PyTorch HuggingFace Tokenizers & Attention Matrices', 'Lab', 'SCHEDULED'),
-                ('CS501', 'Computer Networks', 'Dr. S. Nair', 'Class 3A', 5, 'Tuesday', '09:30 AM', '10:30 AM', 'Hall 301', 'TCP Congestion Control & Window Flow Mechanisms', 'Theory', 'SCHEDULED'),
-                ('CS502', 'Database Management Systems', 'Dr. K. Iyer', 'Class 3A', 5, 'Tuesday', '11:00 AM', '12:00 PM', 'Hall 301', 'ACID Transactions & Two-Phase Locking Protocol', 'Theory', 'SCHEDULED'),
-                ('AI504', 'Deep Learning Architectures', 'Dr. A. Sharma', 'Class 3A', 5, 'Tuesday', '02:00 PM', '03:00 PM', 'Hall 302', 'Transformer Attention vs Recurrent Memory Blocks', 'Theory', 'SCHEDULED'),
-                ('AI501', 'Natural Language Processing', 'Dr. A. Sharma', 'Class 3A', 5, 'Wednesday', '09:30 AM', '10:30 AM', 'Hall 301', 'Cross-Attention & Masked Language Modeling', 'Theory', 'SCHEDULED'),
-                ('AI502', 'Machine Learning', 'Prof. R. Menon', 'Class 3A', 5, 'Wednesday', '10:45 AM', '11:45 AM', 'Hall 301', 'Support Vector Machines & Kernel Tricks', 'Theory', 'SCHEDULED'),
-                ('DS302', 'Statistical Machine Learning', 'Dr. M. Sen', 'Class 3A', 5, 'Wednesday', '01:30 PM', '02:30 PM', 'Hall 204', 'Hypothesis Testing & p-Value Statistical Significance', 'Theory', 'SCHEDULED'),
-                ('CS501', 'Computer Networks', 'Dr. S. Nair', 'Class 3A', 5, 'Thursday', '10:00 AM', '11:00 AM', 'Hall 301', 'Border Gateway Protocol (BGP) & Autonomous Systems', 'Theory', 'SCHEDULED'),
-                ('CS502', 'Database Management Systems', 'Dr. K. Iyer', 'Class 3A', 5, 'Thursday', '11:15 AM', '12:15 PM', 'Hall 301', 'B+ Tree Indexing & Query Cost Optimization', 'Theory', 'SCHEDULED'),
-                ('AI502', 'ML Evaluation & Benchmarking Lab', 'Prof. R. Menon', 'Class 3A', 5, 'Thursday', '02:00 PM', '04:00 PM', 'Lab 2', 'Scikit-learn ROC-AUC & Confusion Matrix Curves', 'Lab', 'SCHEDULED'),
-                ('AI501', 'Natural Language Processing', 'Dr. A. Sharma', 'Class 3A', 5, 'Friday', '09:30 AM', '10:30 AM', 'Hall 301', 'Positional Encodings & Rotary RoPE Embeddings', 'Theory', 'SCHEDULED'),
-                ('AI504', 'Deep Learning Architectures', 'Dr. A. Sharma', 'Class 3A', 5, 'Friday', '10:45 AM', '11:45 AM', 'Hall 302', 'Backpropagation Through Time Matrix Chain Rule', 'Theory', 'SCHEDULED'),
-                ('AI505', 'AI Industry Seminar & Case Studies', 'Dean Academics', 'Class 3A', 5, 'Friday', '02:00 PM', '03:30 PM', 'Auditorium', 'Production LLM Serving: KV Cache & Latency', 'Seminar', 'SCHEDULED');
+                ('AI501', 'Natural Language Processing', 'Dr. A. Sharma', 'Section D', 5, 'Monday', '09:30 AM', '10:30 AM', 'Hall 301', 'Attention Mechanisms & Multi-Head Projections', 'Theory', 'SCHEDULED'),
+                ('AI502', 'Machine Learning', 'Prof. R. Menon', 'Section D', 5, 'Monday', '10:45 AM', '11:45 AM', 'Hall 301', 'Gradient Boosting & XGBoost Hyperparameters', 'Theory', 'SCHEDULED'),
+                ('AI501', 'Natural Language Processing Lab', 'Dr. A. Sharma', 'Section D', 5, 'Monday', '02:00 PM', '04:00 PM', 'AI Lab 4', 'PyTorch HuggingFace Tokenizers & Attention Matrices', 'Lab', 'SCHEDULED'),
+                ('CS501', 'Computer Networks', 'Dr. S. Nair', 'Section D', 5, 'Tuesday', '09:30 AM', '10:30 AM', 'Hall 301', 'TCP Congestion Control & Window Flow Mechanisms', 'Theory', 'SCHEDULED'),
+                ('CS502', 'Database Management Systems', 'Dr. K. Iyer', 'Section D', 5, 'Tuesday', '11:00 AM', '12:00 PM', 'Hall 301', 'ACID Transactions & Two-Phase Locking Protocol', 'Theory', 'SCHEDULED'),
+                ('AI504', 'Deep Learning Architectures', 'Dr. A. Sharma', 'Section D', 5, 'Tuesday', '02:00 PM', '03:00 PM', 'Hall 302', 'Transformer Attention vs Recurrent Memory Blocks', 'Theory', 'SCHEDULED'),
+                ('AI501', 'Natural Language Processing', 'Dr. A. Sharma', 'Section D', 5, 'Wednesday', '09:30 AM', '10:30 AM', 'Hall 301', 'Cross-Attention & Masked Language Modeling', 'Theory', 'SCHEDULED'),
+                ('AI502', 'Machine Learning', 'Prof. R. Menon', 'Section D', 5, 'Wednesday', '10:45 AM', '11:45 AM', 'Hall 301', 'Support Vector Machines & Kernel Tricks', 'Theory', 'SCHEDULED'),
+                ('DS302', 'Statistical Machine Learning', 'Dr. M. Sen', 'Section D', 5, 'Wednesday', '01:30 PM', '02:30 PM', 'Hall 204', 'Hypothesis Testing & p-Value Statistical Significance', 'Theory', 'SCHEDULED'),
+                ('CS501', 'Computer Networks', 'Dr. S. Nair', 'Section D', 5, 'Thursday', '10:00 AM', '11:00 AM', 'Hall 301', 'Border Gateway Protocol (BGP) & Autonomous Systems', 'Theory', 'SCHEDULED'),
+                ('CS502', 'Database Management Systems', 'Dr. K. Iyer', 'Section D', 5, 'Thursday', '11:15 AM', '12:15 PM', 'Hall 301', 'B+ Tree Indexing & Query Cost Optimization', 'Theory', 'SCHEDULED'),
+                ('AI502', 'ML Evaluation & Benchmarking Lab', 'Prof. R. Menon', 'Section D', 5, 'Thursday', '02:00 PM', '04:00 PM', 'Lab 2', 'Scikit-learn ROC-AUC & Confusion Matrix Curves', 'Lab', 'SCHEDULED'),
+                ('AI501', 'Natural Language Processing', 'Dr. A. Sharma', 'Section D', 5, 'Friday', '09:30 AM', '10:30 AM', 'Hall 301', 'Positional Encodings & Rotary RoPE Embeddings', 'Theory', 'SCHEDULED'),
+                ('AI504', 'Deep Learning Architectures', 'Dr. A. Sharma', 'Section D', 5, 'Friday', '10:45 AM', '11:45 AM', 'Hall 302', 'Backpropagation Through Time Matrix Chain Rule', 'Theory', 'SCHEDULED'),
+                ('AI505', 'AI Industry Seminar & Case Studies', 'Dean Academics', 'Section D', 5, 'Friday', '02:00 PM', '03:30 PM', 'Auditorium', 'Production LLM Serving: KV Cache & Latency', 'Seminar', 'SCHEDULED');
             """))
 
         # Ensure feedback rows 1 to 5 exist for test compatibility and class-wise analytics
@@ -517,7 +517,7 @@ if engine is None:
                 ) VALUES (
                     5, 2, 9,
                     'The graph algorithm explanations and visualization slides made difficult concepts much simpler to grasp.',
-                    'ANALYZED', 1, 3, 'Class 2A', 'CS201', 'Data Structures & Algorithms'
+                    'ANALYZED', 1, 3, 'Section B', 'CS201', 'Data Structures & Algorithms'
                 );
             """))
             conn.execute(text("""
@@ -536,19 +536,19 @@ if engine is None:
 
         # Update initial feedbacks to have proper class and semester
         conn.execute(text("""
-            UPDATE feedback SET semester = 5, class_section = 'Class 3A', course_code = 'AI501', course_name = 'Natural Language Processing'
+            UPDATE feedback SET semester = 5, class_section = 'Section D', course_code = 'AI501', course_name = 'Natural Language Processing'
             WHERE feedback_id = 1;
         """))
         conn.execute(text("""
-            UPDATE feedback SET semester = 5, class_section = 'Class 3A', course_code = 'AI502', course_name = 'Machine Learning'
+            UPDATE feedback SET semester = 5, class_section = 'Section D', course_code = 'AI502', course_name = 'Machine Learning'
             WHERE feedback_id = 2;
         """))
         conn.execute(text("""
-            UPDATE feedback SET semester = 5, class_section = 'Class 3B', course_code = 'AI501', course_name = 'Natural Language Processing'
+            UPDATE feedback SET semester = 5, class_section = 'Section E', course_code = 'AI501', course_name = 'Natural Language Processing'
             WHERE feedback_id = 3;
         """))
         conn.execute(text("""
-            UPDATE feedback SET semester = 5, class_section = 'Class 3A', course_code = 'CS501', course_name = 'Computer Networks'
+            UPDATE feedback SET semester = 5, class_section = 'Section D', course_code = 'CS501', course_name = 'Computer Networks'
             WHERE feedback_id = 4;
         """))
 
@@ -631,12 +631,12 @@ if engine is None:
                     class_section, category, severity, title, description, status, action_taken, created_at
                 ) VALUES (
                     'Arunn Reddy', '2024-AI-042', 'AI501', 'Natural Language Processing', 'Dr. A. Sharma',
-                    'Class 3A', 'Assignments', 'HIGH', 'Assignment 2 Deadline Clashing with Mid-Term Exam',
+                    'Section D', 'Assignments', 'HIGH', 'Assignment 2 Deadline Clashing with Mid-Term Exam',
                     'The NLP assignment deadline is on the same afternoon as the Mid-Term exam. Requesting a 3-day extension.',
                     'IN_REVIEW', 'Faculty notified to evaluate extension schedule.', datetime('now', '-2 days')
                 ), (
                     'Priya Patel', '2025-CS-018', 'CS201', 'Data Structures & Algorithms', 'Dr. A. Sharma',
-                    'Class 2A', 'Lab Infrastructure', 'MEDIUM', 'Lab Machine #14 PyTorch GPU Driver Mismatch',
+                    'Section B', 'Lab Infrastructure', 'MEDIUM', 'Lab Machine #14 PyTorch GPU Driver Mismatch',
                     'CUDA runtime fails on workstation 14 during practical sessions.',
                     'RESOLVED', 'Lab technician updated NVIDIA driver and CUDA toolkit.', datetime('now', '-4 days')
                 );
@@ -688,9 +688,9 @@ if engine is None:
         if comm_count == 0:
             conn.execute(text("""
                 INSERT INTO community_posts (author_name, author_role, class_section, category, title, content, upvotes, status, official_response) VALUES
-                ('Anonymous Student', 'STUDENT', 'Class 3A', 'ACADEMIC_WORKLOAD', 'Overlap between NLP Assignment 2 and Computer Vision Lab Midterm', 'Both major deliverables are scheduled for Thursday 11:59 PM. Can the lab submission be extended to Sunday to give us breathing room?', 24, 'UNDER_REVIEW', 'Dean Academics: We have notified the department chair to stagger the deadlines by 72 hours.'),
-                ('Anonymous Student', 'STUDENT', 'Class 3A', 'FACILITY', 'GPU Server Memory Constraints during Deep Learning Practicals', 'Several of us got CUDA Out of Memory errors during Tuesday lab session because shared allocated memory was capped at 4GB per container.', 18, 'ACTION_TAKEN', 'Systems Admin: Memory quotas increased to 12GB per student session.'),
-                ('Anonymous Student', 'STUDENT', 'Class 2A', 'PEDAGOGY', 'Request for recorded PyTorch code walkthroughs for Attention Mechanisms', 'The theoretical derivations in lecture were great, but we would really benefit from a step-by-step notebook review.', 15, 'RESOLVED', 'Dr. Sharma has posted a 15-minute supplementary Colab walkthrough in the course materials.');
+                ('Anonymous Student', 'STUDENT', 'Section D', 'ACADEMIC_WORKLOAD', 'Overlap between NLP Assignment 2 and Computer Vision Lab Midterm', 'Both major deliverables are scheduled for Thursday 11:59 PM. Can the lab submission be extended to Sunday to give us breathing room?', 24, 'UNDER_REVIEW', 'Dean Academics: We have notified the department chair to stagger the deadlines by 72 hours.'),
+                ('Anonymous Student', 'STUDENT', 'Section D', 'FACILITY', 'GPU Server Memory Constraints during Deep Learning Practicals', 'Several of us got CUDA Out of Memory errors during Tuesday lab session because shared allocated memory was capped at 4GB per container.', 18, 'ACTION_TAKEN', 'Systems Admin: Memory quotas increased to 12GB per student session.'),
+                ('Anonymous Student', 'STUDENT', 'Section B', 'PEDAGOGY', 'Request for recorded PyTorch code walkthroughs for Attention Mechanisms', 'The theoretical derivations in lecture were great, but we would really benefit from a step-by-step notebook review.', 15, 'RESOLVED', 'Dr. Sharma has posted a 15-minute supplementary Colab walkthrough in the course materials.');
             """))
 
         # Seed sample Clarification Broadcasts
