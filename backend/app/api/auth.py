@@ -79,33 +79,129 @@ security_bearer = HTTPBearer(auto_error=False)
 
 
 def _enrich_user_profile(user: dict[str, Any]) -> dict[str, Any]:
-    """Attach enrolled semester, section, and student_id metadata."""
+    """Attach enrolled semester, section, department, contact info, and profile completion tracking."""
     role = str(user.get("role") or "").upper()
     user["role"] = role
 
+    uid = user.get("user_id")
+    if uid:
+        try:
+            with engine.connect() as check_conn:
+                u_row = check_conn.execute(
+                    text("SELECT phone, department, bio, emergency_contact, designation, class_section, semester, roll_no FROM users WHERE user_id = :uid"),
+                    {"uid": uid}
+                ).fetchone()
+                if u_row:
+                    m = dict(u_row._mapping)
+                    if m.get("phone"): user["phone"] = m.get("phone")
+                    if m.get("department"): user["department"] = m.get("department")
+                    if m.get("bio"): user["bio"] = m.get("bio")
+                    if m.get("emergency_contact"): user["emergency_contact"] = m.get("emergency_contact")
+                    if m.get("designation"): user["designation"] = m.get("designation")
+                    if m.get("class_section") and not str(m.get("class_section")).startswith("Class "):
+                        user["class_section"] = m.get("class_section")
+                    if m.get("semester"): user["semester"] = m.get("semester")
+                    if m.get("roll_no"): user["roll_no"] = m.get("roll_no")
+        except Exception:
+            pass
+
+    # Ensure clean section format (Section A-K)
+    sec = user.get("class_section")
+    if not sec or str(sec).startswith("Class "):
+        sec = "Section D" if role == "STUDENT" else "All Sections"
+        user["class_section"] = sec
+
     if role == "STUDENT":
         user["semester"] = user.get("semester") or 5
-        user["class_section"] = user.get("class_section") or "Class 3A"
         user["program"] = "B.Tech AI & Data Science"
-        with engine.connect() as check_conn:
-            stud_row = check_conn.execute(
-                text("SELECT student_id, roll_number, semester, class_section FROM students WHERE LOWER(email) = :email OR user_id = :uid LIMIT 1"),
-                {"email": user.get("email", "").lower(), "uid": user.get("user_id")}
-            ).fetchone()
-            if stud_row:
-                s_map = dict(stud_row._mapping)
-                user["student_id"] = s_map.get("student_id")
-                if not user.get("roll_no"):
-                    user["roll_no"] = s_map.get("roll_number")
-                if s_map.get("semester"):
-                    user["semester"] = s_map.get("semester")
-                if s_map.get("class_section"):
-                    user["class_section"] = s_map.get("class_section")
-            else:
-                user["student_id"] = user.get("user_id")
+        user["department"] = user.get("department") or "AI & Data Science"
+        try:
+            with engine.connect() as check_conn:
+                stud_row = check_conn.execute(
+                    text("SELECT student_id, roll_number, semester, class_section, phone, bio, department_name FROM students WHERE LOWER(email) = :email OR user_id = :uid LIMIT 1"),
+                    {"email": user.get("email", "").lower(), "uid": user.get("user_id")}
+                ).fetchone()
+                if stud_row:
+                    s_map = dict(stud_row._mapping)
+                    user["student_id"] = s_map.get("student_id")
+                    if not user.get("roll_no") and s_map.get("roll_number"):
+                        user["roll_no"] = s_map.get("roll_number")
+                    if s_map.get("semester"):
+                        user["semester"] = s_map.get("semester")
+                    if s_map.get("class_section") and not str(s_map.get("class_section")).startswith("Class "):
+                        user["class_section"] = s_map.get("class_section")
+                    if not user.get("phone") and s_map.get("phone"):
+                        user["phone"] = s_map.get("phone")
+                    if not user.get("bio") and s_map.get("bio"):
+                        user["bio"] = s_map.get("bio")
+                    if s_map.get("department_name"):
+                        user["department"] = s_map.get("department_name")
+                else:
+                    user["student_id"] = user.get("user_id")
+        except Exception:
+            user["student_id"] = user.get("user_id")
     elif role in ("FACULTY", "ADMIN"):
-        user["assigned_classes"] = ["Class 3A", "Class 3B", "Class 2A"]
-        user["department"] = "AI & Data Science"
+        user["assigned_classes"] = ["Section A", "Section B", "Section C", "Section D", "Section E", "Section F"]
+        user["department"] = user.get("department") or ("Computer Science & Engineering" if role == "FACULTY" else "Academic Administration")
+        user["designation"] = user.get("designation") or ("Associate Professor" if role == "FACULTY" else "Dean of Academics")
+
+    # Profile Completion Score Calculation
+    missing_fields = []
+    points = 0
+    total_criteria = 7
+
+    # 1. Full Name
+    if user.get("name") and str(user["name"]).strip():
+        points += 1
+    else:
+        missing_fields.append("Full Name")
+
+    # 2. Email Address
+    if user.get("email") and "@" in str(user["email"]):
+        points += 1
+    else:
+        missing_fields.append("University Email")
+
+    # 3. Roll Number or Staff ID
+    if user.get("roll_no") and str(user["roll_no"]).strip():
+        points += 1
+    else:
+        missing_fields.append("Roll Number / Employee ID")
+
+    # 4. Department
+    if user.get("department") and str(user["department"]).strip():
+        points += 1
+    else:
+        missing_fields.append("Department")
+
+    # 5. Cohort / Designation
+    if role == "STUDENT":
+        if user.get("semester") and user.get("class_section"):
+            points += 1
+        else:
+            missing_fields.append("Semester & Class Section")
+    else:
+        if user.get("designation"):
+            points += 1
+        else:
+            missing_fields.append("Academic Designation")
+
+    # 6. Phone Number
+    if user.get("phone") and len(str(user["phone"]).strip()) >= 7:
+        points += 1
+    else:
+        missing_fields.append("Contact Phone Number")
+
+    # 7. Academic Bio / Interests
+    if user.get("bio") and len(str(user["bio"]).strip()) >= 5:
+        points += 1
+    else:
+        missing_fields.append("Academic Bio / Focus")
+
+    completion_pct = round((points / total_criteria) * 100)
+    user["profile_completion_pct"] = completion_pct
+    user["missing_fields"] = missing_fields
+    user["is_profile_complete"] = (completion_pct == 100)
 
     return user
 
@@ -516,6 +612,8 @@ def get_me(current_user: dict[str, Any] = Depends(get_current_user)) -> dict[str
     }
 
 
+@router.put("/profile", summary="Update user profile and contact details")
+@router.put("/update-profile", summary="Update user profile and contact details (PUT alias)")
 @router.post("/update-profile", summary="Update user name, roll number, email, semester, section, or password")
 def update_profile(
     payload: UpdateProfileRequest,
@@ -526,7 +624,7 @@ def update_profile(
     with engine.begin() as conn:
         # Check current user in DB
         u_row = conn.execute(
-            text("SELECT user_id, name, roll_no, email, password_hash, role, semester, class_section FROM users WHERE user_id = :uid"),
+            text("SELECT user_id, name, roll_no, email, password_hash, role, semester, class_section, department, phone, bio, emergency_contact, designation FROM users WHERE user_id = :uid"),
             {"uid": user_id},
         ).fetchone()
         if not u_row:
@@ -555,13 +653,20 @@ def update_profile(
 
         new_name = payload.name.strip() if (payload.name and payload.name.strip()) else u_data["name"]
         new_sem = payload.semester if payload.semester is not None else u_data.get("semester")
-        new_sec = payload.class_section if payload.class_section is not None else u_data.get("class_section")
+        new_sec = payload.class_section if (payload.class_section and not payload.class_section.startswith("Class ")) else u_data.get("class_section") or "Section D"
+        new_dept = payload.department.strip() if (payload.department and payload.department.strip()) else u_data.get("department") or "AI & Data Science"
+        new_phone = payload.phone.strip() if (payload.phone and payload.phone.strip()) else u_data.get("phone")
+        new_emerg = payload.emergency_contact.strip() if (payload.emergency_contact and payload.emergency_contact.strip()) else u_data.get("emergency_contact")
+        new_bio = payload.bio.strip() if (payload.bio and payload.bio.strip()) else u_data.get("bio")
+        new_desig = payload.designation.strip() if (payload.designation and payload.designation.strip()) else u_data.get("designation")
+        new_role = payload.role.upper().strip() if (payload.role and payload.role.strip()) else u_data.get("role") or "STUDENT"
 
         # Password change handling
         new_pw_hash = u_data["password_hash"]
+        req_old_pw = payload.old_password or payload.current_password
         if payload.new_password:
-            if payload.current_password:
-                if not verify_password(payload.current_password, u_data["password_hash"]):
+            if req_old_pw:
+                if not verify_password(req_old_pw, u_data["password_hash"]):
                     raise HTTPException(status_code=400, detail="Current password does not match.")
             new_pw_hash = hash_password(payload.new_password)
 
@@ -570,7 +675,9 @@ def update_profile(
             text("""
                 UPDATE users
                 SET name = :name, roll_no = :roll_no, email = :email,
-                    password_hash = :hash, semester = :sem, class_section = :sec
+                    password_hash = :hash, semester = :sem, class_section = :sec,
+                    department = :dept, phone = :phone, bio = :bio,
+                    emergency_contact = :emerg, designation = :desig, role = :role
                 WHERE user_id = :uid
             """),
             {
@@ -580,21 +687,28 @@ def update_profile(
                 "hash": new_pw_hash,
                 "sem": new_sem,
                 "sec": new_sec,
+                "dept": new_dept,
+                "phone": new_phone,
+                "bio": new_bio,
+                "emerg": new_emerg,
+                "desig": new_desig,
+                "role": new_role,
                 "uid": user_id,
             },
         )
 
-        # If user is student, sync with students table
-        if (u_data.get("role") or "").upper() == "STUDENT":
+        # If student, sync with students table
+        if new_role == "STUDENT":
             s_row = conn.execute(
                 text("SELECT student_id FROM students WHERE user_id = :uid OR LOWER(email) = :email LIMIT 1"),
-                {"uid": user_id, "email": u_data["email"].lower()},
+                {"uid": user_id, "email": new_email},
             ).fetchone()
             if s_row:
                 conn.execute(
                     text("""
                         UPDATE students
-                        SET name = :name, roll_number = :roll_no, email = :email, semester = :sem, class_section = :sec
+                        SET name = :name, roll_number = :roll_no, email = :email, semester = :sem,
+                            class_section = :sec, department_name = :dept, phone = :phone, bio = :bio
                         WHERE student_id = :sid
                     """),
                     {
@@ -603,14 +717,17 @@ def update_profile(
                         "email": new_email,
                         "sem": new_sem,
                         "sec": new_sec,
+                        "dept": new_dept,
+                        "phone": new_phone,
+                        "bio": new_bio,
                         "sid": s_row._mapping["student_id"],
                     },
                 )
             else:
                 conn.execute(
                     text("""
-                        INSERT INTO students (user_id, name, email, roll_number, semester, class_section, department_name)
-                        VALUES (:uid, :name, :email, :roll_no, :sem, :sec, 'AI & Data Science')
+                        INSERT INTO students (user_id, name, email, roll_number, semester, class_section, department_name, phone, bio)
+                        VALUES (:uid, :name, :email, :roll_no, :sem, :sec, :dept, :phone, :bio)
                     """),
                     {
                         "uid": user_id,
@@ -619,12 +736,31 @@ def update_profile(
                         "roll_no": new_roll,
                         "sem": new_sem,
                         "sec": new_sec,
+                        "dept": new_dept,
+                        "phone": new_phone,
+                        "bio": new_bio,
                     },
+                )
+        elif new_role == "FACULTY":
+            # If faculty, sync with faculty table
+            f_row = conn.execute(
+                text("SELECT faculty_id FROM faculty WHERE LOWER(email) = :email OR LOWER(name) = :name LIMIT 1"),
+                {"email": new_email, "name": new_name.lower()},
+            ).fetchone()
+            if f_row:
+                conn.execute(
+                    text("UPDATE faculty SET name = :name, email = :email, department = :dept WHERE faculty_id = :fid"),
+                    {"name": new_name, "email": new_email, "dept": new_dept, "fid": f_row._mapping["faculty_id"]},
+                )
+            else:
+                conn.execute(
+                    text("INSERT INTO faculty (name, email, department) VALUES (:name, :email, :dept)"),
+                    {"name": new_name, "email": new_email, "dept": new_dept},
                 )
 
         # Re-fetch updated user
         updated_row = conn.execute(
-            text("SELECT user_id, name, roll_no, email, role, is_active, is_verified, semester, class_section FROM users WHERE user_id = :uid"),
+            text("SELECT user_id, name, roll_no, email, role, is_active, is_verified, semester, class_section, department, phone, bio, emergency_contact, designation FROM users WHERE user_id = :uid"),
             {"uid": user_id},
         ).fetchone()
         updated_dict = dict(updated_row._mapping)
@@ -640,7 +776,7 @@ def update_profile(
 
     return {
         "success": True,
-        "message": "Account credentials and profile updated successfully!",
+        "message": f"Profile saved successfully! ({enriched.get('profile_completion_pct', 100)}% Complete)",
         "user": enriched,
         "access_token": new_token,
     }
@@ -711,7 +847,7 @@ def get_demo_users() -> dict[str, Any]:
         results = [dict(r._mapping) for r in conn.execute(query)]
 
     demo_list = results or [
-        {"user_id": 1, "name": "Arunn Reddy", "roll_no": "2024-AI-042", "email": "student@univ.edu", "role": "STUDENT", "semester": 5, "class_section": "Class 3A"},
+        {"user_id": 1, "name": "Arunn Reddy", "roll_no": "2024-AI-042", "email": "student@univ.edu", "role": "STUDENT", "semester": 5, "class_section": "Section D"},
         {"user_id": 7, "name": "Priya Patel", "roll_no": "2025-CS-018", "email": "priya@univ.edu", "role": "STUDENT", "semester": 3, "class_section": "Class 2A"},
         {"user_id": 2, "name": "Dr. A. Sharma", "roll_no": "FACULTY-001", "email": "faculty@univ.edu", "role": "FACULTY", "semester": None, "class_section": None},
         {"user_id": 3, "name": "Dean Academics", "roll_no": "ADMIN-001", "email": "admin@univ.edu", "role": "ADMIN", "semester": None, "class_section": None},

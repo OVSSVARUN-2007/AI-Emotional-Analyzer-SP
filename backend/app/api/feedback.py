@@ -279,7 +279,7 @@ def get_allotted_subjects(
                     "credits": cr[3],
                     "department_name": cr[4],
                     "faculty_name": "Faculty Member",
-                    "class_section": resolved_class or "Class 3A",
+                    "class_section": resolved_class or "Section D",
                     "semester": cr[5],
                     "term_name": "Fall 2026",
                     "display_name": f"{cr[1]} – {cr[2]}",
@@ -287,7 +287,7 @@ def get_allotted_subjects(
 
     return {
         "semester": resolved_semester,
-        "class_section": resolved_class or "Class 3A",
+        "class_section": resolved_class or "Section D",
         "total_allotted": len(subjects),
         "subjects": subjects,
     }
@@ -297,12 +297,12 @@ def get_allotted_subjects(
 def get_student_mentors(
     student_id: Optional[int] = Query(None, description="Student ID"),
     semester: Optional[int] = Query(5, description="Student Semester"),
-    class_section: Optional[str] = Query("Class 3A", description="Student Section"),
+    class_section: Optional[str] = Query("Section D", description="Student Section"),
 ):
     """Returns assigned Academic Mentor and Special Project Mentor with cabin and research info."""
     return {
         "student_name": "Arunn Reddy",
-        "class_section": class_section or "Class 3A",
+        "class_section": class_section or "Section D",
         "semester": semester or 5,
         "academic_mentor": {
             "name": "Dr. Ramesh Ponnala",
@@ -1000,7 +1000,7 @@ def create_feedback(feedback: FeedbackCreate):
     course_code = feedback.course_code
     course_name = feedback.course_name
     semester = feedback.semester or 5
-    class_section = feedback.class_section or "Class 3A"
+    class_section = feedback.class_section or "Section D"
 
     with engine.connect() as conn:
         if not course_code or not course_name:
@@ -2158,7 +2158,7 @@ def get_cohort_pie_analytics(
             with engine.begin() as wconn:
                 wconn.execute(text("""
                     INSERT INTO feedback (student_id, offering_id, feedback_text, status, is_anonymous, semester, class_section, course_code, course_name)
-                    VALUES (5, 1, 'Programming labs are well structured and interactive debugging exercises help build solid foundations.', 'ANALYZED', 1, 1, 'Class 1A', 'CS101', 'Intro to Programming & Problem Solving')
+                    VALUES (5, 1, 'Programming labs are well structured and interactive debugging exercises help build solid foundations.', 'ANALYZED', 1, 1, 'Section A', 'CS101', 'Intro to Programming & Problem Solving')
                 """))
                 fb_id = wconn.execute(text("SELECT last_insert_rowid()")).scalar()
                 wconn.execute(text("""
@@ -2174,7 +2174,7 @@ def get_cohort_pie_analytics(
             with engine.begin() as wconn:
                 wconn.execute(text("""
                     INSERT INTO feedback (student_id, offering_id, feedback_text, status, is_anonymous, semester, class_section, course_code, course_name)
-                    VALUES (12, 14, 'The advanced generative AI lectures and latency optimization workshops are deeply practical for capstone projects.', 'ANALYZED', 1, 7, 'Class 4A', 'AI701', 'Generative AI & LLMs')
+                    VALUES (12, 14, 'The advanced generative AI lectures and latency optimization workshops are deeply practical for capstone projects.', 'ANALYZED', 1, 7, 'Section F', 'AI701', 'Generative AI & LLMs')
                 """))
                 fb_id = wconn.execute(text("SELECT last_insert_rowid()")).scalar()
                 wconn.execute(text("""
@@ -2428,7 +2428,7 @@ def get_burnout_risk(
                 "student_id": 4,
                 "name": "Kavya Sharma",
                 "roll_no": "2024-AI-019",
-                "class_section": "Class 3A",
+                "class_section": "Section D",
                 "burnout_score": 78,
                 "primary_stressor": "Transformer Attention Math & Consecutive Deadlines",
                 "risk_factors": ["Rising Fatigue (+35% over 3 wks)", "Drop in Curiosity", "2 Unresolved Grievances"],
@@ -2438,7 +2438,7 @@ def get_burnout_risk(
                 "student_id": 7,
                 "name": "Priya Patel",
                 "roll_no": "2025-CS-018",
-                "class_section": "Class 2A",
+                "class_section": "Section B",
                 "burnout_score": 64,
                 "primary_stressor": "Pointer Memory Allocations in C++ Practicals",
                 "risk_factors": ["High Confusion Index", "Late Night Submissions"],
@@ -2448,7 +2448,7 @@ def get_burnout_risk(
                 "student_id": 9,
                 "name": "Tanmay Verma",
                 "roll_no": "2024-AI-062",
-                "class_section": "Class 3B",
+                "class_section": "Section E",
                 "burnout_score": 71,
                 "primary_stressor": "Backpropagation Multivariate Calculus",
                 "risk_factors": ["High Frustration (82%)", "Negative Sentiment Streak"],
@@ -2693,7 +2693,7 @@ def create_community_post(payload: CommunityPostCreate):
             """),
             {
                 "author": payload.author_name or "Anonymous Student",
-                "sec": payload.class_section or "Class 3A",
+                "sec": payload.class_section or "Section D",
                 "cat": payload.category or "CAMPUS_LIFE",
                 "title": payload.title,
                 "content": payload.content,
@@ -2959,7 +2959,7 @@ def test_webhook_dispatch():
         "sentiment": "NEGATIVE",
         "emotion": "FRUSTRATION",
         "snippet": "Test Verification Ping from Sentio Sentiment Intelligence Server: Webhook connection active.",
-        "section": "Class 3A",
+        "section": "Section D",
     })
     return {
         "success": True,

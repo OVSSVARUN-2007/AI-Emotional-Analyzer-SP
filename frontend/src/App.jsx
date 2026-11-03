@@ -46,6 +46,8 @@ import {
   X,
   ChevronRight,
   TrendingUp,
+  Lock,
+  ArrowLeft,
   PieChart,
   Filter,
 } from 'lucide-react';
@@ -884,12 +886,12 @@ function InteractiveCohortPieBox({ token, feedbacks = [] }) {
 
   const availableSections = cohortData?.available_sections || [
     'ALL',
-    'Class 1A',
-    'Class 2A',
-    'Class 2B',
-    'Class 3A',
-    'Class 3B',
-    'Class 4A',
+    'Section A',
+    'Section B',
+    'Section C',
+    'Section D',
+    'Section E',
+    'Section F',
   ];
 
   // Derive active dataset based on selected view mode
@@ -1398,6 +1400,8 @@ function MindfulBreathingWidget() {
 // ═══════════════════════════════════════════════════════
 // AUTHENTICATION COMPONENT
 // ═══════════════════════════════════════════════════════
+// AUTHENTICATION COMPONENT: CAMPUSTRACK / ICFAI TECH THEME
+// ═══════════════════════════════════════════════════════
 function Auth({ onAuthenticated, addToast }) {
   const [mode, setMode] = useState('login'); // 'login' | 'register' | 'forgot'
   const [form, setForm] = useState({
@@ -1408,7 +1412,8 @@ function Auth({ onAuthenticated, addToast }) {
     confirmPassword: '',
     role: 'STUDENT',
     semester: 5,
-    class_section: 'Class 3A',
+    class_section: 'Section D',
+    department: 'AI & Data Science',
     otp_code: '',
   });
 
@@ -1420,6 +1425,7 @@ function Auth({ onAuthenticated, addToast }) {
   const [successMsg, setSuccessMsg] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [showRolePicker, setShowRolePicker] = useState(false);
 
   useEffect(() => {
     if (countdown > 0) {
@@ -1478,10 +1484,14 @@ function Auth({ onAuthenticated, addToast }) {
 
     try {
       if (mode === 'login') {
+        const credential = form.email.trim();
+        if (!credential) throw new Error('Please enter your Student ID or university email.');
+        if (!form.password) throw new Error('Please enter your password.');
+
         const res = await fetch(`${API}/api/auth/login`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email: form.email.trim(), password: form.password }),
+          body: JSON.stringify({ email: credential, password: form.password, role: form.role }),
         });
         const data = await res.json();
         if (!res.ok) throw new Error(data.detail || 'Invalid login credentials');
@@ -1489,22 +1499,16 @@ function Auth({ onAuthenticated, addToast }) {
         onAuthenticated(data.user, data.access_token);
         addToast?.({
           title: 'Welcome Back',
-          message: `Signed in as ${data.user.name}`,
+          message: `Signed in as ${data.user.name} (${data.user.role})`,
           type: 'success',
         });
       } else if (mode === 'register') {
-        if (!otpSent) {
-          throw new Error('Please send and enter the email verification code first.');
-        }
+        if (!otpSent) throw new Error('Please send and enter the email verification code first.');
         if (!form.otp_code || form.otp_code.trim().length !== 6) {
           throw new Error('Please enter the 6-digit verification code sent to your email.');
         }
-        if (form.password.length < 6) {
-          throw new Error('Password must be at least 6 characters long.');
-        }
-        if (form.password !== form.confirmPassword) {
-          throw new Error('Passwords do not match.');
-        }
+        if (form.password.length < 4) throw new Error('Password must be at least 4 characters.');
+        if (form.password !== form.confirmPassword) throw new Error('Passwords do not match.');
 
         const res = await fetch(`${API}/api/auth/register`, {
           method: 'POST',
@@ -1516,7 +1520,7 @@ function Auth({ onAuthenticated, addToast }) {
             password: form.password,
             role: form.role,
             semester: form.role === 'STUDENT' ? Number(form.semester) : null,
-            class_section: form.role === 'STUDENT' ? form.class_section : 'Faculty',
+            class_section: form.role === 'STUDENT' ? form.class_section : 'Section D',
             otp_code: form.otp_code.trim(),
           }),
         });
@@ -1526,22 +1530,16 @@ function Auth({ onAuthenticated, addToast }) {
         onAuthenticated(data.user, data.access_token);
         addToast?.({
           title: 'Account Created',
-          message: 'Welcome to Sentio! Your account has been registered.',
+          message: 'Welcome to CampusTrack! Your profile has been initialized.',
           type: 'success',
         });
       } else if (mode === 'forgot') {
-        if (!otpSent) {
-          throw new Error('Please send and enter the verification code first.');
-        }
+        if (!otpSent) throw new Error('Please send and enter verification code first.');
         if (!form.otp_code || form.otp_code.trim().length !== 6) {
           throw new Error('Please enter the 6-digit verification code.');
         }
-        if (form.password.length < 6) {
-          throw new Error('New password must be at least 6 characters.');
-        }
-        if (form.password !== form.confirmPassword) {
-          throw new Error('Passwords do not match.');
-        }
+        if (form.password.length < 4) throw new Error('New password must be at least 4 characters.');
+        if (form.password !== form.confirmPassword) throw new Error('Passwords do not match.');
 
         const res = await fetch(`${API}/api/auth/reset-password`, {
           method: 'POST',
@@ -1555,12 +1553,8 @@ function Auth({ onAuthenticated, addToast }) {
         const data = await res.json();
         if (!res.ok) throw new Error(data.detail || 'Password reset failed');
 
-        setSuccessMsg('Your password has been reset. You may now sign in.');
-        addToast?.({
-          title: 'Password Reset',
-          message: 'You can now sign in with your new password.',
-          type: 'success',
-        });
+        setSuccessMsg('Your password has been reset. You may now log in.');
+        addToast?.({ title: 'Password Reset', message: 'Sign in with your new password.', type: 'success' });
         setMode('login');
       }
     } catch (err) {
@@ -1570,284 +1564,226 @@ function Auth({ onAuthenticated, addToast }) {
     }
   };
 
+  const handleFillDemo = (demoRole) => {
+    if (demoRole === 'STUDENT') {
+      setForm((prev) => ({ ...prev, email: 'student@univ.edu', password: 'pass123', role: 'STUDENT' }));
+    } else if (demoRole === 'FACULTY') {
+      setForm((prev) => ({ ...prev, email: 'faculty@univ.edu', password: 'pass123', role: 'FACULTY' }));
+    } else if (demoRole === 'ADMIN') {
+      setForm((prev) => ({ ...prev, email: 'admin@univ.edu', password: 'pass123', role: 'ADMIN' }));
+    }
+    setShowRolePicker(false);
+    addToast?.({
+      title: 'Demo Filled',
+      message: `${demoRole} credentials populated. Click Login to enter.`,
+      type: 'info',
+    });
+  };
+
   return (
-    <main className="auth-layout">
-      {/* Left Clean Hero Panel */}
-      <section className="brand-panel">
-        <div className="brand">
-          <span className="brand-mark">
-            <MessageSquare size={20} />
-          </span>
-          <span>Sentio</span>
-          <span className="brand-tagline">Academic Feedback</span>
-        </div>
+    <div className="campus-auth-container">
+      {/* Top Navigation Bar: Change College & Choose Role */}
+      <nav className="campus-top-nav">
+        <button
+          type="button"
+          className="campus-nav-btn"
+          onClick={() => addToast?.({ title: 'Institutional Domain', message: 'Connected to ICFAI Tech School campus portal.', type: 'info' })}
+        >
+          <ArrowLeft size={14} /> Change College
+        </button>
 
-        <div className="hero-copy">
-          <span className="eyebrow">A Better Way to Listen</span>
-          <h1>
-            Clear, constructive feedback for every classroom.
-          </h1>
-          <p>
-            A calm, confidential space for students to share how classes are going, and for instructors to understand where students need more clarity.
-          </p>
+        <div style={{ position: 'relative' }}>
+          <button
+            type="button"
+            className="campus-nav-btn"
+            onClick={() => setShowRolePicker(!showRolePicker)}
+          >
+            Choose Role <User size={14} />
+          </button>
 
-          <div className="hero-feature-list">
-            <div className="hero-feature-item">
-              <div className="feature-icon-wrap">
-                <Check size={14} />
-              </div>
-              <div className="feature-text">
-                <strong>Confidential & Safe</strong>
-                <span>Share candid feedback on pacing and lecture topics anonymously.</span>
-              </div>
-            </div>
-            <div className="hero-feature-item">
-              <div className="feature-icon-wrap">
-                <CalendarDays size={14} />
-              </div>
-              <div className="feature-text">
-                <strong>Schedule & Courses</strong>
-                <span>Easily view weekly timetable sessions and review each class in 1 click.</span>
-              </div>
-            </div>
-            <div className="hero-feature-item">
-              <div className="feature-icon-wrap">
-                <Users size={14} />
-              </div>
-              <div className="feature-text">
-                <strong>Direct Academic Dialogue</strong>
-                <span>Instructors can post direct answers, clarifications, and recap notes.</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="brand-panel-footer">
-          <span>&copy; {new Date().getFullYear()} Sentio · Student Voice & Learning Insights</span>
-        </div>
-      </section>
-
-      {/* Right Form Card */}
-      <section className="auth-side">
-        <div className="auth-card">
-          <div className="mobile-brand">
-            <span className="brand-mark"><MessageSquare size={18} /></span>
-            <span>Sentio</span>
-          </div>
-
-          <div className="auth-mode-tabs">
-            <button
-              type="button"
-              className={`mode-tab ${mode === 'login' ? 'active' : ''}`}
-              onClick={() => switchMode('login')}
+          {showRolePicker && (
+            <div
+              style={{
+                position: 'absolute',
+                top: '115%',
+                right: 0,
+                background: '#ffffff',
+                border: '1px solid #e2e8f0',
+                borderRadius: '10px',
+                boxShadow: '0 10px 25px rgba(0,0,0,0.1)',
+                padding: '0.4rem',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '0.25rem',
+                minWidth: '150px',
+                zIndex: 20,
+              }}
             >
-              Sign In
-            </button>
-            <button
-              type="button"
-              className={`mode-tab ${mode === 'register' ? 'active' : ''}`}
-              onClick={() => switchMode('register')}
-            >
-              Create Account
-            </button>
-            {mode === 'forgot' && (
-              <button type="button" className="mode-tab active">
-                Reset Password
+              <button
+                type="button"
+                className="campus-demo-chip"
+                style={{ textAlign: 'left', borderRadius: '6px', width: '100%' }}
+                onClick={() => handleFillDemo('STUDENT')}
+              >
+                🎓 Student
               </button>
-            )}
-          </div>
+              <button
+                type="button"
+                className="campus-demo-chip"
+                style={{ textAlign: 'left', borderRadius: '6px', width: '100%' }}
+                onClick={() => handleFillDemo('FACULTY')}
+              >
+                👨‍🏫 Faculty
+              </button>
+              <button
+                type="button"
+                className="campus-demo-chip"
+                style={{ textAlign: 'left', borderRadius: '6px', width: '100%' }}
+                onClick={() => handleFillDemo('ADMIN')}
+              >
+                🏛️ Admin
+              </button>
+            </div>
+          )}
+        </div>
+      </nav>
 
-          <div className="auth-card-header">
-            <h2>
-              {mode === 'login' ? 'Welcome back' : mode === 'register' ? 'Create your account' : 'Reset password'}
-            </h2>
-            <p>
-              {mode === 'login'
-                ? 'Sign in with your university email or student roll number.'
-                : mode === 'register'
-                ? 'Join with your student roll number or faculty credentials.'
-                : 'Enter your email to receive a password reset verification code.'}
+      {/* Main Split Authentication Card */}
+      <div className="campus-auth-card">
+        {/* Left Side: Royal Blue Background with 3D Floating Shapes */}
+        <section className="campus-brand-side">
+          <div className="campus-shape-1" />
+          <div className="campus-shape-2" />
+          <div className="campus-shape-3" />
+
+          <div className="campus-brand-content">
+            <div className="campus-brand-badge">
+              <div className="campus-brand-icon-box">
+                <GraduationCap size={22} color="#ffffff" />
+              </div>
+              <span className="campus-brand-name">CampusTrack</span>
+            </div>
+
+            <h1 className="campus-hero-title">Welcome Back!</h1>
+            <p className="campus-hero-desc">
+              Sign in to access your ICFAI Tech School portal on CampusTrack.
             </p>
           </div>
+        </section>
 
-          {/* Quick Demo Access Bar */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.6rem 0.85rem', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', marginBottom: '1.25rem' }}>
-            <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#64748b' }}>Quick Demo:</span>
-            <div style={{ display: 'flex', gap: '0.35rem' }}>
-              <button
-                type="button"
-                className="btn-header-action"
-                style={{ padding: '0.25rem 0.55rem', fontSize: '0.75rem' }}
-                onClick={() => onAuthenticated({
-                  user_id: 1,
-                  student_id: 1,
-                  name: 'Arunn Reddy',
-                  roll_no: '2024-AI-042',
-                  email: 'student@univ.edu',
-                  role: 'STUDENT',
-                  semester: 5,
-                  class_section: 'Class 3A',
-                }, 'dev-bypass-token')}
-              >
-                Student
-              </button>
-              <button
-                type="button"
-                className="btn-header-action"
-                style={{ padding: '0.25rem 0.55rem', fontSize: '0.75rem' }}
-                onClick={() => onAuthenticated({
-                  user_id: 2,
-                  name: 'Dr. A. Sharma',
-                  roll_no: 'FACULTY-001',
-                  email: 'faculty@univ.edu',
-                  role: 'FACULTY',
-                  department: 'AI & Data Science',
-                  semester: 5,
-                  class_section: 'Class 3A',
-                }, 'dev-bypass-token')}
-              >
-                Faculty
-              </button>
-              <button
-                type="button"
-                className="btn-header-action"
-                style={{ padding: '0.25rem 0.55rem', fontSize: '0.75rem' }}
-                onClick={() => onAuthenticated({
-                  user_id: 3,
-                  name: 'Dean Academics',
-                  roll_no: 'ADMIN-001',
-                  email: 'admin@univ.edu',
-                  role: 'ADMIN',
-                  department: 'Engineering',
-                  semester: 5,
-                  class_section: 'Class 3A',
-                }, 'dev-bypass-token')}
-              >
-                Admin
-              </button>
+        {/* Right Side: Clean White Login Form */}
+        <section className="campus-form-side">
+          {/* Top Logo Badge: IcfaiTech */}
+          <div className="icfai-logo-header">
+            <div className="icfai-brand-box">
+              <span className="icfai-logo-title">IcfaiTech</span>
+              <span className="icfai-logo-tagline">Faculty of Science & Technology</span>
             </div>
+            <h2 className="campus-login-heading">
+              {mode === 'login' ? 'Login' : mode === 'register' ? 'Register' : 'Reset Password'}
+            </h2>
+            <p className="campus-login-sub">Welcome to ICFAI Tech School</p>
           </div>
 
-          {error && <div className="form-alert error">{error}</div>}
-          {successMsg && <div className="form-alert success">{successMsg}</div>}
-          {otpInfo && <div className="form-alert info">{otpInfo}</div>}
+          {error && <div className="form-alert error" style={{ marginBottom: '1rem' }}>{error}</div>}
+          {successMsg && <div className="form-alert success" style={{ marginBottom: '1rem' }}>{successMsg}</div>}
+          {otpInfo && <div className="form-alert info" style={{ marginBottom: '1rem' }}>{otpInfo}</div>}
 
-          <form onSubmit={handleSubmit} className="auth-form-body">
+          <form onSubmit={handleSubmit}>
+            {/* REGISTER EXTRA FIELDS */}
             {mode === 'register' && (
               <>
-                <div className="form-group">
-                  <label>Full Name *</label>
-                  <input
-                    required
-                    placeholder="e.g. Rahul Sharma"
-                    value={form.name}
-                    onChange={(e) => setForm({ ...form, name: e.target.value })}
-                  />
-                </div>
-
-                <div className="form-row">
-                  <div className="form-group">
-                    <label>Roll No / Staff ID *</label>
+                <div className="campus-input-group">
+                  <label className="campus-input-label">Full Name</label>
+                  <div className="campus-input-box">
+                    <User size={16} color="#64748b" />
                     <input
+                      type="text"
+                      placeholder="Enter your full name"
+                      value={form.name}
+                      onChange={(e) => setForm({ ...form, name: e.target.value })}
                       required
-                      placeholder="e.g. 2024-AI-042"
-                      value={form.roll_no}
-                      onChange={(e) => setForm({ ...form, roll_no: e.target.value })}
                     />
                   </div>
-                  <div className="form-group">
-                    <label>Role *</label>
-                    <select
-                      value={form.role}
-                      onChange={(e) => setForm({ ...form, role: e.target.value })}
-                    >
-                      <option value="STUDENT">Student</option>
-                      <option value="FACULTY">Faculty Member</option>
-                      <option value="ADMIN">Administrator</option>
-                    </select>
-                  </div>
                 </div>
 
-                {form.role === 'STUDENT' && (
-                  <div className="form-row">
-                    <div className="form-group">
-                      <label>Semester</label>
-                      <select
-                        value={form.semester}
-                        onChange={(e) => setForm({ ...form, semester: Number(e.target.value) })}
-                      >
-                        {[1, 2, 3, 4, 5, 6, 7, 8].map((s) => (
-                          <option key={s} value={s}>Semester {s}</option>
-                        ))}
-                      </select>
-                    </div>
-                    <div className="form-group">
-                      <label>Class Section</label>
-                      <select
-                        value={form.class_section}
-                        onChange={(e) => setForm({ ...form, class_section: e.target.value })}
-                      >
-                        <option value="Class 3A">Class 3A</option>
-                        <option value="Class 3B">Class 3B</option>
-                        <option value="Class 2A">Class 2A</option>
-                        <option value="Class 1A">Class 1A</option>
-                      </select>
-                    </div>
+                <div className="campus-input-group">
+                  <label className="campus-input-label">Student Roll Number / Staff ID</label>
+                  <div className="campus-input-box">
+                    <UserCheck size={16} color="#64748b" />
+                    <input
+                      type="text"
+                      placeholder="e.g. 2024-AI-042 or FACULTY-001"
+                      value={form.roll_no}
+                      onChange={(e) => setForm({ ...form, roll_no: e.target.value })}
+                      required
+                    />
                   </div>
-                )}
+                </div>
               </>
             )}
 
-            <div className="form-group">
-              <label>
-                {mode === 'login' ? 'University Email or Roll Number *' : 'University Email *'}
+            {/* FIELD 1: Student ID / Roll Number or University Email */}
+            <div className="campus-input-group">
+              <label className="campus-input-label">
+                {mode === 'login' ? 'Student ID / Roll Number' : 'University Email'}
               </label>
-              <div className={mode !== 'login' ? 'input-with-action' : ''}>
+              <div className="campus-input-box">
+                <User size={16} color="#64748b" />
                 <input
-                  required
-                  placeholder={mode === 'login' ? 'student@univ.edu or 2024-AI-042' : 'you@univ.edu'}
+                  type={mode === 'login' ? 'text' : 'email'}
+                  placeholder={mode === 'login' ? 'Enter your student ID or email' : 'student@univ.edu'}
                   value={form.email}
                   onChange={(e) => setForm({ ...form, email: e.target.value })}
+                  required
                 />
-                {mode !== 'login' && (
-                  <button
-                    type="button"
-                    className="btn-otp-action"
-                    disabled={otpSending || countdown > 0}
-                    onClick={() => handleSendOtp(mode === 'register' ? 'REGISTER' : 'RESET_PASSWORD')}
-                  >
-                    {otpSending ? 'Sending…' : countdown > 0 ? `${countdown}s` : otpSent ? 'Resend' : 'Send Code'}
-                  </button>
-                )}
               </div>
             </div>
 
-            {mode !== 'login' && otpSent && (
-              <div className="form-group">
-                <label>6-Digit Verification Code *</label>
-                <input
-                  required
-                  placeholder="Enter 6-digit code"
-                  maxLength={6}
-                  value={form.otp_code}
-                  onChange={(e) => setForm({ ...form, otp_code: e.target.value })}
-                />
+            {/* OTP VERIFICATION BAR FOR REGISTER OR FORGOT */}
+            {(mode === 'register' || mode === 'forgot') && (
+              <div className="campus-input-group">
+                <label className="campus-input-label">Email Verification Code (OTP)</label>
+                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                  <div className="campus-input-box" style={{ flex: 1 }}>
+                    <ShieldCheck size={16} color="#64748b" />
+                    <input
+                      type="text"
+                      maxLength={6}
+                      placeholder="Enter 6-digit OTP"
+                      value={form.otp_code}
+                      onChange={(e) => setForm({ ...form, otp_code: e.target.value })}
+                      required
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    className="campus-nav-btn"
+                    style={{ background: '#2563eb', color: '#ffffff', borderColor: '#2563eb' }}
+                    onClick={() => handleSendOtp(mode === 'register' ? 'REGISTER' : 'RESET_PASSWORD')}
+                    disabled={otpSending || countdown > 0}
+                  >
+                    {otpSending ? 'Sending…' : countdown > 0 ? `${countdown}s` : otpSent ? 'Resend' : 'Send Code'}
+                  </button>
+                </div>
               </div>
             )}
 
-            <div className="form-group">
-              <label>{mode === 'forgot' ? 'New Password *' : 'Password *'}</label>
-              <div className="input-password-wrap">
+            {/* FIELD 2: Password */}
+            <div className="campus-input-group">
+              <label className="campus-input-label">Password</label>
+              <div className="campus-input-box">
+                <Lock size={16} color="#64748b" />
                 <input
-                  required
                   type={showPassword ? 'text' : 'password'}
-                  placeholder="••••••••"
+                  placeholder="Enter your password"
                   value={form.password}
                   onChange={(e) => setForm({ ...form, password: e.target.value })}
+                  required
                 />
                 <button
                   type="button"
-                  className="btn-toggle-pw"
+                  style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: '#64748b', display: 'flex' }}
                   onClick={() => setShowPassword(!showPassword)}
                 >
                   {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
@@ -1855,67 +1791,186 @@ function Auth({ onAuthenticated, addToast }) {
               </div>
             </div>
 
-            {mode !== 'login' && (
-              <div className="form-group">
-                <label>Confirm Password *</label>
-                <input
-                  required
-                  type="password"
-                  placeholder="••••••••"
-                  value={form.confirmPassword}
-                  onChange={(e) => setForm({ ...form, confirmPassword: e.target.value })}
-                />
+            {/* CONFIRM PASSWORD FOR REGISTER OR RESET */}
+            {(mode === 'register' || mode === 'forgot') && (
+              <div className="campus-input-group">
+                <label className="campus-input-label">Confirm Password</label>
+                <div className="campus-input-box">
+                  <Lock size={16} color="#64748b" />
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    placeholder="Re-enter password"
+                    value={form.confirmPassword}
+                    onChange={(e) => setForm({ ...form, confirmPassword: e.target.value })}
+                    required
+                  />
+                </div>
               </div>
             )}
 
-            <button type="submit" className="btn-submit-primary" disabled={loading}>
-              {loading
-                ? 'Processing…'
-                : mode === 'login'
-                ? 'Sign In'
-                : mode === 'register'
-                ? 'Complete Registration'
-                : 'Save New Password'}
+            {/* FIELD 3: Account Type */}
+            {mode === 'login' && (
+              <div className="campus-input-group">
+                <label className="campus-input-label">Account Type</label>
+                <div className="campus-input-box">
+                  <select
+                    value={form.role}
+                    onChange={(e) => setForm({ ...form, role: e.target.value })}
+                  >
+                    <option value="STUDENT">Student</option>
+                    <option value="FACULTY">Faculty</option>
+                    <option value="ADMIN">Admin</option>
+                  </select>
+                </div>
+              </div>
+            )}
+
+            {/* FORGOT PASSWORD LINK */}
+            {mode === 'login' && (
+              <div className="campus-forgot-row">
+                <button
+                  type="button"
+                  className="campus-forgot-link"
+                  onClick={() => switchMode('forgot')}
+                >
+                  Forgot password?
+                </button>
+              </div>
+            )}
+
+            {/* SUBMIT BUTTON */}
+            <button
+              type="submit"
+              className="campus-btn-submit"
+              disabled={loading}
+            >
+              {loading ? 'Please wait…' : mode === 'login' ? 'Login' : mode === 'register' ? 'Complete Registration' : 'Reset Password'}
             </button>
           </form>
 
-          <div className="auth-card-footer">
+          {/* Quick Demo Shortcuts */}
+          {mode === 'login' && (
+            <div className="campus-demo-row">
+              <span style={{ fontSize: '0.74rem', color: '#64748b' }}>Quick Demo:</span>
+              <button type="button" className="campus-demo-chip" onClick={() => handleFillDemo('STUDENT')}>
+                🎓 Student
+              </button>
+              <button type="button" className="campus-demo-chip" onClick={() => handleFillDemo('FACULTY')}>
+                👨‍🏫 Faculty
+              </button>
+              <button type="button" className="campus-demo-chip" onClick={() => handleFillDemo('ADMIN')}>
+                🏛️ Admin
+              </button>
+            </div>
+          )}
+
+          {/* Toggle Register / Login */}
+          <div style={{ textAlign: 'center', marginTop: '1.25rem', fontSize: '0.82rem', color: '#64748b' }}>
             {mode === 'login' ? (
-              <p>
-                Forgot your password?{' '}
-                <button type="button" className="btn-link" onClick={() => switchMode('forgot')}>
-                  Reset it here
+              <span>
+                Don't have an account?{' '}
+                <button
+                  type="button"
+                  className="campus-forgot-link"
+                  onClick={() => switchMode('register')}
+                >
+                  Create Account
                 </button>
-              </p>
+              </span>
             ) : (
-              <p>
-                Already have an account?{' '}
-                <button type="button" className="btn-link" onClick={() => switchMode('login')}>
+              <span>
+                Already registered?{' '}
+                <button
+                  type="button"
+                  className="campus-forgot-link"
+                  onClick={() => switchMode('login')}
+                >
                   Sign in
                 </button>
-              </p>
+              </span>
             )}
           </div>
-        </div>
-      </section>
-    </main>
+        </section>
+      </div>
+    </div>
   );
 }
 
 // ═══════════════════════════════════════════════════════
-// PROFILE SETTINGS MODAL
+// ENHANCED PROFILE SETTINGS MODAL & COMPLETION TRACKER
 // ═══════════════════════════════════════════════════════
 function ProfileSettingsModal({ isOpen, onClose, user, token, onUserUpdated, addToast }) {
   const [name, setName] = useState(user?.name || '');
   const [email, setEmail] = useState(user?.email || '');
+  const [role, setRole] = useState(user?.role || 'STUDENT');
   const [rollNo, setRollNo] = useState(user?.roll_no || '');
+  const [department, setDepartment] = useState(user?.department || 'AI & Data Science');
+  const [semester, setSemester] = useState(user?.semester || 5);
+  const [classSection, setClassSection] = useState(
+    user?.class_section && !user.class_section.startsWith('Class ') ? user.class_section : 'Section D'
+  );
+  const [phone, setPhone] = useState(user?.phone || '');
+  const [emergencyContact, setEmergencyContact] = useState(user?.emergency_contact || '');
+  const [bio, setBio] = useState(user?.bio || '');
+  const [designation, setDesignation] = useState(user?.designation || '');
   const [oldPassword, setOldPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState('');
   const [err, setErr] = useState('');
 
+  // Sync state whenever user prop updates
+  useEffect(() => {
+    if (user) {
+      setName(user.name || '');
+      setEmail(user.email || '');
+      setRole(user.role || 'STUDENT');
+      setRollNo(user.roll_no || '');
+      setDepartment(user.department || 'AI & Data Science');
+      setSemester(user.semester || 5);
+      setClassSection(
+        user.class_section && !user.class_section.startsWith('Class ') ? user.class_section : 'Section D'
+      );
+      setPhone(user.phone || '');
+      setEmergencyContact(user.emergency_contact || '');
+      setBio(user.bio || '');
+      setDesignation(user.designation || '');
+    }
+  }, [user]);
+
   if (!isOpen) return null;
+
+  // Real-time Profile Completion Tracker calculation
+  const completionCriteria = [
+    { label: 'Full Name', done: Boolean(name.trim()) },
+    { label: 'University Email', done: Boolean(email.trim() && email.includes('@')) },
+    { label: 'Roll Number / Staff ID', done: Boolean(rollNo.trim()) },
+    { label: 'Academic Department', done: Boolean(department.trim()) },
+    {
+      label: role === 'STUDENT' ? 'Semester & Section' : 'Designation',
+      done: role === 'STUDENT' ? Boolean(semester && classSection) : Boolean(designation.trim() || role),
+    },
+    { label: 'Contact Phone Number', done: Boolean(phone.trim() && phone.trim().length >= 7) },
+    { label: 'Academic Bio / Focus', done: Boolean(bio.trim() && bio.trim().length >= 5) },
+  ];
+
+  const completedCount = completionCriteria.filter((c) => c.done).length;
+  const completionPct = Math.round((completedCount / completionCriteria.length) * 100);
+  const isComplete = completionPct === 100;
+
+  const validSections = [
+    'Section A',
+    'Section B',
+    'Section C',
+    'Section D',
+    'Section E',
+    'Section F',
+    'Section G',
+    'Section H',
+    'Section I',
+    'Section J',
+    'Section K',
+  ];
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -1924,9 +1979,23 @@ function ProfileSettingsModal({ isOpen, onClose, user, token, onUserUpdated, add
     setErr('');
 
     try {
-      const payload = { name: name.trim(), email: email.trim(), roll_no: rollNo.trim() };
+      const payload = {
+        name: name.trim(),
+        email: email.trim(),
+        role: role,
+        roll_no: rollNo.trim(),
+        department: department.trim(),
+        semester: Number(semester),
+        class_section: classSection,
+        phone: phone.trim(),
+        emergency_contact: emergencyContact.trim(),
+        bio: bio.trim(),
+        designation: designation.trim(),
+      };
+
       if (newPassword.trim()) {
         payload.old_password = oldPassword;
+        payload.current_password = oldPassword;
         payload.new_password = newPassword;
       }
 
@@ -1942,8 +2011,12 @@ function ProfileSettingsModal({ isOpen, onClose, user, token, onUserUpdated, add
       if (!res.ok) throw new Error(data.detail || 'Failed to update profile');
 
       onUserUpdated?.(data.user);
-      setMsg(data.message || 'Profile updated successfully.');
-      addToast?.({ title: 'Profile Updated', message: 'Your details have been saved.', type: 'success' });
+      setMsg(data.message || 'Profile saved and synchronized to database successfully.');
+      addToast?.({
+        title: 'Profile Saved',
+        message: `Profile updated (${data.user?.profile_completion_pct || completionPct}% Complete)`,
+        type: 'success',
+      });
       setOldPassword('');
       setNewPassword('');
     } catch (e) {
@@ -1955,59 +2028,190 @@ function ProfileSettingsModal({ isOpen, onClose, user, token, onUserUpdated, add
 
   return (
     <div className="modal-backdrop" onClick={onClose}>
-      <div className="modal-card" onClick={(e) => e.stopPropagation()}>
+      <div className="modal-card" style={{ maxWidth: '640px' }} onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
-          <h3>Account Settings</h3>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+            <div className="pie-icon-badge" style={{ width: '36px', height: '36px' }}>
+              <User size={18} />
+            </div>
+            <div>
+              <h3 style={{ margin: 0, fontSize: '1.05rem', color: '#0f172a' }}>Academic Profile & Settings</h3>
+              <span style={{ fontSize: '0.75rem', color: '#64748b' }}>
+                Complete your profile to synchronize records with the institutional database.
+              </span>
+            </div>
+          </div>
           <button type="button" className="btn-close-modal" onClick={onClose}>
             <X size={18} />
           </button>
+        </div>
+
+        {/* PROFILE COMPLETION TRACKER BAR */}
+        <div className="profile-tracker-container">
+          <div className="profile-tracker-header">
+            <span className="profile-tracker-title">
+              <Sparkles size={16} color={isComplete ? '#059669' : '#2563eb'} /> Profile Completion
+            </span>
+            <span className={`profile-tracker-pct ${isComplete ? 'complete' : 'incomplete'}`}>
+              {completionPct}% {isComplete ? '✓ Complete' : 'In Progress'}
+            </span>
+          </div>
+
+          <div className="profile-progress-bar-bg">
+            <div
+              className={`profile-progress-bar-fill ${isComplete ? 'complete' : 'incomplete'}`}
+              style={{ width: `${completionPct}%` }}
+            />
+          </div>
+
+          <div className="profile-checklist-chips">
+            {completionCriteria.map((crit) => (
+              <span
+                key={crit.label}
+                className={`profile-check-chip ${crit.done ? 'done' : 'pending'}`}
+              >
+                {crit.done ? `✓ ${crit.label}` : `⚠️ ${crit.label}`}
+              </span>
+            ))}
+          </div>
         </div>
 
         {msg && <div className="form-alert success">{msg}</div>}
         {err && <div className="form-alert error">{err}</div>}
 
         <form onSubmit={handleSubmit} className="auth-form-body">
-          <div className="form-group">
-            <label>Name</label>
-            <input value={name} onChange={(e) => setName(e.target.value)} required />
-          </div>
-          <div className="form-group">
-            <label>University Email</label>
-            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
-          </div>
-          <div className="form-group">
-            <label>Roll Number / Staff ID</label>
-            <input value={rollNo} onChange={(e) => setRollNo(e.target.value)} />
+          {/* SECTION 1: ACADEMIC IDENTITY */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.85rem' }}>
+            <div className="form-group">
+              <label>Full Name *</label>
+              <input value={name} onChange={(e) => setName(e.target.value)} required />
+            </div>
+            <div className="form-group">
+              <label>University Email *</label>
+              <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+            </div>
           </div>
 
-          <div style={{ margin: '0.75rem 0 0.25rem 0', borderTop: '1px solid #e2e8f0', paddingTop: '0.75rem' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.85rem' }}>
+            <div className="form-group">
+              <label>Role</label>
+              <select value={role} onChange={(e) => setRole(e.target.value)}>
+                <option value="STUDENT">Student</option>
+                <option value="FACULTY">Faculty</option>
+                <option value="ADMIN">Admin</option>
+              </select>
+            </div>
+            <div className="form-group">
+              <label>Roll Number / Staff ID *</label>
+              <input
+                value={rollNo}
+                placeholder="e.g. 2024-AI-042"
+                onChange={(e) => setRollNo(e.target.value)}
+                required
+              />
+            </div>
+          </div>
+
+          <div className="form-group">
+            <label>Department</label>
+            <select value={department} onChange={(e) => setDepartment(e.target.value)}>
+              <option value="AI & Data Science">AI & Data Science</option>
+              <option value="Computer Science & Engineering">Computer Science & Engineering</option>
+              <option value="Electronics & Communication">Electronics & Communication</option>
+              <option value="Mechanical Engineering">Mechanical Engineering</option>
+              <option value="Information Technology">Information Technology</option>
+            </select>
+          </div>
+
+          {/* SECTION 2: COHORT (SEMESTER & SECTION) */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.85rem' }}>
+            <div className="form-group">
+              <label>Academic Semester</label>
+              <select value={semester} onChange={(e) => setSemester(Number(e.target.value))}>
+                {[1, 2, 3, 4, 5, 6, 7, 8].map((s) => (
+                  <option key={s} value={s}>
+                    Semester {s}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="form-group">
+              <label>Class Section (Section A - K)</label>
+              <select value={classSection} onChange={(e) => setClassSection(e.target.value)}>
+                {validSections.map((sec) => (
+                  <option key={sec} value={sec}>
+                    {sec}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {/* SECTION 3: CONTACT & BIO */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.85rem' }}>
+            <div className="form-group">
+              <label>Contact Phone Number</label>
+              <input
+                type="tel"
+                placeholder="+91 98765 43210"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+              />
+            </div>
+            <div className="form-group">
+              <label>Emergency Contact</label>
+              <input
+                type="tel"
+                placeholder="Parent / Guardian contact"
+                value={emergencyContact}
+                onChange={(e) => setEmergencyContact(e.target.value)}
+              />
+            </div>
+          </div>
+
+          <div className="form-group">
+            <label>Academic Bio & Interests</label>
+            <textarea
+              rows={2}
+              placeholder="e.g. B.Tech AI student focusing on Machine Learning, NLP, and Distributed Computing"
+              value={bio}
+              onChange={(e) => setBio(e.target.value)}
+              style={{ width: '100%', padding: '0.5rem 0.75rem', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.82rem', fontFamily: 'inherit' }}
+            />
+          </div>
+
+          {/* SECTION 4: CHANGE PASSWORD (OPTIONAL) */}
+          <div style={{ margin: '0.5rem 0 0.25rem 0', borderTop: '1px solid #e2e8f0', paddingTop: '0.65rem' }}>
             <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#0f172a' }}>Change Password (Optional)</span>
           </div>
-          <div className="form-group">
-            <label>Current Password</label>
-            <input
-              type="password"
-              placeholder="Enter current password"
-              value={oldPassword}
-              onChange={(e) => setOldPassword(e.target.value)}
-            />
-          </div>
-          <div className="form-group">
-            <label>New Password</label>
-            <input
-              type="password"
-              placeholder="Enter new password (min 6 chars)"
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-            />
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.85rem' }}>
+            <div className="form-group">
+              <label>Current Password</label>
+              <input
+                type="password"
+                placeholder="Enter current password"
+                value={oldPassword}
+                onChange={(e) => setOldPassword(e.target.value)}
+              />
+            </div>
+            <div className="form-group">
+              <label>New Password</label>
+              <input
+                type="password"
+                placeholder="New password (min 4 chars)"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+              />
+            </div>
           </div>
 
-          <div className="modal-actions">
+          <div className="modal-actions" style={{ marginTop: '1.25rem' }}>
             <button type="button" className="btn-cancel" onClick={onClose}>
-              Close
+              Cancel
             </button>
             <button type="submit" className="btn-confirm" disabled={saving}>
-              {saving ? 'Saving…' : 'Save Changes'}
+              {saving ? 'Saving Profile…' : 'Save Changes'}
             </button>
           </div>
         </form>
@@ -2094,6 +2298,7 @@ function AccreditationReportModal({ isOpen, onClose, user, feedbacks = [] }) {
 // ═══════════════════════════════════════════════════════
 function StudentDashboard({ user, token, onLogout, onSwitchRole, addToast, onUserUpdated }) {
   const [profileModalOpen, setProfileModalOpen] = useState(false);
+  const [systemMode, setSystemMode] = useState(() => localStorage.getItem('sentio_system_mode') || 'LIVE_EVAL');
   const [activeTab, setActiveTab] = useState('submit'); // 'submit' | 'courses' | 'wellbeing' | 'community' | 'grievance'
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -2134,7 +2339,7 @@ function StudentDashboard({ user, token, onLogout, onSwitchRole, addToast, onUse
   // Load Data
   const loadStudentData = useCallback(async () => {
     try {
-      const secParam = encodeURIComponent(user.class_section || 'Class 3A');
+      const secParam = encodeURIComponent(user.class_section || 'Section D');
       const semParam = studentSelectedSem || user.semester || 5;
 
       const [feedRes, subRes, lecRes, menRes, compRes, postRes, podRes, reqRes] = await Promise.all([
@@ -2216,7 +2421,7 @@ function StudentDashboard({ user, token, onLogout, onSwitchRole, addToast, onUse
         course_name: selectedCourse?.course_name || 'Natural Language Processing',
         feedback_text: feedbackText.trim(),
         is_anonymous: isAnonymous,
-        class_section: user.class_section || 'Class 3A',
+        class_section: user.class_section || 'Section D',
         semester: user.semester || 5,
         topic: selectedTag,
         rating: selectedTag === 'Clear & Engaging' ? 5 : selectedTag === 'Good Pace & Content' ? 4 : 3,
@@ -2269,7 +2474,7 @@ function StudentDashboard({ user, token, onLogout, onSwitchRole, addToast, onUse
         title: complaintForm.title.trim(),
         category: complaintForm.category,
         description: complaintForm.description.trim(),
-        class_section: user.class_section || 'Class 3A',
+        class_section: user.class_section || 'Section D',
         semester: user.semester || 5,
       };
 
@@ -2379,31 +2584,26 @@ function StudentDashboard({ user, token, onLogout, onSwitchRole, addToast, onUse
             </div>
           </div>
 
-          <div className="header-right">
-            <span style={{ fontSize: '0.8rem', color: '#64748b' }}>
-              {user.class_section || 'Class 3A'}
+                    <div className="header-right">
+            <span style={{ fontSize: '0.8rem', color: '#64748b', fontWeight: 600 }}>
+              {user.class_section || 'Section D'}
             </span>
-            {onSwitchRole && (
-              <select
-                className="section-select-dropdown"
-                value={user.role}
-                onChange={(e) => onSwitchRole(e.target.value)}
-                title="Switch Portal Role"
-              >
-                <option value="STUDENT">🎓 Student View</option>
-                <option value="FACULTY">👨‍🏫 Faculty View</option>
-                <option value="ADMIN">🏛️ Admin View</option>
-              </select>
-            )}
             <button
               type="button"
               className="btn-header-action"
               onClick={() => setProfileModalOpen(true)}
+              title="Edit Profile"
             >
               <Settings size={14} /> Profile
+              {user.profile_completion_pct && user.profile_completion_pct < 100 && (
+                <span style={{ fontSize: '0.68rem', background: '#eff6ff', color: '#2563eb', padding: '1px 5px', borderRadius: '9999px', fontWeight: 700, marginLeft: '0.2rem' }}>
+                  {user.profile_completion_pct}%
+                </span>
+              )}
             </button>
             <button type="button" className="btn-logout" onClick={onLogout} title="Sign Out">
-              <LogOut size={16} />
+              <LogOut size={14} color="#dc2626" />
+              <span>Sign Out</span>
             </button>
           </div>
         </header>
@@ -2956,9 +3156,9 @@ function AdminDashboard({ user, token, onLogout, onSwitchRole, addToast, onUserU
 
   // Curriculum Modals State
   const [courseModal, setCourseModal] = useState({ open: false, isEdit: false, courseId: null, form: { course_code: '', course_name: '', credits: 4, semester: 5, department_name: 'AI & Data Science', program: 'B.Tech', course_type: 'Core', syllabus_summary: '' } });
-  const [lectureModal, setLectureModal] = useState({ open: false, isEdit: false, lectureId: null, form: { course_code: 'AI501', course_name: 'Natural Language Processing', faculty_name: user.name || 'Dr. A. Sharma', class_section: 'Class 3A', semester: 5, day_of_week: 'Monday', start_time: '09:30 AM', end_time: '10:30 AM', room_number: 'Hall 301', topic: '', lecture_type: 'Theory', status: 'SCHEDULED' } });
+  const [lectureModal, setLectureModal] = useState({ open: false, isEdit: false, lectureId: null, form: { course_code: 'AI501', course_name: 'Natural Language Processing', faculty_name: user.name || 'Dr. A. Sharma', class_section: 'Section D', semester: 5, day_of_week: 'Monday', start_time: '09:30 AM', end_time: '10:30 AM', room_number: 'Hall 301', topic: '', lecture_type: 'Theory', status: 'SCHEDULED' } });
   const [semesterModal, setSemesterModal] = useState({ open: false, form: { semester_number: 6, term_name: 'Spring 2027', academic_year: '2026-2027', is_active: false } });
-  const [offeringModal, setOfferingModal] = useState({ open: false, form: { course_code: 'AI501', faculty_name: user.name || 'Dr. A. Sharma', class_section: 'Class 3A', semester: 5, term_name: 'Fall 2026' } });
+  const [offeringModal, setOfferingModal] = useState({ open: false, form: { course_code: 'AI501', faculty_name: user.name || 'Dr. A. Sharma', class_section: 'Section D', semester: 5, term_name: 'Fall 2026' } });
 
   // Load Admin Data
   const loadAdminData = useCallback(async () => {
@@ -3180,7 +3380,7 @@ function AdminDashboard({ user, token, onLogout, onSwitchRole, addToast, onUserU
     subjects: adminCourses.slice(0, 4).map((c) => ({
       course_code: c.course_code,
       course_name: c.course_name,
-      sections: ['Class 3A', 'Class 3B'],
+      sections: ['Section D', 'Section E'],
       feedback_count: feedbacks.filter((f) => f.course_code === c.course_code).length,
       satisfaction_pct: 96,
       clarity_status: 'High Clarity',
@@ -3293,30 +3493,30 @@ function AdminDashboard({ user, token, onLogout, onSwitchRole, addToast, onUserU
             </div>
           </div>
 
-          <div className="header-right">
-            {onSwitchRole && (
+                    <div className="header-right">
+            {/* System Modes Selector at Top Header */}
+            <div className="system-mode-wrap">
               <select
-                className="section-select-dropdown"
-                value={user.role}
-                onChange={(e) => onSwitchRole(e.target.value)}
-                title="Switch Portal Role"
+                className="system-mode-select"
+                value={systemMode}
+                onChange={(e) => {
+                  setSystemMode(e.target.value);
+                  localStorage.setItem('sentio_system_mode', e.target.value);
+                  addToast?.({
+                    title: 'System Mode Updated',
+                    message: `Platform operational mode switched to: ${e.target.options[e.target.selectedIndex].text}`,
+                    type: 'info',
+                  });
+                }}
+                title="Active Institutional Operational Mode"
               >
-                <option value="STUDENT">🎓 Student View</option>
-                <option value="FACULTY">👨‍🏫 Faculty View</option>
-                <option value="ADMIN">🏛️ Admin View</option>
+                <option value="LIVE_EVAL">🟢 Live Evaluation Mode</option>
+                <option value="MIDTERM_AUDIT">🟡 Mid-Term Audit Mode</option>
+                <option value="CURRICULUM_REVIEW">🔵 Curriculum Review Mode</option>
+                <option value="ACCREDITATION">🟣 Accreditation Mode</option>
+                <option value="MAINTENANCE">🔒 Maintenance Mode</option>
               </select>
-            )}
-            <select
-              className="section-select-dropdown"
-              value={selectedSection}
-              onChange={(e) => setSelectedSection(e.target.value)}
-            >
-              <option value="ALL">All Sections</option>
-              <option value="Class 3A">Class 3A</option>
-              <option value="Class 3B">Class 3B</option>
-              <option value="Class 2A">Class 2A</option>
-              <option value="Class 1A">Class 1A</option>
-            </select>
+            </div>
 
             <button
               type="button"
@@ -3330,12 +3530,20 @@ function AdminDashboard({ user, token, onLogout, onSwitchRole, addToast, onUserU
               type="button"
               className="btn-header-action"
               onClick={() => setProfileModalOpen(true)}
+              title="Edit Profile"
             >
               <Settings size={14} /> Profile
+              {user.profile_completion_pct && user.profile_completion_pct < 100 && (
+                <span style={{ fontSize: '0.68rem', background: '#eff6ff', color: '#2563eb', padding: '1px 5px', borderRadius: '9999px', fontWeight: 700, marginLeft: '0.2rem' }}>
+                  {user.profile_completion_pct}%
+                </span>
+              )}
             </button>
 
+            {/* Red Sign Out Button */}
             <button type="button" className="btn-logout" onClick={onLogout} title="Sign Out">
-              <LogOut size={16} />
+              <LogOut size={14} color="#dc2626" />
+              <span>Sign Out</span>
             </button>
           </div>
         </header>
@@ -3765,7 +3973,7 @@ function AdminDashboard({ user, token, onLogout, onSwitchRole, addToast, onUserU
                 <button
                   type="button"
                   className="btn-header-action"
-                  onClick={() => setLectureModal({ open: true, isEdit: false, lectureId: null, form: { course_code: adminCourses[0]?.course_code || 'AI501', course_name: adminCourses[0]?.course_name || 'NLP', faculty_name: user.name || 'Dr. A. Sharma', class_section: 'Class 3A', semester: 5, day_of_week: 'Monday', start_time: '09:30 AM', end_time: '10:30 AM', room_number: 'Hall 301', topic: '', lecture_type: 'Theory', status: 'SCHEDULED' } })}
+                  onClick={() => setLectureModal({ open: true, isEdit: false, lectureId: null, form: { course_code: adminCourses[0]?.course_code || 'AI501', course_name: adminCourses[0]?.course_name || 'NLP', faculty_name: user.name || 'Dr. A. Sharma', class_section: 'Section D', semester: 5, day_of_week: 'Monday', start_time: '09:30 AM', end_time: '10:30 AM', room_number: 'Hall 301', topic: '', lecture_type: 'Theory', status: 'SCHEDULED' } })}
                 >
                   <CalendarDays size={14} /> Schedule Lecture
                 </button>
@@ -4571,7 +4779,7 @@ export default function App() {
         email: 'student@univ.edu',
         role: 'STUDENT',
         semester: 5,
-        class_section: 'Class 3A',
+        class_section: 'Section D',
       };
     } else if (targetRole === 'FACULTY') {
       newUser = {
@@ -4582,7 +4790,7 @@ export default function App() {
         role: 'FACULTY',
         department: 'AI & Data Science',
         semester: 5,
-        class_section: 'Class 3A',
+        class_section: 'Section D',
       };
     } else {
       newUser = {
@@ -4593,7 +4801,7 @@ export default function App() {
         role: 'ADMIN',
         department: 'Engineering',
         semester: 5,
-        class_section: 'Class 3A',
+        class_section: 'Section D',
       };
     }
     setUser(newUser);
