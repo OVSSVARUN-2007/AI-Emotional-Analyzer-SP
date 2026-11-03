@@ -2,9 +2,14 @@
 
 from __future__ import annotations
 
+import logging
+import os
 import random
+import smtplib
 import sys
 from datetime import datetime, timedelta, timezone
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
 from pathlib import Path
 from typing import Any, Optional
 
@@ -280,6 +285,74 @@ def require_role(allowed_roles: list[str]):
     return _role_checker
 
 
+logger = logging.getLogger("sentio.auth")
+
+
+def dispatch_otp_email(to_email: str, otp_code: str, purpose: str) -> tuple[bool, str]:
+    """
+    Attempts to dispatch real email via SMTP (e.g. Gmail / institutional SMTP).
+    Returns (delivered: bool, message: str).
+    """
+    smtp_host = os.getenv("SMTP_HOST") or os.getenv("SMTP_SERVER", "smtp.gmail.com")
+    smtp_port_raw = os.getenv("SMTP_PORT", "587")
+    try:
+        smtp_port = int(smtp_port_raw)
+    except ValueError:
+        smtp_port = 587
+
+    smtp_user = os.getenv("SMTP_USER") or os.getenv("SMTP_USERNAME") or os.getenv("GMAIL_USER")
+    smtp_pass = os.getenv("SMTP_PASS") or os.getenv("SMTP_PASSWORD") or os.getenv("GMAIL_APP_PASSWORD")
+    smtp_from = os.getenv("SMTP_FROM") or os.getenv("SMTP_FROM_EMAIL") or (f"Sentio Academic Portal <{smtp_user}>" if smtp_user else "Sentio Portal <noreply@sentio.edu>")
+
+    if not smtp_user or not smtp_pass:
+        logger.info(f"[OTP Service] SMTP not configured. Ready with in-portal verification code for {to_email}: {otp_code}")
+        return False, "SMTP credentials not configured"
+
+    try:
+        msg = MIMEMultipart("alternative")
+        action_name = "Password Reset" if purpose == "RESET_PASSWORD" else "Account Registration"
+        msg["Subject"] = f"Sentio Portal - {action_name} Verification Code: {otp_code}"
+        msg["From"] = smtp_from
+        msg["To"] = to_email
+
+        plain_text = (
+            f"Sentio Academic Portal\n\n"
+            f"Your 6-digit {action_name} verification code is: {otp_code}\n\n"
+            f"This code is valid for 10 minutes. Please enter it on the portal to continue.\n"
+            f"If you did not request this verification code, please ignore this email.\n"
+        )
+        html_text = f"""
+        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 500px; margin: 0 auto; padding: 24px; border: 1px solid #e2e8f0; border-radius: 12px; background: #ffffff;">
+            <div style="text-align: center; margin-bottom: 20px;">
+                <h2 style="color: #2563eb; margin: 0; font-size: 24px; font-weight: 700;">Sentio Academic Portal</h2>
+                <p style="color: #64748b; font-size: 14px; margin-top: 4px;">Security & Verification Desk</p>
+            </div>
+            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 24px; text-align: center; margin-bottom: 20px;">
+                <p style="color: #334155; font-size: 15px; margin-top: 0; font-weight: 500;">Your 6-Digit Verification Code:</p>
+                <div style="font-size: 34px; font-weight: 700; letter-spacing: 8px; color: #1e40af; padding: 12px 24px; background: #ffffff; border: 2px dashed #93c5fd; border-radius: 8px; display: inline-block;">
+                    {otp_code}
+                </div>
+                <p style="color: #64748b; font-size: 12px; margin-top: 14px; margin-bottom: 0;">Valid for 10 minutes. If you did not request this, please ignore this email.</p>
+            </div>
+            <p style="color: #94a3b8; font-size: 12px; text-align: center; margin: 0;">Sentio Automated Notification System</p>
+        </div>
+        """
+        msg.attach(MIMEText(plain_text, "plain"))
+        msg.attach(MIMEText(html_text, "html"))
+
+        server = smtplib.SMTP(smtp_host, smtp_port, timeout=12)
+        server.ehlo()
+        server.starttls()
+        server.login(smtp_user, smtp_pass)
+        server.sendmail(smtp_user, [to_email], msg.as_string())
+        server.quit()
+        logger.info(f"[OTP Service] Successfully sent OTP email to {to_email}")
+        return True, "Email dispatched via SMTP"
+    except Exception as exc:
+        logger.warning(f"[OTP Service] Could not send SMTP email to {to_email}: {exc}")
+        return False, str(exc)
+
+
 @router.post("/send-otp", summary="Generate and dispatch a 6-digit OTP to user email or roll number")
 def send_otp(payload: SendOtpRequest) -> dict[str, Any]:
     """Generate a secure 6-digit OTP, store in database with 10-minute validity, and dispatch."""
@@ -338,12 +411,21 @@ def send_otp(payload: SendOtpRequest) -> dict[str, Any]:
             },
         )
 
+    email_dispatched, email_status = dispatch_otp_email(email, otp_code, purpose)
+
     action_label = "Password reset" if purpose == "RESET_PASSWORD" else "Verification"
+    if email_dispatched:
+        msg = f"{action_label} code sent directly to your email ({email}). Valid for 10 minutes."
+    else:
+        msg = f"{action_label} code generated! (Code: {otp_code} - auto-filled for instant verification)."
+
     return {
         "success": True,
-        "message": f"{action_label} code sent to {email}. Valid for 10 minutes.",
+        "message": msg,
         "email": email,
         "otp_code": otp_code,
+        "email_dispatched": email_dispatched,
+        "email_status": email_status,
         "expires_in_minutes": 10,
     }
 

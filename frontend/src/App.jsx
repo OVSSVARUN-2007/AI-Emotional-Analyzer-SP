@@ -1445,6 +1445,7 @@ function Auth({ onAuthenticated, addToast }) {
   const [otpSent, setOtpSent] = useState(false);
   const [otpSending, setOtpSending] = useState(false);
   const [otpInfo, setOtpInfo] = useState('');
+  const [serverOtp, setServerOtp] = useState('');
   const [countdown, setCountdown] = useState(0);
   const [error, setError] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
@@ -1462,6 +1463,7 @@ function Auth({ onAuthenticated, addToast }) {
     setError('');
     setSuccessMsg('');
     setOtpInfo('');
+    setServerOtp('');
     setOtpSent(false);
     setCountdown(0);
     setMode(targetMode);
@@ -1487,11 +1489,21 @@ function Auth({ onAuthenticated, addToast }) {
 
       setOtpSent(true);
       setCountdown(60);
-      setOtpInfo(data.message || `Code sent to ${emailToUse}`);
+      if (data.otp_code) {
+        setServerOtp(data.otp_code);
+        setForm((prev) => ({ ...prev, otp_code: data.otp_code }));
+      }
+      setOtpInfo(
+        data.email_dispatched
+          ? (data.message || `Code sent to ${emailToUse}`)
+          : `Verification Code: ${data.otp_code} (Auto-filled below). Valid for 10 minutes.`
+      );
       addToast?.({
-        title: 'Verification Code Sent',
-        message: data.message || `A 6-digit code has been delivered to ${emailToUse}.`,
-        type: 'info',
+        title: data.email_dispatched ? 'Verification Code Sent' : 'Verification Code Ready',
+        message: data.email_dispatched
+          ? `Code delivered to ${emailToUse}.`
+          : `Code: ${data.otp_code} (Auto-filled into form).`,
+        type: 'success',
       });
     } catch (err) {
       setError(err.message || 'Error sending verification code');
@@ -1683,7 +1695,28 @@ function Auth({ onAuthenticated, addToast }) {
             {/* OTP VERIFICATION BAR FOR REGISTER OR FORGOT */}
             {(mode === 'register' || mode === 'forgot') && (
               <div className="campus-input-group">
-                <label className="campus-input-label">Email Verification Code (OTP)</label>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.35rem' }}>
+                  <label className="campus-input-label" style={{ margin: 0 }}>Email Verification Code (OTP)</label>
+                  {serverOtp && (
+                    <button
+                      type="button"
+                      onClick={() => setForm((prev) => ({ ...prev, otp_code: serverOtp }))}
+                      style={{
+                        background: '#ecfdf5',
+                        color: '#059669',
+                        border: '1px solid #a7f3d0',
+                        borderRadius: '4px',
+                        padding: '2px 8px',
+                        fontSize: '0.75rem',
+                        cursor: 'pointer',
+                        fontWeight: 600,
+                      }}
+                      title="Click to paste code into input"
+                    >
+                      ✓ Fill Code: {serverOtp}
+                    </button>
+                  )}
+                </div>
                 <div style={{ display: 'flex', gap: '0.5rem' }}>
                   <div className="campus-input-box" style={{ flex: 1 }}>
                     <ShieldCheck size={16} color="#64748b" />
@@ -1701,10 +1734,20 @@ function Auth({ onAuthenticated, addToast }) {
                     className="campus-nav-btn"
                     style={{ background: '#2563eb', color: '#ffffff', borderColor: '#2563eb' }}
                     onClick={() => handleSendOtp(mode === 'register' ? 'REGISTER' : 'RESET_PASSWORD')}
-                    disabled={otpSending || countdown > 0}
+                    disabled={otpSending}
                   >
-                    {otpSending ? 'Sending…' : countdown > 0 ? `${countdown}s` : otpSent ? 'Resend' : 'Send Code'}
+                    {otpSending ? 'Sending…' : countdown > 0 && !error ? `${countdown}s` : otpSent ? 'Resend' : 'Send Code'}
                   </button>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.35rem' }}>
+                  <p style={{ margin: 0, fontSize: '0.78rem', color: '#64748b' }}>
+                    Click <strong>{otpSent ? 'Resend' : 'Send Code'}</strong> to get your verification code.
+                  </p>
+                  {serverOtp && (
+                    <span style={{ fontSize: '0.78rem', color: '#059669', fontWeight: 600 }}>
+                      Code: {serverOtp}
+                    </span>
+                  )}
                 </div>
               </div>
             )}
