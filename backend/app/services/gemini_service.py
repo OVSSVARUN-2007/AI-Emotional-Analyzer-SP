@@ -1,39 +1,55 @@
-"""Google Gemini API Service & Live Sentiment Intelligence Engine.
-
-Provides deep, hallucination-free student emotional analysis,
-pedagogical advice generation, and Bixi conversational intelligence.
-"""
+"""Google Gemini Cloud AI Service for Grounded Structured Output, Vision & Evidence-Grounded Assistant."""
 
 from __future__ import annotations
 
 import json
 import os
-import re
 from pathlib import Path
+import re
 from typing import Any, Optional
+
 import httpx
 from sqlalchemy import text
 
-REPO_ROOT = Path(__file__).resolve().parents[3]
-ENV_FILE = REPO_ROOT / ".env"
-BACKEND_ENV_FILE = REPO_ROOT / "backend" / ".env"
+PROJECT_ROOT = Path(__file__).resolve().parents[3]
+ENV_FILE = PROJECT_ROOT / ".env"
+BACKEND_ENV_FILE = PROJECT_ROOT / "backend" / ".env"
 
 try:
     from app.database.connection import engine
 except ImportError:
     from backend.app.database.connection import engine
 
-# Default key fallback (loaded from environment or system settings)
-DEFAULT_GEMINI_KEY = os.getenv("GEMINI_API_KEY", "")
 
-# High-performance Gemini models supporting generateContent in order of preference
-GEMINI_MODELS = [
-    "gemini-3-flash-preview",
-    "gemini-flash-latest",
-    "gemini-3.8-flash",
-    "gemini-3.5-flash",
-    "gemini-2.5-flash",
-]
+def get_configured_gemini_models() -> list[str]:
+    """Retrieve ordered list of Gemini models, prioritizing user-configured model from env or DB."""
+    configured = os.getenv("GEMINI_MODEL")
+    if not configured:
+        try:
+            with engine.connect() as conn:
+                row = conn.execute(
+                    text("SELECT setting_value FROM system_settings WHERE setting_key = 'gemini_model' LIMIT 1")
+                ).fetchone()
+                if row and row[0] and row[0].strip():
+                    configured = row[0].strip()
+        except Exception:
+            pass
+
+    candidates = [
+        configured,
+        "gemini-2.0-flash",
+        "gemini-1.5-flash",
+        "gemini-2.0-flash-lite-preview-02-05",
+        "gemini-1.5-pro",
+        "gemini-flash-latest",
+    ]
+    seen = set()
+    result = []
+    for m in candidates:
+        if m and m not in seen:
+            seen.add(m)
+            result.append(m)
+    return result
 
 
 def get_gemini_api_key() -> Optional[str]:
@@ -63,68 +79,64 @@ def get_gemini_api_key() -> Optional[str]:
                     if val:
                         return val
 
-    # 4. Fallback to active configured key
-    return DEFAULT_GEMINI_KEY or None
+    return None
 
 
 def set_gemini_api_key(api_key: str) -> None:
-    """Persist Gemini API Key in system_settings table, process environment, and .env."""
+    """Persist Gemini API Key in system_settings."""
     clean_key = api_key.strip()
-    os.environ["GEMINI_API_KEY"] = clean_key
-
-    # Save to database
-    with engine.begin() as conn:
-        conn.execute(
-            text("""
-                INSERT INTO system_settings (setting_key, setting_value, updated_at)
-                VALUES ('gemini_api_key', :val, CURRENT_TIMESTAMP)
-                ON CONFLICT(setting_key) DO UPDATE SET setting_value = :val, updated_at = CURRENT_TIMESTAMP
-            """),
-            {"val": clean_key},
-        )
-
-    # Save to backend/.env and root .env
-    for target in [BACKEND_ENV_FILE, ENV_FILE]:
-        try:
-            target.parent.mkdir(parents=True, exist_ok=True)
-            lines = []
-            if target.exists():
-                lines = [l for l in target.read_text(encoding="utf-8").splitlines() if not l.startswith("GEMINI_API_KEY=")]
-            lines.append(f"GEMINI_API_KEY={clean_key}")
-            target.write_text("\n".join(lines) + "\n", encoding="utf-8")
-        except Exception:
-            pass
+    try:
+        with engine.begin() as conn:
+            conn.execute(
+                text("""
+                    INSERT INTO system_settings (setting_key, setting_value, updated_at)
+                    VALUES ('gemini_api_key', :val, CURRENT_TIMESTAMP)
+                    ON CONFLICT(setting_key) DO UPDATE SET
+                        setting_value = :val,
+                        updated_at = CURRENT_TIMESTAMP
+                """),
+                {"val": clean_key},
+            )
+    except Exception as e:
+        print(f"[GeminiService] Error saving key to system_settings: {e}")
 
 
 def verify_gemini_key(api_key: str) -> tuple[bool, str]:
     """Test validity of a Gemini API Key with a small verification ping across candidate models."""
     clean_key = api_key.strip()
-    if not clean_key:
-        return False, "API key cannot be empty"
+    if not clean_key or len(clean_key) < 10:
+        return False, "API key is too short or empty."
 
-    payload = {
-        "contents": [{"parts": [{"text": "Reply with only: OK"}]}],
-        "generationConfig": {"temperature": 0.0, "maxOutputTokens": 10},
+    test_payload = {
+        "contents": [{"parts": [{"text": "Reply with 'OK'."}]}],
+        "generationConfig": {"maxOutputTokens": 5},
     }
 
-    last_err = ""
-    for model in GEMINI_MODELS:
+    models = get_configured_gemini_models()
+    for model in models:
         url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={clean_key}"
         try:
-            with httpx.Client(timeout=10.0) as client:
-                resp = client.post(url, json=payload)
+            with httpx.Client(timeout=8.0) as client:
+                resp = client.post(url, json=test_payload)
                 if resp.status_code == 200:
                     return True, f"Key verified successfully using {model}"
-                else:
-                    try:
-                        err_json = resp.json()
-                        last_err = err_json.get("error", {}).get("message", resp.text)
-                    except Exception:
-                        last_err = resp.text
-        except Exception as e:
-            last_err = str(e)
+                if resp.status_code == 400 and "API_KEY_INVALID" in resp.text:
+                    return False, "Invalid API key provided."
+        except Exception:
+            continue
 
-    return False, f"Verification failed: {last_err}"
+    return False, "Could not reach Gemini endpoint with the provided key."
+
+
+def _validate_analysis_schema(data: dict[str, Any]) -> bool:
+    """Validate that LLM output matches required structured schema."""
+    if not isinstance(data, dict):
+        return False
+    if "sentiment" not in data or "label" not in data["sentiment"]:
+        return False
+    if "emotion" not in data or "label" not in data["emotion"]:
+        return False
+    return True
 
 
 def analyze_feedback_with_gemini(
@@ -133,7 +145,7 @@ def analyze_feedback_with_gemini(
     acoustic_prosody: Optional[dict[str, Any]] = None,
     api_key: Optional[str] = None,
 ) -> Optional[dict[str, Any]]:
-    """Deep, zero-hallucination sentiment, acoustic & multimodal slide emotional analysis using Google Gemini."""
+    """Grounded structured output sentiment, acoustic & multimodal slide emotional analysis using Google Gemini."""
     key = api_key or get_gemini_api_key()
     if not key:
         return None
@@ -148,31 +160,31 @@ def analyze_feedback_with_gemini(
         )
 
     system_instruction = (
-        "You are an expert educational psychologist and multimodal sentiment intelligence AI for university student feedback. "
-        "Analyze the provided student text (and slide image/audio prosody if present) with high accuracy, zero hallucinations, and deep awareness of academic nuances. "
+        "You are an expert educational psychologist and sentiment intelligence AI for university student feedback. "
+        "Analyze the provided student text with high accuracy and grounded structured output. "
         "CRITICAL RULES:\n"
-        "- If the student says they cannot understand the class, cannot follow the lecture, or finds the course confusing/difficult, the sentiment MUST BE 'negative' and the emotion MUST BE 'confusion' or 'frustration'.\n"
-        "- Support multilingual and regional code-mixing (e.g. English, Hindi, Telugu, Tamil, Spanish, Hinglish) and report the detected language.\n"
-        "- If a slide image is attached, inspect the formulas, code, or diagrams, and explain how the visual content connects with the student's confusion in 'slide_analysis'.\n"
-        "- Return ONLY a valid JSON object matching this schema:\n"
+        "- If the student expresses confusion or inability to understand, sentiment MUST be 'negative' or 'mixed' and emotion MUST be 'confusion' or 'frustration'.\n"
+        "- Support multilingual and regional code-mixing (English, Telugu, Hindi, Tamil, Hinglish, Tanglish) and report detected language.\n"
+        "- For sarcasm (e.g. 'Great, another 3 AM deadline'), identify genuine frustration/negative sentiment.\n"
+        "- Return ONLY valid JSON matching this schema:\n"
         "{\n"
         '  "sentiment": {\n'
         '    "label": "positive" | "negative" | "neutral" | "mixed",\n'
-        '    "confidence": float (0.75 to 0.99),\n'
+        '    "confidence": float (0.70 to 0.95),\n'
         '    "scores": {"positive": float, "negative": float, "neutral": float}\n'
         "  },\n"
         '  "emotion": {\n'
-        '    "label": "joy" | "clarity" | "frustration" | "fatigue" | "satisfaction" | "curiosity" | "confusion",\n'
-        '    "confidence": float (0.75 to 0.99),\n'
-        '    "scores": {"joy": float, "clarity": float, "frustration": float, "fatigue": float, "satisfaction": float, "curiosity": float, "confusion": float}\n'
+        '    "label": "joy" | "clarity" | "curiosity" | "confusion" | "frustration" | "fatigue" | "neutral",\n'
+        '    "confidence": float (0.70 to 0.95),\n'
+        '    "scores": {"joy": float, "clarity": float, "curiosity": float, "confusion": float, "frustration": float, "fatigue": float, "neutral": float}\n'
         "  },\n"
         '  "topics": ["string", ...],\n'
         '  "aspects": [\n'
         '    {"topic": "string", "sentiment": "positive"|"negative"|"neutral", "confidence": float, "segment": "string"}\n'
         "  ],\n"
-        '  "slide_analysis": "Concise analysis of slide diagram/equations and correlation with confusion, or null if no slide provided.",\n'
-        '  "detected_language": "English" | "Hindi" | "Telugu" | "Tamil" | "Spanish" | "Mixed Vernacular",\n'
-        '  "pedagogical_advice": "Actionable, concrete pedagogical suggestion for the instructor (1-2 sentences).",\n'
+        '  "slide_analysis": "Analysis of slide diagram/equations if image provided, or null.",\n'
+        '  "detected_language": "English" | "Telugu" | "Hindi" | "Tanglish" | "Hinglish" | "Mixed Vernacular",\n'
+        '  "pedagogical_advice": "Actionable, concrete suggestion for the instructor (1-2 sentences).",\n'
         '  "wellbeing_impact": "POSITIVE" | "NEUTRAL" | "HIGH_STRESS"\n'
         "}"
     )
@@ -204,92 +216,164 @@ def analyze_feedback_with_gemini(
         },
     }
 
-    for model in GEMINI_MODELS:
+    models = get_configured_gemini_models()
+    for model in models:
         url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={key}"
-        try:
-            with httpx.Client(timeout=14.0) as client:
-                resp = client.post(url, json=request_data)
-                if resp.status_code == 200:
-                    body = resp.json()
-                    raw_text = body["candidates"][0]["content"]["parts"][0]["text"].strip()
-                    if raw_text.startswith("```"):
-                        raw_text = re.sub(r"^```(?:json)?\n?", "", raw_text)
-                        raw_text = re.sub(r"\n?```$", "", raw_text)
-                    parsed = json.loads(raw_text)
-                    parsed["engine"] = f"Google Gemini ({model}) · Multimodal AI"
-                    parsed["text"] = text_content
-                    return parsed
-        except Exception:
-            continue
+        # Retry loop for resilience against invalid output
+        for attempt in range(2):
+            try:
+                with httpx.Client(timeout=14.0) as client:
+                    resp = client.post(url, json=request_data)
+                    if resp.status_code == 200:
+                        body = resp.json()
+                        raw_text = body["candidates"][0]["content"]["parts"][0]["text"].strip()
+                        if raw_text.startswith("```"):
+                            raw_text = re.sub(r"^```(?:json)?\n?", "", raw_text)
+                            raw_text = re.sub(r"\n?```$", "", raw_text)
+                        parsed = json.loads(raw_text)
+                        if _validate_analysis_schema(parsed):
+                            parsed["engine"] = f"Google Gemini ({model}) · Grounded Multimodal AI"
+                            parsed["text"] = text_content
+                            return parsed
+            except Exception:
+                continue
 
     return None
 
 
 def generate_remedial_lesson_plan(
-    course_code: str,
-    course_name: str,
     topic: str,
+    confusion_points: Optional[list[str]] = None,
+    course_code: str = "AI501",
+    course_name: str = "",
     confusion_rate: float = 0.45,
     api_key: Optional[str] = None,
+    **kwargs,
 ) -> dict[str, Any]:
-    """Generates an automated 10-minute lecture revision & remedial plan for instructors."""
+    """Generates an automated 10-minute lecture recap plan with structured pedagogical segments."""
     key = api_key or get_gemini_api_key()
-    system_instruction = (
-        "You are an expert university curriculum designer and pedagogical consultant. "
-        "A class has flagged significant confusion on a specific topic. "
-        "Create an actionable, highly intuitive 10-minute remedial lesson plan with a memorable real-world analogy, "
-        "3 check-for-understanding questions, and curated open-access resources. "
-        "Return ONLY JSON matching this format:\n"
-        "{\n"
-        '  "lesson_title": "string",\n'
-        '  "recap_script": "Step-by-step 10-minute micro-lecture outline with timing and intuition analogy",\n'
-        '  "practice_questions": ["Q1...", "Q2...", "Q3..."],\n'
-        '  "curated_resources": ["Resource 1 with title & description", "Resource 2..."],\n'
-        '  "analogy": "Clear mental model analogy"\n'
-        "}"
-    )
-    prompt = f"Topic: {topic}\nCourse: {course_code} - {course_name}\nConfusion Rate: {confusion_rate*100:.1f}%"
+    parsed_plan = None
 
     if key:
+        points_str = "\n".join(f"- {p}" for p in confusion_points) if confusion_points else "General confusion on conceptual derivations."
+        system_instruction = (
+            "You are an elite university pedagogical designer. Generate an actionable, engaging 10-minute lecture recap session "
+            "designed specifically to resolve student confusion on the topic.\n"
+            "Return valid JSON matching this schema:\n"
+            "{\n"
+            '  "title": "Concise session title",\n'
+            '  "recap_objective": "1-sentence clarity objective",\n'
+            '  "duration_minutes": 10,\n'
+            '  "timeline": [\n'
+            '    {"minute": "0-3", "segment": "Intuitive Analogy & Real-World Motivation", "guidance": "..."},\n'
+            '    {"minute": "4-7", "segment": "Deconstructing Common Misconceptions", "guidance": "..."},\n'
+            '    {"minute": "8-10", "segment": "Rapid Interactive Comprehension Check", "guidance": "..."}\n'
+            '  ],\n'
+            '  "interactive_problem": "1 concrete problem to solve together",\n'
+            '  "analogy": "Clear mental model analogy"\n'
+            "}"
+        )
+
         request_data = {
-            "contents": [{"role": "user", "parts": [{"text": f"{system_instruction}\n\n{prompt}"}]}],
+            "contents": [{
+                "role": "user",
+                "parts": [{"text": f"{system_instruction}\n\nCourse: {course_code} ({course_name})\nTopic: {topic}\nConfusion points:\n{points_str}"}]
+            }],
             "generationConfig": {"temperature": 0.2, "responseMimeType": "application/json"},
         }
-        for model in GEMINI_MODELS:
+
+        models = get_configured_gemini_models()
+        for model in models:
             url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={key}"
             try:
                 with httpx.Client(timeout=14.0) as client:
                     resp = client.post(url, json=request_data)
                     if resp.status_code == 200:
-                        raw_text = resp.json()["candidates"][0]["content"]["parts"][0]["text"].strip()
+                        body = resp.json()
+                        raw_text = body["candidates"][0]["content"]["parts"][0]["text"].strip()
                         if raw_text.startswith("```"):
                             raw_text = re.sub(r"^```(?:json)?\n?", "", raw_text)
                             raw_text = re.sub(r"\n?```$", "", raw_text)
-                        return json.loads(raw_text)
+                        parsed_plan = json.loads(raw_text)
+                        break
             except Exception:
                 continue
 
-    # Deterministic high-quality fallback
+    if not parsed_plan:
+        parsed_plan = _fallback_remedial_plan(topic, course_code)
+
+    # Normalize fields for backend consumers and test compatibility
+    lesson_title = parsed_plan.get("title") or f"10-Minute Rapid Revision: {topic}"
+    timeline = parsed_plan.get("timeline", [])
+    recap_script = "\n".join([f"{item.get('minute', '')}: {item.get('segment', '')} - {item.get('guidance', '')}" for item in timeline]) if timeline else f"10-minute targeted recap on {topic}"
+    interactive_prob = parsed_plan.get("interactive_problem") or f"Worked example solving {topic} on the board."
+    curated_res = parsed_plan.get("curated_resources") or [
+        f"Visual intuition walkthrough for {topic}",
+        f"Step-by-step problem set for {course_code}"
+    ]
+
+    parsed_plan["lesson_title"] = lesson_title
+    parsed_plan["recap_script"] = recap_script
+    parsed_plan["recap_plan"] = recap_script
+    parsed_plan["practice_questions"] = [interactive_prob]
+    parsed_plan["curated_resources"] = curated_res
+    parsed_plan["topic"] = topic
+    parsed_plan["course_code"] = course_code
+    parsed_plan["course_name"] = course_name
+
+    return parsed_plan
+
+
+def _fallback_remedial_plan(topic: str, course_code: str) -> dict[str, Any]:
     return {
-        "lesson_title": f"10-Minute Rapid Remedial: Demystifying {topic}",
-        "analogy": f"Think of {topic} as a self-balancing feedback loop that iteratively redistributes attention weights to eliminate noise.",
-        "recap_script": (
-            f"1. Minute 0-2 (Intuition): Revisit why {topic} exists by contrasting it with naive baseline methods.\n"
-            f"2. Minute 2-6 (Core Mechanism): Break down the mathematical components step-by-step on a 2x2 toy example.\n"
-            f"3. Minute 6-8 (Common Pitfalls): Highlight the exact edge-case where students get confused.\n"
-            f"4. Minute 8-10 (Interactive Check): Solve one rapid check-for-understanding question together as a class."
-        ),
-        "practice_questions": [
-            f"Why does standard gradient descent struggle on {topic} without normalization?",
-            f"What happens to the output dimension if we double the attention projection size?",
-            f"How does this formulation reduce computational complexity from O(N^2) to linear scale?"
+        "title": f"10-Minute Rapid Revision: {topic}",
+        "recap_objective": f"Solidify core intuition and address key hurdles in {topic} for {course_code}.",
+        "duration_minutes": 10,
+        "timeline": [
+            {"minute": "0-3", "segment": "Core Intuition & Motivation", "guidance": "Connect topic to previous lecture and demonstrate practical utility with a whiteboard diagram."},
+            {"minute": "4-7", "segment": "Common Stumbling Blocks", "guidance": "Highlight top points of student confusion and solve a minimal worked example step-by-step."},
+            {"minute": "8-10", "segment": "Peer Check & Q&A", "guidance": "Conduct a 2-minute 1-question poll to confirm class-wide conceptual alignment."}
         ],
+        "interactive_problem": f"Walk through a 1-step numerical calculation of {topic} with student input.",
+        "analogy": f"Think of {topic} like a pipeline where each stage must preserve invariant conditions.",
         "curated_resources": [
-            f"Stanford CS224N Course Notes on {topic} (Interactive Visualizer)",
-            f"Distill.pub Visual Explanation of Modern Deep Architectures & {topic}",
+            f"3Blue1Brown visual intuition for {topic}",
             f"PyTorch Documentation & Implementation Walkthrough for {course_code}"
         ]
     }
+
+
+def _get_evidence_grounding_context(message: str) -> str:
+    """Retrieve actual recent feedback excerpts from the database to ground Bixi's replies."""
+    try:
+        with engine.connect() as conn:
+            # Check for course code mentions e.g. AI501, CS301
+            codes = conn.execute(text("SELECT DISTINCT course_code FROM courses")).fetchall()
+            mentioned_code = None
+            for c in codes:
+                if c[0] and c[0].lower() in message.lower():
+                    mentioned_code = c[0]
+                    break
+
+            if mentioned_code:
+                feedbacks = conn.execute(
+                    text("""
+                        SELECT f.feedback_text, p.sentiment, p.emotion
+                        FROM feedback f
+                        LEFT JOIN predictions p ON f.feedback_id = p.feedback_id
+                        WHERE f.course_code = :cc
+                        ORDER BY f.feedback_id DESC
+                        LIMIT 5
+                    """),
+                    {"cc": mentioned_code},
+                ).fetchall()
+                if feedbacks:
+                    snippets = [f"- \"{r[0]}\" (Sentiment: {r[1]}, Emotion: {r[2]})" for r in feedbacks]
+                    return f"\nEVIDENCE GROUNDING DATA for {mentioned_code}:\n" + "\n".join(snippets) + "\n(Cite these real student observations in your response.)"
+                return f"\nEVIDENCE GROUNDING: No student feedback data is currently recorded for {mentioned_code}. Explicitly inform the user that no submissions exist yet."
+    except Exception:
+        pass
+    return ""
 
 
 def chat_with_bixi_gemini(
@@ -298,34 +382,37 @@ def chat_with_bixi_gemini(
     history: Optional[list[dict[str, str]]] = None,
     api_key: Optional[str] = None,
 ) -> Optional[str]:
-    """Generates intelligent, contextual Bixi conversational replies using Google Gemini."""
+    """Generates intelligent, evidence-grounded Bixi conversational replies using Google Gemini."""
     key = api_key or get_gemini_api_key()
     if not key:
         return None
 
     role = (user.get("role") if user else "STUDENT") or "STUDENT"
     user_name = (user.get("name") if user else "Student") or "Student"
+    grounding_data = _get_evidence_grounding_context(message)
 
     system_instruction = (
         f"You are Bixi ☁️, the friendly, highly intelligent AI academic counselor and sentiment intelligence assistant for Sentio. "
         f"You are speaking with {user_name} whose role is {role}. "
-        "Keep your responses warm, concise (1-2 clear, insightful paragraphs), encouraging, and strictly truthful (no hallucinations). "
-        "Help them with feedback interpretation, course pacing, study habits, stress management, or understanding their academic portal."
+        "Keep your responses warm, concise (1-2 clear, insightful paragraphs), encouraging, and strictly truthful. "
+        "GROUNDING RULE: When discussing course performance or sentiment, only cite provided evidence. If no data exists, explicitly state 'No feedback has been recorded for this course yet.' Do not invent student complaints or satisfaction scores.\n"
+        f"{grounding_data}"
     )
 
     contents = []
     if history:
         for h in history[-6:]:
-            role_type = "model" if h.get("sender") == "bixi" else "user"
-            contents.append({"role": role_type, "parts": [{"text": h.get("text", "")}]})
-    contents.append({"role": "user", "parts": [{"text": f"Instruction: {system_instruction}\n\nUser Message: {message}"}]})
+            role_type = "model" if h.get("role") == "assistant" or h.get("sender") == "bixi" else "user"
+            contents.append({"role": role_type, "parts": [{"text": h.get("text") or h.get("content", "")}]})
+    contents.append({"role": "user", "parts": [{"text": f"System Directive: {system_instruction}\n\nUser Question: {message}"}]})
 
     request_data = {
         "contents": contents,
-        "generationConfig": {"temperature": 0.4, "maxOutputTokens": 450},
+        "generationConfig": {"temperature": 0.35, "maxOutputTokens": 450},
     }
 
-    for model in GEMINI_MODELS:
+    models = get_configured_gemini_models()
+    for model in models:
         url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={key}"
         try:
             with httpx.Client(timeout=12.0) as client:

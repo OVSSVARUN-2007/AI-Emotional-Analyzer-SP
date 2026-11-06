@@ -1,0 +1,32 @@
+{
+  "dataset": "real_labeled_feedback_test.csv",
+  "sample_count": 360,
+  "sentiment": {
+    "accuracy": 0.6972,
+    "macro_precision": 0.684,
+    "macro_recall": 0.6287,
+    "macro_f1": 0.6462,
+    "classes": [
+      "mixed",
+      "negative",
+      "neutral",
+      "positive"
+    ]
+  },
+  "emotion": {
+    "accuracy": 0.5583,
+    "macro_precision": 0.6389,
+    "macro_recall": 0.5436,
+    "macro_f1": 0.4817,
+    "classes": [
+      "clarity",
+      "confusion",
+      "curiosity",
+      "fatigue",
+      "frustration",
+      "joy",
+      "neutral"
+    ]
+  },
+  "calibrated_band_uncertainty_threshold": 0.65
+}

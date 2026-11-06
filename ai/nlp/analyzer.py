@@ -11,7 +11,17 @@ from typing import Any
 import httpx
 import joblib
 
-from .text import require_text
+from .text import (
+    require_text,
+    mask_pii,
+    detect_sarcasm,
+    resolve_negation_intent,
+    analyze_tanglish,
+    unify_emotion,
+    calibrate_confidence,
+    detect_urgency_risk,
+    calculate_helpfulness_score,
+)
 from .topics import extract_topics
 
 
@@ -81,29 +91,98 @@ class FeedbackAnalyzer:
         return aspects
 
     def analyze(self, feedback: str) -> dict[str, Any]:
-        text = require_text(feedback)
+        raw_text = require_text(feedback)
+        # Server-side PII protection: mask phone numbers, emails, roll numbers
+        text = mask_pii(raw_text)
+
+        # Baseline inference from model
         sentiment_res = self._prediction(self.sentiment_model, text)
         aspects = self._extract_aspects(text)
 
         aspect_sentiments = {a["sentiment"] for a in aspects}
         overall_label = sentiment_res["label"]
+        raw_confidence = sentiment_res["confidence"]
+
+        # 1. Multi-clause aspect polarity check
         if "positive" in aspect_sentiments and "negative" in aspect_sentiments:
             overall_label = "mixed"
 
+        # 2. Negation override (e.g. "not bad at all", "cannot follow")
+        neg_intent = resolve_negation_intent(text)
+        if neg_intent:
+            overall_label = neg_intent
+
+        # 3. Telugu-English (Tanglish) code-mix detection
+        tang_sent, tang_em = analyze_tanglish(text)
+        if tang_sent:
+            overall_label = tang_sent
+
+        # 4. Sarcasm detection (e.g. "Great, another 3 AM deadline")
+        is_sarcastic = detect_sarcasm(text)
+        if is_sarcastic:
+            overall_label = "negative"
+
+        # 5. Baseline emotion prediction and canonical unification
+        if self.emotion_model is not None:
+            raw_em = self._prediction(self.emotion_model, text)
+            raw_em_label = raw_em.get("label", "neutral")
+            raw_em_conf = raw_em.get("confidence", 0.70)
+        else:
+            raw_em_label = "clarity" if overall_label == "positive" else "frustration" if overall_label == "negative" else "neutral"
+            raw_em_conf = 0.75
+
+        # Refine emotion based on context
+        if is_sarcastic:
+            canonical_emotion = "frustration"
+        elif tang_em:
+            canonical_emotion = tang_em
+        elif any(w in text.lower() for w in ["lost", "confus", "unclear", "doubt", "cannot follow", "contradictory"]):
+            canonical_emotion = "confusion"
+        elif any(w in text.lower() for w in ["exhaust", "burnout", "tired", "sleep", "drained"]):
+            canonical_emotion = "fatigue"
+        elif any(w in text.lower() for w in ["curious", "interested", "research", "explore", "challenge"]):
+            canonical_emotion = "curiosity"
+        elif any(w in text.lower() for w in ["clear", "intuitive", "understood", "crystal"]):
+            canonical_emotion = "clarity"
+        else:
+            canonical_emotion = unify_emotion(raw_em_label)
+
+        # 6. Confidence Calibration & Uncertainty Band
+        is_ambiguous = overall_label in ("mixed", "neutral")
+        calibrated_sent_conf, sent_uncertain = calibrate_confidence(raw_confidence, is_ambiguous=is_ambiguous)
+        calibrated_em_conf, em_uncertain = calibrate_confidence(raw_em_conf, is_ambiguous=is_ambiguous)
+        requires_review = sent_uncertain or em_uncertain
+
+        # 7. Urgency & Risk Flagging
+        is_urgent, urgency_category, escalation_advice = detect_urgency_risk(text)
+
+        # 8. Feedback Quality / Helpfulness Scorer
+        helpfulness = calculate_helpfulness_score(text)
+
         result: dict[str, Any] = {
-            "engine": "Local TF-IDF + LogisticRegression",
+            "engine": "Local TF-IDF + LogisticRegression (Calibrated)",
             "text": text,
             "sentiment": {
                 "label": overall_label,
-                "confidence": sentiment_res["confidence"],
-                "scores": sentiment_res["scores"],
+                "confidence": calibrated_sent_conf,
+                "raw_confidence": raw_confidence,
+                "is_uncertain": sent_uncertain,
+                "scores": sentiment_res.get("scores", {}),
+            },
+            "emotion": {
+                "label": canonical_emotion,
+                "canonical_label": canonical_emotion,
+                "confidence": calibrated_em_conf,
+                "is_uncertain": em_uncertain,
             },
             "topics": extract_topics(text),
             "aspects": aspects,
+            "requires_human_review": requires_review,
+            "is_urgent": is_urgent,
+            "urgency_category": urgency_category,
+            "escalation_advice": escalation_advice,
+            "helpfulness": helpfulness,
         }
-
-        if self.emotion_model is not None:
-            result["emotion"] = self._prediction(self.emotion_model, text)
 
         return result
 

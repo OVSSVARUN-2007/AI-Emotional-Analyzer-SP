@@ -53,7 +53,8 @@ if engine is None:
                 semester INTEGER DEFAULT 5,
                 class_section VARCHAR(50) DEFAULT 'Section D',
                 course_code VARCHAR(30) DEFAULT 'AI501',
-                course_name VARCHAR(150) DEFAULT 'Natural Language Processing'
+                course_name VARCHAR(150) DEFAULT 'Natural Language Processing',
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP
             );
         """))
 
@@ -70,6 +71,12 @@ if engine is None:
             ("slide_analysis", "TEXT"),
             ("facial_emotion", "VARCHAR(30)"),
             ("multilingual_lang", "VARCHAR(20) DEFAULT 'en'"),
+            ("created_at", "DATETIME"),
+            ("text_hash", "VARCHAR(64)"),
+            ("is_urgent", "BOOLEAN DEFAULT 0"),
+            ("urgency_reason", "VARCHAR(255)"),
+            ("helpfulness_score", "INTEGER DEFAULT 75"),
+            ("requires_human_review", "BOOLEAN DEFAULT 0"),
         ]:
             if col_name not in fb_cols:
                 conn.execute(text(f"ALTER TABLE feedback ADD COLUMN {col_name} {col_type}"))
@@ -134,6 +141,17 @@ if engine is None:
                 resolved_at DATETIME
             );
         """))
+
+        complaint_cols = [r[1] for r in conn.execute(text("PRAGMA table_info(complaints)")).fetchall()]
+        for col_name, col_type in [
+            ("priority", "VARCHAR(20) DEFAULT 'MEDIUM'"),
+            ("student_id", "INTEGER"),
+            ("section", "VARCHAR(50)"),
+            ("subject", "VARCHAR(200)"),
+            ("is_anonymous", "BOOLEAN DEFAULT 1"),
+        ]:
+            if col_name not in complaint_cols:
+                conn.execute(text(f"ALTER TABLE complaints ADD COLUMN {col_name} {col_type}"))
         conn.execute(text("""
             CREATE TABLE IF NOT EXISTS model_versions (
                 model_version_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -157,6 +175,13 @@ if engine is None:
                 is_verified BOOLEAN DEFAULT 1,
                 semester INTEGER DEFAULT 5,
                 class_section VARCHAR(50) DEFAULT 'Section D',
+                department VARCHAR(100) DEFAULT 'AI & Data Science',
+                phone VARCHAR(30),
+                bio TEXT,
+                emergency_contact VARCHAR(100),
+                designation VARCHAR(100),
+                failed_login_attempts INTEGER DEFAULT 0,
+                locked_until DATETIME,
                 created_at DATETIME DEFAULT CURRENT_TIMESTAMP
             );
         """))
@@ -167,9 +192,84 @@ if engine is None:
             ("is_verified", "BOOLEAN DEFAULT 1"),
             ("semester", "INTEGER DEFAULT 5"),
             ("class_section", "VARCHAR(50) DEFAULT 'Section D'"),
+            ("department", "VARCHAR(100) DEFAULT 'AI & Data Science'"),
+            ("phone", "VARCHAR(30)"),
+            ("bio", "TEXT"),
+            ("emergency_contact", "VARCHAR(100)"),
+            ("designation", "VARCHAR(100)"),
+            ("failed_login_attempts", "INTEGER DEFAULT 0"),
+            ("locked_until", "DATETIME"),
         ]:
             if col_name not in user_cols:
                 conn.execute(text(f"ALTER TABLE users ADD COLUMN {col_name} {col_type}"))
+
+        # Audit logs for accountability & security compliance
+        conn.execute(text("""
+            CREATE TABLE IF NOT EXISTS audit_logs (
+                log_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER,
+                user_email VARCHAR(150),
+                action VARCHAR(100) NOT NULL,
+                resource_type VARCHAR(50),
+                resource_id VARCHAR(50),
+                details TEXT,
+                ip_address VARCHAR(50),
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            );
+        """))
+
+        # Refresh tokens for secure rotating session management
+        conn.execute(text("""
+            CREATE TABLE IF NOT EXISTS refresh_tokens (
+                token_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL,
+                token_hash VARCHAR(255) NOT NULL UNIQUE,
+                expires_at DATETIME NOT NULL,
+                is_revoked BOOLEAN DEFAULT 0,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            );
+        """))
+
+        # Cache repeated text analyses to prevent redundant LLM/model invocations
+        conn.execute(text("""
+            CREATE TABLE IF NOT EXISTS analysis_cache (
+                cache_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                text_hash VARCHAR(64) NOT NULL UNIQUE,
+                sentiment_label VARCHAR(30),
+                sentiment_confidence FLOAT,
+                emotion_label VARCHAR(30),
+                emotion_confidence FLOAT,
+                aspects TEXT,
+                topics TEXT,
+                is_urgent BOOLEAN DEFAULT 0,
+                urgency_reason VARCHAR(255),
+                helpfulness_score INTEGER DEFAULT 75,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            );
+        """))
+
+        # Faculty action interventions for before/after pedagogical impact tracking
+        conn.execute(text("""
+            CREATE TABLE IF NOT EXISTS faculty_actions (
+                action_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                faculty_id INTEGER,
+                faculty_name VARCHAR(100),
+                course_code VARCHAR(50),
+                action_title VARCHAR(200) NOT NULL,
+                action_description TEXT,
+                action_type VARCHAR(50),
+                before_clarity_score FLOAT,
+                after_clarity_score FLOAT,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            );
+        """))
+
+        # Fast query indexes for high-throughput reporting & anonymity checks
+        conn.execute(text("CREATE INDEX IF NOT EXISTS idx_feedback_course_sec ON feedback (course_code, class_section);"))
+        conn.execute(text("CREATE INDEX IF NOT EXISTS idx_feedback_created ON feedback (created_at);"))
+        conn.execute(text("CREATE INDEX IF NOT EXISTS idx_feedback_hash ON feedback (text_hash);"))
+        conn.execute(text("CREATE INDEX IF NOT EXISTS idx_audit_logs_user ON audit_logs (user_id, created_at);"))
+        conn.execute(text("CREATE INDEX IF NOT EXISTS idx_analysis_cache_hash ON analysis_cache (text_hash);"))
 
         conn.execute(text("""
             CREATE TABLE IF NOT EXISTS otps (
@@ -246,9 +346,19 @@ if engine is None:
                 roll_number VARCHAR(50) NOT NULL,
                 semester INTEGER NOT NULL,
                 class_section VARCHAR(50) NOT NULL,
-                department_name VARCHAR(100) DEFAULT 'AI & Data Science'
+                department_name VARCHAR(100) DEFAULT 'AI & Data Science',
+                phone VARCHAR(30),
+                bio TEXT
             );
         """))
+
+        student_cols = [r[1] for r in conn.execute(text("PRAGMA table_info(students)")).fetchall()]
+        for col_name, col_type in [
+            ("phone", "VARCHAR(30)"),
+            ("bio", "TEXT"),
+        ]:
+            if col_name not in student_cols:
+                conn.execute(text(f"ALTER TABLE students ADD COLUMN {col_name} {col_type}"))
 
         conn.execute(text("""
             CREATE TABLE IF NOT EXISTS community_posts (

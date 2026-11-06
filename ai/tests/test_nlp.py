@@ -83,3 +83,60 @@ def test_get_analyzer_factory() -> None:
     assert isinstance(get_analyzer("external"), ExternalFeedbackAnalyzer)
     assert isinstance(get_analyzer("gemini"), ExternalFeedbackAnalyzer)
 
+
+def test_sarcasm_and_negation_handling() -> None:
+    from nlp.text import detect_sarcasm, resolve_negation_intent
+
+    # Sarcasm
+    assert detect_sarcasm("Great, another 3 AM deadline right before the exam.") is True
+    assert detect_sarcasm("Oh wonderful, the lab server crashed again.") is True
+    assert detect_sarcasm("The lecture was clear and engaging.") is False
+
+    # Negation
+    assert resolve_negation_intent("The explanation was not bad at all.") == "positive"
+    assert resolve_negation_intent("The lecture was never boring.") == "positive"
+    assert resolve_negation_intent("I cannot understand the derivation.") == "negative"
+
+
+def test_server_side_pii_masking() -> None:
+    from nlp.text import mask_pii
+
+    raw = "My phone is 987-654-3210, email is student@university.edu and roll number is 22BD1A0501."
+    masked = mask_pii(raw)
+    assert "987-654-3210" not in masked
+    assert "student@university.edu" not in masked
+    assert "22BD1A0501" not in masked
+    assert "[PHONE_MASKED]" in masked
+    assert "[EMAIL_MASKED]" in masked
+    assert "[ROLL_MASKED]" in masked
+
+
+def test_tanglish_sentiment_and_emotion() -> None:
+    from nlp.text import analyze_tanglish
+
+    sent, em = analyze_tanglish("Sir explanation chala clear ga undi, concepts super ga artham ayyayi.")
+    assert sent == "positive"
+    assert em in ("clarity", "joy")
+
+    sent_neg, em_neg = analyze_tanglish("Lab computers asalu work avvatledu, internet speed chala slow.")
+    assert sent_neg == "negative"
+    assert em_neg == "frustration"
+
+
+def test_urgency_and_helpfulness_scoring() -> None:
+    from nlp.text import detect_urgency_risk, calculate_helpfulness_score
+
+    # Urgency
+    urgent, category, _ = detect_urgency_risk("A group of seniors were ragging and harassing students in the hostel.")
+    assert urgent is True
+    assert category == "HARASSMENT_OR_SAFETY"
+
+    normal_urgent, _, _ = detect_urgency_risk("The textbook is available in the library.")
+    assert normal_urgent is False
+
+    # Helpfulness
+    brief = calculate_helpfulness_score("good")
+    detailed = calculate_helpfulness_score("The professor explained backprop well, but I suggest providing a starter Colab notebook because setting up PyTorch on Windows was difficult.")
+    assert detailed["score"] > brief["score"]
+    assert detailed["quality_tier"] == "High"
+

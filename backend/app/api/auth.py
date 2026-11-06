@@ -40,7 +40,11 @@ try:
     )
     from app.core.security import (
         create_access_token,
+        create_refresh_token,
         decode_access_token,
+        decode_refresh_token,
+        check_rate_limit,
+        is_account_locked,
         hash_password,
         verify_password,
     )
@@ -65,7 +69,11 @@ except ImportError:
     )
     from backend.app.core.security import (
         create_access_token,
+        create_refresh_token,
         decode_access_token,
+        decode_refresh_token,
+        check_rate_limit,
+        is_account_locked,
         hash_password,
         verify_password,
     )
@@ -81,6 +89,38 @@ router = APIRouter(
 )
 
 security_bearer = HTTPBearer(auto_error=False)
+
+
+def log_audit_event(
+    user_id: Optional[int],
+    user_email: Optional[str],
+    action: str,
+    resource_type: Optional[str] = None,
+    resource_id: Optional[str] = None,
+    details: Optional[str] = None,
+    ip_address: Optional[str] = None,
+) -> None:
+    """Record an audit trail entry in the database for sensitive administrative and privacy operations."""
+    try:
+        with engine.begin() as conn:
+            conn.execute(
+                text("""
+                    INSERT INTO audit_logs (user_id, user_email, action, resource_type, resource_id, details, ip_address)
+                    VALUES (:uid, :email, :act, :rtype, :rid, :det, :ip)
+                """),
+                {
+                    "uid": user_id,
+                    "email": user_email,
+                    "act": action,
+                    "rtype": resource_type,
+                    "rid": str(resource_id) if resource_id else None,
+                    "det": details,
+                    "ip": ip_address,
+                },
+            )
+    except Exception as e:
+        logger.warning(f"[AuditLog] Could not log audit event: {e}")
+
 
 
 def resolve_student_cohort(roll_no: Optional[str], fallback_sem: Optional[int] = None) -> tuple[int, int]:
@@ -388,6 +428,14 @@ def send_otp(payload: SendOtpRequest) -> dict[str, Any]:
                 detail="A valid university email address (e.g. you@univ.edu) is required to register.",
             )
 
+    # Rate limiting: max 5 OTP requests per 15 minutes
+    allowed, retry_after = check_rate_limit(f"otp_{email}", max_requests=5, window_seconds=900)
+    if not allowed:
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail=f"Too many OTP requests. Please wait {retry_after} seconds before requesting another code.",
+        )
+
     # Generate 6-digit OTP
     otp_code = f"{random.randint(100000, 999999)}"
     expires_at = datetime.now(timezone.utc) + timedelta(minutes=10)
@@ -669,10 +717,18 @@ def login(payload: LoginRequest) -> dict[str, Any]:
     if not identifier:
         raise HTTPException(status_code=400, detail="Email or Roll Number is required")
 
+    # Rate limiting on login attempts (max 10 attempts per 5 minutes per identifier)
+    allowed, retry_after = check_rate_limit(f"login_{identifier}", max_requests=10, window_seconds=300)
+    if not allowed:
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail=f"Too many login attempts. Please wait {retry_after} seconds before trying again.",
+        )
+
     with engine.connect() as conn:
         # Match by email or roll_no
         query = text("""
-            SELECT user_id, name, roll_no, email, password_hash, role, is_active, is_verified, semester, class_section
+            SELECT user_id, name, roll_no, email, password_hash, role, is_active, is_verified, semester, class_section, failed_login_attempts, locked_until
             FROM users
             WHERE LOWER(email) = :ident OR LOWER(roll_no) = :ident
             LIMIT 1
@@ -683,34 +739,233 @@ def login(payload: LoginRequest) -> dict[str, Any]:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid email/roll number or password")
 
         user_data = dict(row._mapping)
+        user_id = user_data["user_id"]
+
+        # Check account lockout
+        locked, rem_sec = is_account_locked(user_data)
+        if locked:
+            raise HTTPException(
+                status_code=status.HTTP_423_LOCKED,
+                detail=f"Account is temporarily locked due to consecutive failed login attempts. Please wait {rem_sec} seconds or reset your password via OTP.",
+            )
+
         stored_hash = user_data.get("password_hash")
 
         # Verify password
         if not verify_password(payload.password, stored_hash):
+            attempts = (user_data.get("failed_login_attempts") or 0) + 1
+            if attempts >= 5:
+                lock_exp = datetime.now(timezone.utc) + timedelta(minutes=15)
+                with engine.begin() as wconn:
+                    wconn.execute(
+                        text("UPDATE users SET failed_login_attempts = :att, locked_until = :lck WHERE user_id = :uid"),
+                        {"att": attempts, "lck": lock_exp.strftime("%Y-%m-%d %H:%M:%S"), "uid": user_id},
+                    )
+                raise HTTPException(
+                    status_code=status.HTTP_423_LOCKED,
+                    detail="Account locked for 15 minutes due to 5 consecutive failed login attempts. You can reset your password via OTP.",
+                )
+            else:
+                with engine.begin() as wconn:
+                    wconn.execute(
+                        text("UPDATE users SET failed_login_attempts = :att WHERE user_id = :uid"),
+                        {"att": attempts, "uid": user_id},
+                    )
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid email/roll number or password")
 
         if not user_data.get("is_active", True):
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Account is disabled. Please contact administration.")
 
+        # Reset failed attempts and lockout on success
+        with engine.begin() as wconn:
+            wconn.execute(
+                text("UPDATE users SET failed_login_attempts = 0, locked_until = NULL WHERE user_id = :uid"),
+                {"uid": user_id},
+            )
+
     # Remove password hash from response
     user_data.pop("password_hash", None)
     enriched = _enrich_user_profile(user_data)
 
-    token = create_access_token({
+    token_data = {
         "sub": str(enriched["user_id"]),
         "email": enriched["email"],
         "role": enriched["role"],
         "name": enriched["name"],
         "roll_no": enriched.get("roll_no"),
-    })
+    }
+    access_token = create_access_token(token_data)
+    refresh_token, ref_hash, ref_exp = create_refresh_token(token_data)
+
+    # Store refresh token hash in DB
+    try:
+        with engine.begin() as conn:
+            conn.execute(
+                text("INSERT INTO refresh_tokens (user_id, token_hash, expires_at) VALUES (:uid, :thash, :exp)"),
+                {"uid": enriched["user_id"], "thash": ref_hash, "exp": ref_exp.strftime("%Y-%m-%d %H:%M:%S")},
+            )
+    except Exception as e:
+        logger.warning(f"Could not persist refresh token: {e}")
+
+    log_audit_event(
+        user_id=enriched["user_id"],
+        user_email=enriched["email"],
+        action="USER_LOGIN",
+        resource_type="USER",
+        resource_id=str(enriched["user_id"]),
+        details=f"Successful login as {enriched['role']}",
+    )
 
     return {
         "success": True,
         "message": f"Successfully authenticated as {enriched['role']}",
-        "access_token": token,
+        "access_token": access_token,
+        "refresh_token": refresh_token,
         "token_type": "bearer",
         "user": enriched,
     }
+
+
+from pydantic import BaseModel
+
+class RefreshTokenRequest(BaseModel):
+    refresh_token: str
+
+
+@router.post("/refresh", summary="Exchange rotating refresh token for new access and refresh tokens")
+def refresh_token_endpoint(payload: RefreshTokenRequest) -> dict[str, Any]:
+    raw_token = payload.refresh_token.strip()
+    if not raw_token:
+        raise HTTPException(status_code=400, detail="Refresh token is required")
+
+    import hashlib
+    decoded = decode_refresh_token(raw_token)
+    if not decoded:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid or expired refresh token")
+
+    token_hash = hashlib.sha256(raw_token.encode("utf-8")).hexdigest()
+
+    with engine.begin() as conn:
+        row = conn.execute(
+            text("SELECT token_id, user_id, is_revoked, expires_at FROM refresh_tokens WHERE token_hash = :thash LIMIT 1"),
+            {"thash": token_hash},
+        ).fetchone()
+
+        if not row or row._mapping["is_revoked"]:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Refresh token has been revoked or is invalid")
+
+        user_id = row._mapping["user_id"]
+
+        # Revoke old refresh token (rotation)
+        conn.execute(
+            text("UPDATE refresh_tokens SET is_revoked = 1 WHERE token_id = :tid"),
+            {"tid": row._mapping["token_id"]},
+        )
+
+        u_row = conn.execute(
+            text("SELECT user_id, name, roll_no, email, role, is_active, is_verified, semester, class_section FROM users WHERE user_id = :uid LIMIT 1"),
+            {"uid": user_id},
+        ).fetchone()
+
+        if not u_row or not u_row._mapping.get("is_active", True):
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Account is disabled or not found")
+
+        enriched = _enrich_user_profile(dict(u_row._mapping))
+
+        token_data = {
+            "sub": str(enriched["user_id"]),
+            "email": enriched["email"],
+            "role": enriched["role"],
+            "name": enriched["name"],
+            "roll_no": enriched.get("roll_no"),
+        }
+        new_access_token = create_access_token(token_data)
+        new_refresh_token, new_ref_hash, new_ref_exp = create_refresh_token(token_data)
+
+        conn.execute(
+            text("INSERT INTO refresh_tokens (user_id, token_hash, expires_at) VALUES (:uid, :thash, :exp)"),
+            {"uid": user_id, "thash": new_ref_hash, "exp": new_ref_exp.strftime("%Y-%m-%d %H:%M:%S")},
+        )
+
+    return {
+        "success": True,
+        "access_token": new_access_token,
+        "refresh_token": new_refresh_token,
+        "token_type": "bearer",
+        "user": enriched,
+    }
+
+
+@router.get("/export-my-data", summary="Export personal feedback submissions and profile data (GDPR / Privacy Compliance)")
+def export_my_data(current_user: dict[str, Any] = Depends(get_current_user)) -> dict[str, Any]:
+    user_id = current_user["user_id"]
+    email = current_user["email"]
+
+    with engine.connect() as conn:
+        feedbacks = conn.execute(
+            text("SELECT feedback_id, feedback_text, course_code, course_name, submitted_at, is_anonymous, helpfulness_score FROM feedback WHERE student_id = :uid ORDER BY feedback_id DESC"),
+            {"uid": user_id},
+        ).fetchall()
+
+        complaints = conn.execute(
+            text("SELECT complaint_id, category, subject, description, status, filed_at, is_anonymous FROM complaints WHERE student_id = :uid ORDER BY complaint_id DESC"),
+            {"uid": user_id},
+        ).fetchall()
+
+    log_audit_event(
+        user_id=user_id,
+        user_email=email,
+        action="DATA_EXPORT",
+        resource_type="USER",
+        resource_id=str(user_id),
+        details="Student requested personal data export",
+    )
+
+    return {
+        "success": True,
+        "exported_at": datetime.now(timezone.utc).isoformat(),
+        "user_profile": current_user,
+        "feedback_submissions": [dict(r._mapping) for r in feedbacks],
+        "grievances": [dict(r._mapping) for r in complaints],
+    }
+
+
+@router.delete("/delete-my-account", summary="Anonymize personal identifiers and deactivate account upon user request")
+def delete_my_account(current_user: dict[str, Any] = Depends(get_current_user)) -> dict[str, Any]:
+    import secrets
+    user_id = current_user["user_id"]
+    email = current_user["email"]
+
+    with engine.begin() as conn:
+        # Anonymize student feedbacks: keep pedagogical rating data but detach student identity
+        conn.execute(
+            text("UPDATE feedback SET student_id = NULL, is_anonymous = 1 WHERE student_id = :uid"),
+            {"uid": user_id},
+        )
+        conn.execute(
+            text("UPDATE refresh_tokens SET is_revoked = 1 WHERE user_id = :uid"),
+            {"uid": user_id},
+        )
+        anonymized_email = f"deleted_{secrets.token_hex(6)}@anonymized.local"
+        conn.execute(
+            text("UPDATE users SET is_active = 0, email = :anom, roll_no = NULL, name = 'Deactivated Student', password_hash = 'DEACTIVATED' WHERE user_id = :uid"),
+            {"anom": anonymized_email, "uid": user_id},
+        )
+
+    log_audit_event(
+        user_id=user_id,
+        user_email=email,
+        action="ACCOUNT_DELETION",
+        resource_type="USER",
+        resource_id=str(user_id),
+        details="User requested account anonymization and deactivation",
+    )
+
+    return {
+        "success": True,
+        "message": "Your account and personal data have been completely scrubbed and anonymized.",
+    }
+
 
 
 @router.get("/me", summary="Get currently authenticated user details via JWT token")

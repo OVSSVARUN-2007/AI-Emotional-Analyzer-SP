@@ -1,11 +1,11 @@
-"""AI Service for analyzing student feedback with Google Gemini & Local Fallback."""
+"""AI Service for analyzing student feedback with Google Gemini & Grounded Local NLP."""
 
 from __future__ import annotations
 
 import re
 import sys
 from pathlib import Path
-from typing import Any
+from typing import Any, Optional
 
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
 if str(PROJECT_ROOT) not in sys.path:
@@ -13,8 +13,22 @@ if str(PROJECT_ROOT) not in sys.path:
 
 try:
     from ai.nlp.analyzer import FeedbackAnalyzer
+    from ai.nlp.text import (
+        mask_pii,
+        unify_emotion,
+        detect_urgency_risk,
+        calculate_helpfulness_score,
+        calibrate_confidence,
+    )
 except ImportError:
     from nlp.analyzer import FeedbackAnalyzer
+    from nlp.text import (
+        mask_pii,
+        unify_emotion,
+        detect_urgency_risk,
+        calculate_helpfulness_score,
+        calibrate_confidence,
+    )
 
 try:
     from app.services.gemini_service import analyze_feedback_with_gemini
@@ -44,7 +58,7 @@ analyzer = FeedbackAnalyzer(
 
 
 def _refine_local_prediction(res: dict[str, Any], text: str) -> dict[str, Any]:
-    """Applies contextual academic domain heuristics to eliminate false classifications and hallucinations."""
+    """Applies contextual academic domain heuristics to eliminate false classifications."""
     lower = text.lower()
 
     # Nuanced academic keywords
@@ -64,25 +78,29 @@ def _refine_local_prediction(res: dict[str, Any], text: str) -> dict[str, Any]:
 
     # Re-calibrate sentiment if local TFIDF model got confused
     if has_pos and has_neg:
-        res["sentiment"] = {"label": "mixed", "confidence": 0.90}
+        res["sentiment"] = {"label": "mixed", "confidence": 0.82}
     elif has_neg and not has_pos:
         res["sentiment"] = {"label": "negative", "confidence": max(0.85, res.get("sentiment", {}).get("confidence", 0.85))}
     elif has_pos and not has_neg:
-        res["sentiment"] = {"label": "positive", "confidence": max(0.90, res.get("sentiment", {}).get("confidence", 0.90))}
+        res["sentiment"] = {"label": "positive", "confidence": max(0.88, res.get("sentiment", {}).get("confidence", 0.88))}
 
-    # Re-calibrate emotion
+    # Align to unified academic emotion taxonomy
     if has_stress:
-        res["emotion"] = {"label": "fatigue", "confidence": 0.89}
+        res["emotion"] = {"label": "fatigue", "confidence": 0.88}
     elif any(w in lower for w in ["confusing", "unclear", "lost", "don't understand", "cannot understand", "can't understand", "unable to understand", "could not follow", "couldn't follow"]):
-        res["emotion"] = {"label": "confusion", "confidence": 0.95}
+        res["emotion"] = {"label": "confusion", "confidence": 0.92}
     elif any(w in lower for w in ["brutal", "unfair", "annoyed", "ridiculous", "frustrated"]):
-        res["emotion"] = {"label": "frustration", "confidence": 0.92}
+        res["emotion"] = {"label": "frustration", "confidence": 0.90}
     elif has_curiosity:
-        res["emotion"] = {"label": "curiosity", "confidence": 0.88}
+        res["emotion"] = {"label": "curiosity", "confidence": 0.86}
     elif has_pos and any(w in lower for w in ["clear", "explained well", "intuitive", "easy to grasp"]):
-        res["emotion"] = {"label": "clarity", "confidence": 0.94}
+        res["emotion"] = {"label": "clarity", "confidence": 0.92}
     elif has_pos:
-        res["emotion"] = {"label": "satisfaction", "confidence": 0.92}
+        res["emotion"] = {"label": "joy", "confidence": 0.90}
+
+    # Ensure emotion label is strictly canonical
+    if "emotion" in res and "label" in res["emotion"]:
+        res["emotion"]["label"] = unify_emotion(res["emotion"]["label"])
 
     return res
 
@@ -92,21 +110,40 @@ def analyze_feedback(
     slide_image_base64: Optional[str] = None,
     acoustic_prosody: Optional[dict[str, Any]] = None,
 ) -> dict[str, Any]:
-    """Analyze student feedback using Google Gemini if available, or domain-calibrated local NLP."""
+    """Analyze student feedback using Grounded Gemini if available, or domain-calibrated local NLP."""
+    # 0. Always mask student PII on the server first
+    sanitized_text = mask_pii(text)
+
     # 1. Try Google Gemini for high-level reasoning with multimodal vision & acoustic affect
     gemini_res = analyze_feedback_with_gemini(
-        text,
+        sanitized_text,
         slide_image_base64=slide_image_base64,
         acoustic_prosody=acoustic_prosody,
     )
     if gemini_res:
+        # Standardize emotion to canonical set
+        if "emotion" in gemini_res and "label" in gemini_res["emotion"]:
+            gemini_res["emotion"]["label"] = unify_emotion(gemini_res["emotion"]["label"])
+        # Check urgency risk
+        is_urgent, cat, advice = detect_urgency_risk(sanitized_text)
+        gemini_res["is_urgent"] = is_urgent
+        gemini_res["urgency_category"] = cat
+        gemini_res["escalation_advice"] = advice
+        gemini_res["helpfulness"] = calculate_helpfulness_score(sanitized_text)
+        conf = gemini_res.get("sentiment", {}).get("confidence", 0.85)
+        gemini_res["requires_human_review"] = conf < 0.65
         return gemini_res
 
     # 2. Local fallback with domain calibration
-    local_res = analyzer.analyze(text)
-    refined = _refine_local_prediction(local_res, text)
+    local_res = analyzer.analyze(sanitized_text)
+    refined = _refine_local_prediction(local_res, sanitized_text)
     if slide_image_base64:
         refined["slide_analysis"] = "Lecture slide/formula inspected: conceptual clarification needed on diagram steps."
     if acoustic_prosody:
         refined["acoustic_affect"] = f"Pace: {acoustic_prosody.get('speech_pace', 'Normal')}, Energy: {acoustic_prosody.get('vocal_energy', 0.5)}"
+
+    # Ensure canonical emotion on local fallback
+    if "emotion" in refined and "label" in refined["emotion"]:
+        refined["emotion"]["label"] = unify_emotion(refined["emotion"]["label"])
+
     return refined
