@@ -87,29 +87,45 @@ router = APIRouter(
 EMOTION_CANONICAL_MAP = {
     "engaged": "engaged",
     "clarity": "engaged",
+    "understanding": "engaged",
     "enthusiasm": "engaged",
     "curiosity": "engaged",
+    "curious": "engaged",
     "love": "engaged",
     "satisfaction": "satisfied",
     "satisfied": "satisfied",
     "contentment": "satisfied",
     "joy": "satisfied",
+    "happy": "satisfied",
+    "happiness": "satisfied",
     "neutral": "neutral",
     "neutrality": "neutral",
     "confusion": "confused",
     "confused": "confused",
     "doubt": "confused",
     "surprise": "confused",
+    "unclear": "confused",
     "frustration": "frustrated",
     "frustrated": "frustrated",
     "anger": "frustrated",
+    "angry": "frustrated",
     "sadness": "frustrated",
     "fear": "frustrated",
+    "fatigue": "frustrated",
+    "exhaustion": "frustrated",
+    "drained": "frustrated",
+    "burnout": "frustrated",
 }
 
 def to_canonical_emotion(raw_em: Optional[str]) -> str:
-    """Map any emotion representation to the unified academic emotion taxonomy."""
-    return unify_emotion(raw_em)
+    """Map any emotion representation to the unified 5-class academic emotion taxonomy."""
+    if not raw_em:
+        return "neutral"
+    clean = str(raw_em).strip().lower()
+    if clean in EMOTION_CANONICAL_MAP:
+        return EMOTION_CANONICAL_MAP[clean]
+    unified = unify_emotion(clean)
+    return EMOTION_CANONICAL_MAP.get(unified, "neutral")
 
 EMOTION_PALETTE = {
     "engaged": "#3b82f6",
@@ -897,6 +913,7 @@ def delete_lecture(lecture_id: int):
 
 
 @router.post("/student-enroll", summary="Student enrolls in a course/elective for a semester")
+@router.post("/student/enroll", summary="Student enrolls in a course/elective for a semester (slash alias)")
 def enroll_student_course(payload: StudentEnrollRequest):
     with engine.begin() as conn:
         cid = payload.course_id
@@ -1515,8 +1532,13 @@ class FacultyCreate(BaseModel):
 
 class FeedbackResponseCreate(BaseModel):
     responder_name: str
-    response_text: str
+    response_text: Optional[str] = None
+    action_taken: Optional[str] = None
+    responder_role: Optional[str] = "Faculty"
     status: str = "ACTION_TAKEN"
+
+    def get_text(self) -> str:
+        return (self.response_text or self.action_taken or "Action recorded by faculty").strip()
 
 class AnnouncementCreate(BaseModel):
     title: str
@@ -1662,15 +1684,17 @@ def create_announcement(payload: AnnouncementCreate):
 
 @router.post("/{feedback_id}/response", summary="Record a faculty response or action taken")
 @router.post("/{feedback_id}/responses", summary="Record a faculty response or action taken (plural alias)")
+@router.post("/{feedback_id}/respond", summary="Record a faculty response or action taken (verb alias)")
 def respond_to_feedback(feedback_id: int, payload: FeedbackResponseCreate):
     with engine.begin() as conn:
         exists = conn.execute(text("SELECT feedback_id FROM feedback WHERE feedback_id = :id"), {"id": feedback_id}).fetchone()
         if not exists:
             raise HTTPException(status_code=404, detail="Feedback not found")
+        resp_text = payload.get_text()
         conn.execute(text("""INSERT INTO feedback_responses (feedback_id, responder_name, response_text, status)
-            VALUES (:id, :name, :text, :status)"""), {"id": feedback_id, "name": payload.responder_name, "text": payload.response_text, "status": payload.status})
+            VALUES (:id, :name, :text, :status)"""), {"id": feedback_id, "name": payload.responder_name, "text": resp_text, "status": payload.status})
         conn.execute(text("UPDATE feedback SET status = :status WHERE feedback_id = :id"), {"id": feedback_id, "status": payload.status})
-    realtime_events.publish("feedback.responded", {"feedback_id": feedback_id, "status": payload.status})
+    realtime_events.publish("feedback.responded", {"feedback_id": feedback_id, "status": payload.status, "text": resp_text})
     return {"message": "Response recorded", "status": "SUCCESS"}
 
 @router.get("/notifications", summary="Fetch notifications for students or faculty")

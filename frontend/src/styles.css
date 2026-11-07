@@ -2774,3 +2774,49 @@ a {
   border-radius: 4px;
   transition: width 0.4s ease;
 }
+
+/* ═══════════════════════════════════════════════════════ */
+/* TOP HEADER ROLE SWITCHER BAR */
+/* ═══════════════════════════════════════════════════════ */
+.role-switcher-group {
+  display: inline-flex;
+  align-items: center;
+  background: #f1f5f9;
+  padding: 3px;
+  border-radius: 9999px;
+  border: 1px solid #cbd5e1;
+  gap: 2px;
+}
+
+.btn-role-tab {
+  border: none;
+  background: transparent;
+  padding: 5px 12px;
+  border-radius: 9999px;
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.btn-role-tab:hover {
+  color: #0f172a;
+}
+
+.btn-role-tab.active {
+  background: #ffffff;
+  color: #2563eb;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+}
+
+.btn-role-tab.admin.active {
+  color: #0f172a;
+}
+
+.btn-role-tab.faculty.active {
+  color: #059669;
+}
