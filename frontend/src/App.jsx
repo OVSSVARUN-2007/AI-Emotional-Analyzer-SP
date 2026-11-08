@@ -4758,11 +4758,24 @@ function StudentDashboard({ user, token, onLogout, onSwitchRole, addToast, onUse
   // Reflection Journal State
   const [journalNote, setJournalNote] = useState('');
   const [savedJournal, setSavedJournal] = useState([]);
+  const [clarificationDismissed, setClarificationDismissed] = useState(() => {
+    try {
+      return localStorage.getItem('sentio_clarif_dismissed_1') === 'true';
+    } catch (_) {
+      return false;
+    }
+  });
   const [reactedToClarif, setReactedToClarif] = useState(null);
   const [clarifHelpfulCount, setClarifHelpfulCount] = useState(14);
   const [clarifUnclearCount, setClarifUnclearCount] = useState(2);
 
   const handleClarificationReact = async (broadcastId, reactionType) => {
+    if (clarificationDismissed) return;
+    setClarificationDismissed(true);
+    try {
+      localStorage.setItem('sentio_clarif_dismissed_' + broadcastId, 'true');
+    } catch (_) {}
+
     setReactedToClarif(reactionType);
     if (reactionType === 'HELPFUL') {
       setClarifHelpfulCount(prev => prev + 1);
@@ -5368,66 +5381,91 @@ function StudentDashboard({ user, token, onLogout, onSwitchRole, addToast, onUse
           <div className="tab-pane">
             <div className={showRecentSubmissions ? "grid-2col" : ""} style={!showRecentSubmissions ? { maxWidth: '760px', margin: '0 auto' } : {}}>
               {/* Teacher Clarification & Action Alert Banner (Closing the Feedback Loop) */}
-            <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '10px', padding: '0.9rem 1.15rem', marginBottom: '1.25rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <span style={{ fontSize: '1rem' }}>📢</span>
-                  <strong style={{ fontSize: '0.85rem', color: '#166534' }}>
-                    Recent Teacher Clarification & Action for Your Class
-                  </strong>
-                  <span style={{ fontSize: '0.72rem', background: '#dcfce7', color: '#15803d', padding: '1px 7px', borderRadius: '999px', fontWeight: 600 }}>
-                    Feedback Loop Closed ✓
+            {!clarificationDismissed && (
+              <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '10px', padding: '0.9rem 1.15rem', marginBottom: '1.25rem', display: 'flex', flexDirection: 'column', gap: '0.5rem', position: 'relative' }}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setClarificationDismissed(true);
+                    try { localStorage.setItem('sentio_clarif_dismissed_1', 'true'); } catch (_) {}
+                  }}
+                  title="Dismiss notification"
+                  style={{
+                    position: 'absolute',
+                    top: '0.65rem',
+                    right: '0.65rem',
+                    background: 'none',
+                    border: 'none',
+                    color: '#15803d',
+                    fontSize: '1rem',
+                    cursor: 'pointer',
+                    padding: '2px 6px',
+                    lineHeight: 1,
+                    borderRadius: '4px'
+                  }}
+                >
+                  ✕
+                </button>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem', paddingRight: '1.5rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <span style={{ fontSize: '1rem' }}>📢</span>
+                    <strong style={{ fontSize: '0.85rem', color: '#166534' }}>
+                      Recent Teacher Clarification & Action for Your Class
+                    </strong>
+                    <span style={{ fontSize: '0.72rem', background: '#dcfce7', color: '#15803d', padding: '1px 7px', borderRadius: '999px', fontWeight: 600 }}>
+                      Feedback Loop Closed ✓
+                    </span>
+                  </div>
+                  <span style={{ fontSize: '0.75rem', color: '#15803d', fontWeight: 500 }}>
+                    Dr. A. Sharma · Natural Language Processing (AI501)
                   </span>
                 </div>
-                <span style={{ fontSize: '0.75rem', color: '#15803d', fontWeight: 500 }}>
-                  Dr. A. Sharma · Natural Language Processing (AI501)
-                </span>
+                <p style={{ margin: 0, fontSize: '0.82rem', color: '#14532d', lineHeight: 1.5 }}>
+                  "Following lecture feedback on dot-product attention scaling: dot products grow large for large dimensions d_k, pushing softmax into near-zero gradient regions. A 3-slide derivation and Colab temperature visualizer have been uploaded to LMS."
+                </p>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginTop: '0.25rem', flexWrap: 'wrap' }}>
+                  <span style={{ fontSize: '0.75rem', color: '#166534', fontWeight: 600 }}>Did this clarification resolve your doubt?</span>
+                  <button
+                    type="button"
+                    onClick={() => handleClarificationReact(1, 'HELPFUL')}
+                    style={{
+                      background: reactedToClarif === 'HELPFUL' ? '#15803d' : '#ffffff',
+                      color: reactedToClarif === 'HELPFUL' ? '#ffffff' : '#166534',
+                      border: '1px solid #86efac',
+                      borderRadius: '6px',
+                      padding: '3px 10px',
+                      fontSize: '0.75rem',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '4px'
+                    }}
+                  >
+                    👍 Clear now! ({clarifHelpfulCount})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleClarificationReact(1, 'UNCLEAR')}
+                    style={{
+                      background: reactedToClarif === 'UNCLEAR' ? '#b45309' : '#ffffff',
+                      color: reactedToClarif === 'UNCLEAR' ? '#ffffff' : '#92400e',
+                      border: '1px solid #fde68a',
+                      borderRadius: '6px',
+                      padding: '3px 10px',
+                      fontSize: '0.75rem',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '4px'
+                    }}
+                  >
+                    🤔 Still Need Examples ({clarifUnclearCount})
+                  </button>
+                </div>
               </div>
-              <p style={{ margin: 0, fontSize: '0.82rem', color: '#14532d', lineHeight: 1.5 }}>
-                "Following lecture feedback on dot-product attention scaling: dot products grow large for large dimensions d_k, pushing softmax into near-zero gradient regions. A 3-slide derivation and Colab temperature visualizer have been uploaded to LMS."
-              </p>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginTop: '0.25rem', flexWrap: 'wrap' }}>
-                <span style={{ fontSize: '0.75rem', color: '#166534', fontWeight: 600 }}>Did this clarification resolve your doubt?</span>
-                <button
-                  type="button"
-                  onClick={() => handleClarificationReact(1, 'HELPFUL')}
-                  style={{
-                    background: reactedToClarif === 'HELPFUL' ? '#15803d' : '#ffffff',
-                    color: reactedToClarif === 'HELPFUL' ? '#ffffff' : '#166534',
-                    border: '1px solid #86efac',
-                    borderRadius: '6px',
-                    padding: '3px 10px',
-                    fontSize: '0.75rem',
-                    fontWeight: 600,
-                    cursor: 'pointer',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '4px'
-                  }}
-                >
-                  👍 Clear now! ({clarifHelpfulCount})
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleClarificationReact(1, 'UNCLEAR')}
-                  style={{
-                    background: reactedToClarif === 'UNCLEAR' ? '#b45309' : '#ffffff',
-                    color: reactedToClarif === 'UNCLEAR' ? '#ffffff' : '#92400e',
-                    border: '1px solid #fde68a',
-                    borderRadius: '6px',
-                    padding: '3px 10px',
-                    fontSize: '0.75rem',
-                    fontWeight: 600,
-                    cursor: 'pointer',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '4px'
-                  }}
-                >
-                  🤔 Still Need Examples ({clarifUnclearCount})
-                </button>
-              </div>
-            </div>
+            )}
 
             {/* Submission Form Card */}
               <div className="card">
@@ -6704,13 +6742,15 @@ function AdminDashboard({ user, token, onLogout, onSwitchRole, addToast, onUserU
           >
             <CalendarDays size={18} /> Curriculum & Schedule
           </button>
-          <button
-            type="button"
-            className={`nav-item ${activeTab === 'modules' ? 'active' : ''}`}
-            onClick={() => { setActiveTab('modules'); setMobileMenuOpen(false); }}
-          >
-            <BookOpen size={18} /> Course Modules & Clarity
-          </button>
+          {isFaculty && (
+            <button
+              type="button"
+              className={`nav-item ${activeTab === 'modules' ? 'active' : ''}`}
+              onClick={() => { setActiveTab('modules'); setMobileMenuOpen(false); }}
+            >
+              <BookOpen size={18} /> Course Modules & Clarity
+            </button>
+          )}
           {isAdmin && (
             <button
               type="button"
@@ -6762,7 +6802,7 @@ function AdminDashboard({ user, token, onLogout, onSwitchRole, addToast, onUserU
                 {activeTab === 'faculty-performance' && (isFaculty ? 'My Section Teaching Analytics' : 'Faculty Performance & Subject Teaching Analytics')}
                 {activeTab === 'feedback' && 'Student Feedback Oversight'}
                 {activeTab === 'curriculum' && 'Curriculum, Subjects & Timetable'}
-                {activeTab === 'modules' && 'Course Modules & Topic Clarity'}
+                {isFaculty && activeTab === 'modules' && 'Course Modules & Topic Clarity'}
                 {activeTab === 'grievances' && 'Student Grievance Desk'}
                 {activeTab === 'special-projects' && 'Special Project Mentor Assignments'}
                 {activeTab === 'settings' && 'Platform Settings & Tools'}
@@ -7609,8 +7649,8 @@ function AdminDashboard({ user, token, onLogout, onSwitchRole, addToast, onUserU
           </div>
         )}
 
-        {/* 4. TAB: COURSE MODULES & CLARITY */}
-        {activeTab === 'modules' && (
+        {/* 4. TAB: COURSE MODULES & CLARITY (FACULTY ONLY) */}
+        {isFaculty && activeTab === 'modules' && (
           <div className="tab-pane">
             <div className="pane-heading">
               <h2>Course Units & Topic Clarity</h2>
@@ -8197,7 +8237,7 @@ export default function App() {
 
   const addToast = useCallback((toast) => {
     const id = Date.now() + Math.random().toString(36).substring(2, 9);
-    setToasts((prev) => [...prev, { id, ...toast }]);
+    setToasts((prev) => [...prev.slice(-2), { id, ...toast }]);
   }, []);
 
   const removeToast = useCallback((id) => {
