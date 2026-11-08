@@ -2,10 +2,18 @@
 
 from __future__ import annotations
 
+import json
+import os
 import re
 import sys
 from pathlib import Path
 from typing import Any, Optional
+import httpx
+from dotenv import load_dotenv
+
+PROJECT_ROOT_DIR = Path(__file__).resolve().parents[3]
+load_dotenv(PROJECT_ROOT_DIR / ".env")
+load_dotenv(PROJECT_ROOT_DIR / "backend" / ".env")
 
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
 if str(PROJECT_ROOT) not in sys.path:
@@ -105,6 +113,45 @@ def _refine_local_prediction(res: dict[str, Any], text: str) -> dict[str, Any]:
     return res
 
 
+def analyze_feedback_with_local_llm(text: str) -> Optional[dict[str, Any]]:
+    """Analyze student feedback using locally running Ollama model."""
+    url = os.getenv("LOCAL_LLM_URL", "http://localhost:11434/api/generate")
+    model = os.getenv("LOCAL_LLM_MODEL", "llama3.2:1b")
+    timeout = float(os.getenv("LOCAL_LLM_TIMEOUT", "45.0"))
+
+    prompt = f"""You are an educational sentiment analyzer. Analyze this student feedback and return ONLY a valid JSON object:
+{{
+  "sentiment": {{"label": "positive"|"negative"|"neutral"|"mixed", "confidence": 0.88}},
+  "emotion": {{"label": "joy"|"clarity"|"curiosity"|"confusion"|"frustration"|"fatigue"|"neutral", "confidence": 0.85}},
+  "topics": ["topic1"],
+  "aspects": [{{"topic": "Teaching", "sentiment": "POSITIVE", "confidence": 0.9}}]
+}}
+
+Student Feedback: "{text}"
+"""
+    try:
+        with httpx.Client(timeout=timeout) as client:
+            resp = client.post(
+                url,
+                json={
+                    "model": model,
+                    "prompt": prompt,
+                    "format": "json",
+                    "stream": False,
+                },
+            )
+            if resp.status_code == 200:
+                raw_text = resp.json().get("response", "").strip()
+                data = json.loads(raw_text)
+                if "sentiment" in data and "emotion" in data:
+                    data["engine"] = f"Local LLM ({model})"
+                    data["text"] = text
+                    return data
+    except Exception:
+        pass
+    return None
+
+
 def analyze_feedback(
     text: str,
     slide_image_base64: Optional[str] = None,
@@ -113,8 +160,24 @@ def analyze_feedback(
     """Analyze student feedback using Grounded Gemini if available, or domain-calibrated local NLP."""
     # 0. Always mask student PII on the server first
     sanitized_text = mask_pii(text)
+    prefer_local = os.getenv("PREFER_LOCAL_LLM", "false").lower() in ("1", "true", "yes")
 
-    # 1. Try Google Gemini for high-level reasoning with multimodal vision & acoustic affect
+    # 1. Local LLM primary if PREFER_LOCAL_LLM is true
+    if prefer_local:
+        local_llm_res = analyze_feedback_with_local_llm(sanitized_text)
+        if local_llm_res:
+            if "emotion" in local_llm_res and "label" in local_llm_res["emotion"]:
+                local_llm_res["emotion"]["label"] = unify_emotion(local_llm_res["emotion"]["label"])
+            is_urgent, cat, advice = detect_urgency_risk(sanitized_text)
+            local_llm_res["is_urgent"] = is_urgent
+            local_llm_res["urgency_category"] = cat
+            local_llm_res["escalation_advice"] = advice
+            local_llm_res["helpfulness"] = calculate_helpfulness_score(sanitized_text)
+            conf = local_llm_res.get("sentiment", {}).get("confidence", 0.85)
+            local_llm_res["requires_human_review"] = conf < 0.65
+            return local_llm_res
+
+    # 2. Try Google Gemini for high-level reasoning with multimodal vision & acoustic affect
     gemini_res = analyze_feedback_with_gemini(
         sanitized_text,
         slide_image_base64=slide_image_base64,

@@ -14,6 +14,10 @@ for p in [str(REPO_ROOT), str(BACKEND_DIR)]:
     if p not in sys.path:
         sys.path.insert(0, p)
 
+from dotenv import load_dotenv
+load_dotenv(REPO_ROOT / ".env")
+load_dotenv(BACKEND_DIR / ".env")
+
 import asyncio
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException, Depends, WebSocket, WebSocketDisconnect
@@ -375,7 +379,7 @@ async def bixi_status_endpoint():
     from app.services.gemini_service import get_gemini_api_key
 
     local_url = os.getenv("LOCAL_LLM_URL", "http://localhost:11434/api/generate")
-    local_model = os.getenv("LOCAL_LLM_MODEL", "llama3")
+    local_model = os.getenv("LOCAL_LLM_MODEL", "llama3.2:1b")
     prefer_local = os.getenv("PREFER_LOCAL_LLM", "false").lower() in ("1", "true", "yes")
     gemini_key = get_gemini_api_key()
 
@@ -408,7 +412,7 @@ async def bixi_chat_endpoint(req: BixiChatRequest):
 
     local_llm_url = os.getenv("LOCAL_LLM_URL", "http://localhost:11434/api/generate")
     local_llm_model = os.getenv("LOCAL_LLM_MODEL", "llama3")
-    local_timeout = float(os.getenv("LOCAL_LLM_TIMEOUT", "30.0"))
+    local_timeout = float(os.getenv("LOCAL_LLM_TIMEOUT", "60.0"))
     prefer_local = os.getenv("PREFER_LOCAL_LLM", "false").lower() in ("1", "true", "yes")
 
     # 1. Local LLM as primary if PREFER_LOCAL_LLM is true
