@@ -749,7 +749,7 @@ function AspectRatingMeters({ aspects = [] }) {
 // ═══════════════════════════════════════════════════════
 // FACULTY SUBJECTS PERFORMANCE CARDS
 // ═══════════════════════════════════════════════════════
-function FacultySubjectBreakdownCards({ subjects = [] }) {
+function FacultySubjectBreakdownCards({ subjects = [], systemMode = 'LIVE_EVAL' }) {
   if (!subjects || subjects.length === 0) {
     return (
       <div style={{ padding: '1rem', textAlign: 'center', color: '#94a3b8', fontSize: '0.85rem' }}>
@@ -788,6 +788,11 @@ function FacultySubjectBreakdownCards({ subjects = [] }) {
                 <div style={{ fontWeight: 600, fontSize: '0.88rem', color: '#0f172a', lineHeight: 1.3 }}>
                   {sub.course_name}
                 </div>
+                {systemMode === 'MIDTERM_AUDIT' && score < 65 && (
+                  <span className="audit-remedial-badge">
+                    ⚠️ Mid-Term Audit: Clarity &lt; 65% (Remedial Plan Advised)
+                  </span>
+                )}
               </div>
               <span
                 style={{
@@ -3888,6 +3893,13 @@ function StudentDashboard({ user, token, onLogout, onSwitchRole, addToast, onUse
       if (postRes?.posts) setCommunityPosts(postRes.posts);
       if (podRes?.study_pods) setStudyPods(podRes.study_pods);
       if (reqRes?.requests) setPulseRequests(reqRes.requests);
+      try {
+        const modeRes = await fetch(`${API}/api/system/mode`).then((r) => r.json());
+        if (modeRes?.mode) {
+          setSystemMode(modeRes.mode);
+          localStorage.setItem('sentio_system_mode', modeRes.mode);
+        }
+      } catch (_) {}
     } catch (e) {
       console.error('Error loading student data:', e);
     }
@@ -4210,6 +4222,32 @@ function StudentDashboard({ user, token, onLogout, onSwitchRole, addToast, onUse
           </div>
         </header>
 
+        {/* Dynamic System Operational Mode Banner */}
+        {systemMode === 'MAINTENANCE' && (
+          <div className="system-mode-banner maintenance">
+            <span className="banner-icon">🔒</span>
+            <div className="banner-text">
+              <strong>Maintenance Mode Active:</strong> Student feedback submissions and live polls are temporarily paused for semester rollover and grading updates.
+            </div>
+          </div>
+        )}
+        {systemMode === 'MIDTERM_AUDIT' && (
+          <div className="system-mode-banner midterm">
+            <span className="banner-icon">🟡</span>
+            <div className="banner-text">
+              <strong>Mid-Term Audit Mode Active:</strong> Mid-semester evaluation window. Your constructive feedback helps professors adjust pacing for upcoming modules.
+            </div>
+          </div>
+        )}
+        {systemMode === 'ACCREDITATION' && (
+          <div className="system-mode-banner accreditation">
+            <span className="banner-icon">🟣</span>
+            <div className="banner-text">
+              <strong>Accreditation Compliance Mode Active:</strong> Institutional quality audit in progress (NAAC / NBA). All student submissions are 100% anonymized.
+            </div>
+          </div>
+        )}
+
         {/* 1. TAB: SUBMIT FEEDBACK */}
         {activeTab === 'submit' && (
           <div className="tab-pane">
@@ -4419,8 +4457,17 @@ function StudentDashboard({ user, token, onLogout, onSwitchRole, addToast, onUse
                     )}
                   </div>
 
-                  <button type="submit" className="btn-submit-primary" disabled={submitting}>
-                    {submitting ? 'Sending…' : 'Send Feedback to Faculty'}
+                  <button
+                    type="submit"
+                    className="btn-submit-primary"
+                    disabled={submitting || systemMode === 'MAINTENANCE'}
+                    style={systemMode === 'MAINTENANCE' ? { background: '#94a3b8', cursor: 'not-allowed' } : {}}
+                  >
+                    {systemMode === 'MAINTENANCE'
+                      ? '🔒 Submissions Paused (Maintenance Mode)'
+                      : submitting
+                      ? 'Sending…'
+                      : 'Send Feedback to Faculty'}
                   </button>
                 </form>
               </div>
@@ -5067,6 +5114,13 @@ function AdminDashboard({ user, token, onLogout, onSwitchRole, addToast, onUserU
       if (gemRes) setGeminiConfig(gemRes);
       if (facPerfRes) setFacultyPerfData(facPerfRes);
       if (trendRes) setStudentTrends(trendRes);
+      try {
+        const modeRes = await fetch(`${API}/api/system/mode`).then((r) => r.json());
+        if (modeRes?.mode) {
+          setSystemMode(modeRes.mode);
+          localStorage.setItem('sentio_system_mode', modeRes.mode);
+        }
+      } catch (_) {}
     } catch (e) {
       console.error('Error loading admin data:', e);
     }
@@ -5384,9 +5438,17 @@ function AdminDashboard({ user, token, onLogout, onSwitchRole, addToast, onUserU
               <select
                 className="system-mode-select"
                 value={systemMode}
-                onChange={(e) => {
-                  setSystemMode(e.target.value);
-                  localStorage.setItem('sentio_system_mode', e.target.value);
+                onChange={async (e) => {
+                  const newMode = e.target.value;
+                  setSystemMode(newMode);
+                  localStorage.setItem('sentio_system_mode', newMode);
+                  try {
+                    await fetch(`${API}/api/system/mode`, {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ mode: newMode }),
+                    });
+                  } catch (_) {}
                   addToast?.({
                     title: 'System Mode Updated',
                     message: `Platform operational mode switched to: ${e.target.options[e.target.selectedIndex].text}`,
@@ -5405,8 +5467,9 @@ function AdminDashboard({ user, token, onLogout, onSwitchRole, addToast, onUserU
 
             <button
               type="button"
-              className="btn-header-action"
+              className={`btn-header-action ${systemMode === 'ACCREDITATION' ? 'accreditation-highlight' : ''}`}
               onClick={() => setAccreditationModalOpen(true)}
+              title={systemMode === 'ACCREDITATION' ? 'NAAC / NBA Audit Report Ready' : 'View Summary Report'}
             >
               <Award size={14} /> Summary Report
             </button>
@@ -5432,6 +5495,48 @@ function AdminDashboard({ user, token, onLogout, onSwitchRole, addToast, onUserU
             </button>
           </div>
         </header>
+
+        {/* Dynamic System Operational Mode Banner */}
+        {systemMode === 'MAINTENANCE' && (
+          <div className="system-mode-banner maintenance">
+            <span className="banner-icon">🔒</span>
+            <div className="banner-text">
+              <strong>Maintenance Mode Active:</strong> Student feedback submissions and live polls are temporarily paused for semester rollover and grading updates.
+            </div>
+          </div>
+        )}
+        {systemMode === 'MIDTERM_AUDIT' && (
+          <div className="system-mode-banner midterm">
+            <span className="banner-icon">🟡</span>
+            <div className="banner-text">
+              <strong>Mid-Term Audit Mode Active:</strong> Mid-semester evaluation active. Courses with concept clarity below 65% are flagged for remedial lecture planning.
+            </div>
+          </div>
+        )}
+        {systemMode === 'CURRICULUM_REVIEW' && (
+          <div className="system-mode-banner curriculum">
+            <span className="banner-icon">🔵</span>
+            <div className="banner-text">
+              <strong>Curriculum Review Mode Active:</strong> Department Academic Committee view enabled. Evaluating syllabus topic retention and prerequisite clarity.
+            </div>
+          </div>
+        )}
+        {systemMode === 'ACCREDITATION' && (
+          <div className="system-mode-banner accreditation">
+            <span className="banner-icon">🟣</span>
+            <div className="banner-text">
+              <strong>Accreditation Compliance Mode Active (NAAC / NBA / ABET):</strong> Outcome-Based Education (OBE) metrics loaded. Click <em>"Summary Report"</em> above to generate audit records.
+            </div>
+          </div>
+        )}
+        {systemMode === 'LIVE_EVAL' && (
+          <div className="system-mode-banner live">
+            <span className="banner-icon">🟢</span>
+            <div className="banner-text">
+              <strong>Live Evaluation Mode Active:</strong> Accepting real-time student lecture feedback and pulse polls across all active courses.
+            </div>
+          </div>
+        )}
 
         {/* 1. TAB: OVERVIEW */}
         {activeTab === 'overview' && (
@@ -5512,7 +5617,7 @@ function AdminDashboard({ user, token, onLogout, onSwitchRole, addToast, onUserU
                       </p>
                     </div>
                   </div>
-                  <FacultySubjectBreakdownCards subjects={myFacultyRecord.subjects} />
+                  <FacultySubjectBreakdownCards subjects={myFacultyRecord.subjects} systemMode={systemMode} />
                 </div>
               </>
             ) : (

@@ -2820,3 +2820,92 @@ a {
 .btn-role-tab.faculty.active {
   color: #059669;
 }
+
+
+/* Institutional Operational Modes Banners & Highlighters */
+.system-mode-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.65rem 1.15rem;
+  margin: 0.75rem 0 1.25rem 0;
+  border-radius: var(--radius-sm, 10px);
+  font-size: 0.85rem;
+  line-height: 1.45;
+  border: 1px solid transparent;
+  animation: fadeInBanner 0.25s ease-out;
+}
+
+@keyframes fadeInBanner {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.system-mode-banner .banner-icon {
+  font-size: 1.15rem;
+  flex-shrink: 0;
+}
+
+.system-mode-banner .banner-text {
+  flex: 1;
+}
+
+.system-mode-banner.live {
+  background: #f0fdf4;
+  border-color: #bbf7d0;
+  color: #166534;
+}
+
+.system-mode-banner.midterm {
+  background: #fffbeb;
+  border-color: #fde68a;
+  color: #92400e;
+}
+
+.system-mode-banner.curriculum {
+  background: #eff6ff;
+  border-color: #bfdbfe;
+  color: #1e40af;
+}
+
+.system-mode-banner.accreditation {
+  background: #faf5ff;
+  border-color: #e9d5ff;
+  color: #6b21a8;
+}
+
+.system-mode-banner.maintenance {
+  background: #fef2f2;
+  border-color: #fecaca;
+  color: #991b1b;
+}
+
+/* Remedial Review Badge in Midterm Audit */
+.audit-remedial-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 2px 8px;
+  background: #fef3c7;
+  color: #b45309;
+  border: 1px solid #fde68a;
+  border-radius: 9999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  margin-top: 0.35rem;
+}
+
+/* Glowing Pulse Border for Accreditation */
+.btn-header-action.accreditation-highlight {
+  border-color: #9333ea !important;
+  color: #7e22ce !important;
+  background: #faf5ff !important;
+  box-shadow: 0 0 0 3px rgba(147, 51, 234, 0.25);
+  animation: pulseAccreditation 2s infinite;
+}
+
+@keyframes pulseAccreditation {
+  0% { box-shadow: 0 0 0 0 rgba(147, 51, 234, 0.4); }
+  70% { box-shadow: 0 0 0 6px rgba(147, 51, 234, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(147, 51, 234, 0); }
+}

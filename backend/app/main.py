@@ -291,6 +291,8 @@ def get_bixi_database_context(user_info: dict | None = None, user_msg: str = "")
             role = (user_info.get("role") if user_info else "STUDENT") or "STUDENT"
             user_name = (user_info.get("name") if user_info else "User") or "User"
 
+            mode_row = conn.execute(text("SELECT setting_value FROM system_settings WHERE setting_key = 'system_mode' LIMIT 1")).fetchone()
+            active_system_mode = mode_row[0] if (mode_row and mode_row[0]) else "LIVE_EVAL"
             total_feedbacks = conn.execute(text("SELECT COUNT(*) FROM feedback")).scalar() or 0
             sent_rows = conn.execute(text("SELECT sentiment, COUNT(*) FROM predictions GROUP BY sentiment")).fetchall()
             sent_dist = {r[0]: r[1] for r in sent_rows if r[0]}
@@ -320,7 +322,7 @@ def get_bixi_database_context(user_info: dict | None = None, user_msg: str = "")
                     sample_comments = "No comments recorded."
 
                 return f"""LIVE DATABASE CONTEXT FOR {user_name} ({role}):
-- Total Feedbacks Received for your lectures: {my_fb_count} responses
+- Institutional Operational Mode: {active_system_mode}\n- Total Feedbacks Received for your lectures: {my_fb_count} responses
 - Assigned Courses: {course_list}
 - Feedback per Course: {course_breakdown}
 - Overall Concept Clarity Index: 64%
@@ -333,7 +335,7 @@ def get_bixi_database_context(user_info: dict | None = None, user_msg: str = "")
             else:
                 section = user_info.get("class_section", "Section D") if user_info else "Section D"
                 return f"""LIVE DATABASE CONTEXT FOR {user_name} ({role}, {section}):
-- Total Campus Feedback Submissions Recorded: {total_feedbacks}
+- Institutional Operational Mode: {active_system_mode}\n- Total Campus Feedback Submissions Recorded: {total_feedbacks}
 - Sentiment Distribution: Positive {sent_dist.get('POSITIVE', 0)}, Negative/Constructive {sent_dist.get('NEGATIVE', 0)}, Neutral {sent_dist.get('NEUTRAL', 0)}
 - Predominant Student Emotions: {top_emotions}
 - Privacy Note: All student submissions are 100% anonymous with automated PII masking.
@@ -581,6 +583,44 @@ async def query_local_llm(
     except Exception:
         return None
     return None
+
+
+class SystemModePayload(BaseModel):
+    mode: str
+
+
+@app.get("/api/system/mode")
+def get_system_mode_endpoint():
+    """Retrieve the currently active institutional operational mode."""
+    try:
+        with engine.connect() as conn:
+            row = conn.execute(text("SELECT setting_value FROM system_settings WHERE setting_key = 'system_mode' LIMIT 1")).fetchone()
+            if row and row[0]:
+                return {"mode": row[0]}
+    except Exception:
+        pass
+    return {"mode": "LIVE_EVAL"}
+
+
+@app.post("/api/system/mode")
+def set_system_mode_endpoint(payload: SystemModePayload):
+    """Update active institutional operational mode (LIVE_EVAL, MIDTERM_AUDIT, CURRICULUM_REVIEW, ACCREDITATION, MAINTENANCE)."""
+    valid_modes = ["LIVE_EVAL", "MIDTERM_AUDIT", "CURRICULUM_REVIEW", "ACCREDITATION", "MAINTENANCE"]
+    if payload.mode not in valid_modes:
+        raise HTTPException(status_code=400, detail="Invalid system operational mode")
+    try:
+        with engine.begin() as conn:
+            conn.execute(text("""
+                INSERT INTO system_settings (setting_key, setting_value, updated_at)
+                VALUES ('system_mode', :val, CURRENT_TIMESTAMP)
+                ON CONFLICT(setting_key) DO UPDATE SET
+                    setting_value = :val,
+                    updated_at = CURRENT_TIMESTAMP
+            """), {"val": payload.mode})
+        realtime_events.publish("system_mode.updated", {"mode": payload.mode})
+        return {"status": "SUCCESS", "mode": payload.mode}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @app.get("/api/bixi/status")

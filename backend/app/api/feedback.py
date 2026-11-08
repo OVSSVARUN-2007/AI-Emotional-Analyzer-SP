@@ -1084,6 +1084,20 @@ def get_class_summary(
 
 @router.post("/")
 def create_feedback(feedback: FeedbackCreate):
+    # 0. Enforce Maintenance Mode Submission Freeze
+    with engine.connect() as conn:
+        try:
+            mode_row = conn.execute(text("SELECT setting_value FROM system_settings WHERE setting_key = 'system_mode' LIMIT 1")).fetchone()
+            if mode_row and mode_row[0] == "MAINTENANCE":
+                raise HTTPException(
+                    status_code=503,
+                    detail="Platform is currently in Maintenance Mode. Student feedback submissions are temporarily paused for semester rollover."
+                )
+        except HTTPException:
+            raise
+        except Exception:
+            pass
+
     # 1. Server-side PII sanitization
     raw_text = feedback.feedback_text
     safe_text = mask_pii(raw_text)
