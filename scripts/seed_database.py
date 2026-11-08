@@ -76,3 +76,4 @@ if __name__ == "__main__":
     parser.add_argument("--reset", action="store_true", help="Reset and reseed database from scratch")
     args = parser.parse_args()
     seed_database(reset=args.reset)
+
