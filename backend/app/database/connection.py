@@ -324,6 +324,7 @@ if engine is None:
                 department_name VARCHAR(100) DEFAULT 'AI & Data Science'
             );
         """))
+        conn.execute(text("CREATE UNIQUE INDEX IF NOT EXISTS idx_sections_class_sem ON sections (class_name, semester);"))
 
         conn.execute(text("""
             CREATE TABLE IF NOT EXISTS course_offerings (
@@ -618,6 +619,34 @@ if engine is None:
             """))
 
         # Ensure feedback rows 1 to 5 exist for test compatibility and class-wise analytics
+        fb1 = conn.execute(text("SELECT feedback_id FROM feedback WHERE feedback_id = 1")).fetchone()
+        if not fb1:
+            conn.execute(text("""
+                INSERT OR REPLACE INTO feedback (
+                    feedback_id, student_id, offering_id, feedback_text, status, is_anonymous,
+                    semester, class_section, course_code, course_name, upvotes
+                ) VALUES
+                (1, 1, 1, 'The professor explains attention mechanisms and transformer projections very clearly with diagrams, but the assignment deadline is very tight.', 'ANALYZED', 1, 5, 'Section D', 'AI501', 'Natural Language Processing', 7),
+                (2, 1, 2, 'Machine learning loss curve visualization labs and XGBoost parameter walkthroughs helped solidify gradient descent concepts.', 'ANALYZED', 1, 5, 'Section D', 'AI502', 'Machine Learning', 4),
+                (3, 4, 5, 'Natural language processing tokenization slides and BPE algorithm steps were comprehensive and easy to follow during lectures.', 'ANALYZED', 1, 5, 'Section E', 'AI501', 'Natural Language Processing', 3),
+                (4, 1, 3, 'Packet tracing in Wireshark for TCP flow control and window size was difficult to follow on lab workstations with outdated drivers.', 'ANALYZED', 1, 5, 'Section D', 'CS501', 'Computer Networks', 5);
+            """))
+            conn.execute(text("""
+                INSERT OR REPLACE INTO predictions (
+                    prediction_id, feedback_id, model_version_id, sentiment, sentiment_confidence, emotion, emotion_confidence
+                ) VALUES
+                (1, 1, 1, 'MIXED', 0.88, 'clarity', 0.85),
+                (2, 2, 1, 'POSITIVE', 0.94, 'joy', 0.91),
+                (3, 3, 1, 'POSITIVE', 0.91, 'clarity', 0.90),
+                (4, 4, 1, 'NEGATIVE', 0.87, 'confusion', 0.88);
+            """))
+            conn.execute(text("""
+                INSERT INTO feedback_aspects (feedback_id, aspect, aspect_sentiment, confidence) VALUES
+                (1, 'Teaching', 'POSITIVE', 0.92), (1, 'Assignments', 'NEGATIVE', 0.89),
+                (2, 'Teaching', 'POSITIVE', 0.95), (2, 'Materials', 'POSITIVE', 0.92),
+                (3, 'Teaching', 'POSITIVE', 0.92), (3, 'Content', 'POSITIVE', 0.89),
+                (4, 'Lab Infrastructure', 'NEGATIVE', 0.91), (4, 'Teaching', 'NEUTRAL', 0.70);
+            """))
         fb5 = conn.execute(text("SELECT feedback_id FROM feedback WHERE feedback_id = 5")).fetchone()
         if not fb5:
             conn.execute(text("""
