@@ -6222,23 +6222,23 @@ function AdminDashboard({ user, token, onLogout, onSwitchRole, addToast, onUserU
                 { unit_number: 2, unit_title: 'Vector Semantics & Word Embeddings', topics: ['Word2Vec', 'GloVe', 'Cosine Similarity'], confusion_rate: 18, action_recommended: 'Share vector visualization notebook.' },
                 { unit_number: 3, unit_title: 'Sequential Deep Learning & RNNs', topics: ['RNNs', 'BPTT', 'LSTM & GRU'], confusion_rate: 34, action_recommended: '15-minute recap on BPTT unrolling requested.' },
                 { unit_number: 4, unit_title: 'Transformer Architecture & Self-Attention', topics: ['Scaled Dot-Product', 'Multi-Head Attention'], confusion_rate: 38, action_recommended: 'Live coding walkthrough of self-attention.' },
-              ]).map((u) => (
-                <div key={u.unit_number} className="card">
+              ]).map((u, idx) => (
+                <div key={u.unit_number || u.unit_no || idx} className="card">
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                    <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748b' }}>UNIT {u.unit_number}</span>
+                    <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748b' }}>UNIT {u.unit_number || u.unit_no || idx + 1}</span>
                     <span className={`sentiment-badge ${u.confusion_rate > 30 ? 'needs-clarity' : 'positive'}`}>
                       {u.confusion_rate > 30 ? 'Recap Suggested' : 'High Clarity'}
                     </span>
                   </div>
-                  <h3 style={{ margin: '0 0 0.5rem 0', fontSize: '1.05rem', color: '#0f172a' }}>{u.unit_title}</h3>
+                  <h3 style={{ margin: '0 0 0.5rem 0', fontSize: '1.05rem', color: '#0f172a' }}>{u.unit_title || u.title}</h3>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem', marginBottom: '0.75rem' }}>
-                    {u.topics?.map((tp, idx) => (
-                      <span key={idx} className="course-tag">{tp}</span>
+                    {(u.topics || (u.learning_outcome ? [u.learning_outcome] : [])).map((tp, tidx) => (
+                      <span key={tidx} className="course-tag">{tp}</span>
                     ))}
                   </div>
                   <div className="faculty-response-box">
                     <span className="response-header">Recommended Pedagogical Action:</span>
-                    <p className="response-text">{u.action_recommended}</p>
+                    <p className="response-text">{u.action_recommended || (u.confusion_rate > 30 ? 'Recap session recommended.' : 'Concepts mastered.')}</p>
                   </div>
                 </div>
               ))}
