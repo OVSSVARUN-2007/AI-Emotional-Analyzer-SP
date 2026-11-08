@@ -1,1536 +1,2387 @@
 --
--- PostgreSQL database dump
+-- Sentio: AI Emotional Sentiment Analyzer for Student Feedback
+-- Complete PostgreSQL Database Schema Dump & Seed Data
+-- Generated on: 2026-11-08 19:41:29
 --
-
-\restrict bNc2yHQIJ0bq4SSXeVQnSLGlAhtMsf1gcfaXva5N4UkITuJtVEYGM1VI7PyOfgl
-
--- Dumped from database version 18.3
--- Dumped by pg_dump version 18.3
-
--- Started on 2026-09-15 10:08:04
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
-SET idle_in_transaction_session_timeout = 0;
-SET transaction_timeout = 0;
 SET client_encoding = 'UTF8';
 SET standard_conforming_strings = on;
-SELECT pg_catalog.set_config('search_path', '', false);
 SET check_function_bodies = false;
-SET xmloption = content;
 SET client_min_messages = warning;
 SET row_security = off;
 
-SET default_tablespace = '';
-
-SET default_table_access_method = heap;
-
---
--- TOC entry 234 (class 1259 OID 24990)
--- Name: academic_terms; Type: TABLE; Schema: public; Owner: postgres
---
-
-CREATE TABLE public.academic_terms (
-    term_id integer NOT NULL,
-    academic_year character varying(20) NOT NULL,
-    semester integer NOT NULL,
-    start_date date,
-    end_date date,
-    CONSTRAINT check_semester CHECK (((semester >= 1) AND (semester <= 8))),
-    CONSTRAINT check_term_dates CHECK (((end_date IS NULL) OR (start_date IS NULL) OR (end_date > start_date)))
+-- Table structure for users
+DROP TABLE IF EXISTS users CASCADE;
+CREATE TABLE users (
+    user_id SERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(150) NOT NULL,
+    password_hash VARCHAR(255) NOT NULL,
+    role VARCHAR(20) NOT NULL,
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    semester INTEGER DEFAULT 5,
+    class_section VARCHAR(50) DEFAULT 'Class 3A',
+    roll_no VARCHAR(50),
+    is_verified BOOLEAN DEFAULT TRUE,
+    phone TEXT,
+    department TEXT,
+    bio TEXT,
+    emergency_contact TEXT,
+    academic_year TEXT,
+    designation TEXT,
+    failed_login_attempts INTEGER DEFAULT 0,
+    locked_until TIMESTAMP WITH TIME ZONE
 );
 
+-- Seed data for users (47 records)
+INSERT INTO users (user_id, name, email, password_hash, role, is_active, created_at, semester, class_section, roll_no, is_verified, phone, department, bio, emergency_contact, academic_year, designation, failed_login_attempts, locked_until) VALUES
+    (1, 'Arunn Reddy', 'student@univ.edu', 'pass123', 'STUDENT', 1, '2026-10-11 15:31:00', 5, 'Section D', '2024-AI-042', 1, '+91 98765 43210', 'AI & Data Science', 'B.Tech AI student focusing on Machine Learning and Deep Learning architectures.', NULL, NULL, NULL, 0, NULL),
+    (2, 'Dr. A. Sharma', 'faculty@univ.edu', 'pass123', 'FACULTY', 1, '2026-10-11 15:31:00', 5, 'Section D', 'FACULTY-001', 1, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL),
+    (3, 'Dean Academics', 'admin@univ.edu', 'pass123', 'ADMIN', 1, '2026-10-11 15:31:00', 5, 'Section D', 'ADMIN-001', 1, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL),
+    (4, 'Test Student', 'student@test.com', 'pass123', 'STUDENT', 1, '2026-10-11 15:31:00', 5, 'Section D', 'TEST-AIDS-001', 1, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL),
+    (5, 'Test Faculty', 'faculty@test.com', 'pass123', 'FACULTY', 1, '2026-10-11 15:31:00', 5, 'Section D', 'FACULTY-001', 1, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL),
+    (6, 'Test Admin', 'admin@test.com', 'pass123', 'ADMIN', 1, '2026-10-11 15:31:00', 5, 'Section D', 'ADMIN-001', 1, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL),
+    (7, 'hdjvs', 'arunn@gmail.com', '$2b$12$VYABBNvM./JRNZyeVe73SeTYS0wBKpRuUy0fuNplCPNfUib/KoX7K', 'FACULTY', 1, '2026-10-29 04:58:23', NULL, NULL, 'xqshb', 1, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL),
+    (8, 'Vikram Malhotra', 'student_9f42a5@univ.edu', '$2b$12$5Ky5Vqys1iC.ejYoagjc9.JReoxrKzl6W20ix88f0eyTcKQ.Bfu9W', 'STUDENT', 1, '2026-11-01 17:27:54', 7, 'Section D', '2026-AI-9f42a5', 1, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL),
+    (9, 'Prof. S. Sengupta', 'admin_2b9439@univ.edu', '$2b$12$O94HQCAxaVoW4frV9bedLOsxpZ0.1qEnsbqRetXKl9lIpcVNLm6yS', 'ADMIN', 1, '2026-11-01 17:27:55', NULL, NULL, 'ADM-2b9439', 1, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL),
+    (10, 'Reset Test User', 'reset_ba432e@univ.edu', '$2b$12$WCFrI/ioVjersfrpMq2IkeORgpoL/ZQ660lhhVGY/NMgN3Exxo.wi', 'STUDENT', 1, '2026-11-01 17:27:55', 5, 'Section D', 'ROLL-ba432e', 1, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL),
+    (11, 'Updated Name', 'updated_f61bd5@univ.edu', '$2b$12$WGYtk7rvJGfL5cbAfXiCcuQkLCKBio679FFoQhSXPexWTfK2ym4k2', 'STUDENT', 1, '2026-11-01 17:27:57', 7, 'Section E', 'NEW-f61bd5', 1, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL),
+    (12, 'Vikram Malhotra', 'student_7f788c@univ.edu', '$2b$12$8S86krHN3A5fKIIZ1cl2q.BLzLF01pewQ5ZH0dvgQPV7UGv56ayl.', 'STUDENT', 1, '2026-11-02 12:32:31', 7, 'Section D', '2026-AI-7f788c', 1, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL),
+    (13, 'Prof. S. Sengupta', 'admin_7d6670@univ.edu', '$2b$12$G/cBE4VchIM2e1fmXdr7peflMLDoGX1OKgDevi9V51852aOPxE0zG', 'ADMIN', 1, '2026-11-02 12:32:33', NULL, NULL, 'ADM-7d6670', 1, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL),
+    (14, 'Reset Test User', 'reset_817b3a@univ.edu', '$2b$12$6aqDVA4LBQMeJetYYfVp4ebTeIW83zRB2qyEYro66cone.bdbN1xq', 'STUDENT', 1, '2026-11-02 12:32:33', 5, 'Section D', 'ROLL-817b3a', 1, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL),
+    (15, 'Updated Name', 'updated_197189@univ.edu', '$2b$12$tQQTvb2ckLxvZnNUx4Y3GevYCawjx1nqAUvPUjjQK8JoGRdDssANW', 'STUDENT', 1, '2026-11-02 12:32:36', 7, 'Section E', 'NEW-197189', 1, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL),
+    (16, 'Vikram Malhotra', 'student_4d9833@univ.edu', '$2b$12$zJNZnHX/XcBlhFXBwDGaU.41EuJHhP3YkzpA2Bbaza3IUOQuYyMLa', 'STUDENT', 1, '2026-11-03 15:46:11', 7, 'Class 3A', '2026-AI-4d9833', 1, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL),
+    (17, 'Prof. S. Sengupta', 'admin_bbd5dd@univ.edu', '$2b$12$mEVpc7c0EKs.ykDvOwZxcedbc974THo1qSl.s7J0YmabUPq0HMV1i', 'ADMIN', 1, '2026-11-03 15:46:12', NULL, NULL, 'ADM-bbd5dd', 1, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL),
+    (18, 'Reset Test User', 'reset_77a5df@univ.edu', '$2b$12$w172jIvEjBpOG7cLjkJeBeNVyZenuD8dlbVpFI1WdeDdegwlJVYFO', 'STUDENT', 1, '2026-11-03 15:46:13', 5, 'Section A', 'ROLL-77a5df', 1, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL),
+    (19, 'Updated Name', 'updated_812e9f@univ.edu', '$2b$12$bvrq3.EHOQaQ6zvjqo97POO0J6dLZIdlEXUGiilZygDx9wL88LdOW', 'STUDENT', 1, '2026-11-03 15:46:15', 7, 'Section A', 'NEW-812e9f', 1, NULL, 'AI & Data Science', NULL, NULL, NULL, NULL, 0, NULL),
+    (20, 'Vikram Malhotra', 'student_d9dd79@univ.edu', '$2b$12$/BBC4hSiwH08X.D8uLRRtOX2oLQLOqxscWnXGSbUk9zgcFxhggQoO', 'STUDENT', 1, '2026-11-03 16:02:41', 7, 'Class 3A', '2026-AI-d9dd79', 1, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL),
+    (21, 'Prof. S. Sengupta', 'admin_d8681f@univ.edu', '$2b$12$16cpH1GHKgp8dJXzQBIKSe239/b3dXvggg6Os0x3t48MGv87KQ6G2', 'ADMIN', 1, '2026-11-03 16:02:43', NULL, NULL, 'ADM-d8681f', 1, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL),
+    (22, 'Reset Test User', 'reset_0b1840@univ.edu', '$2b$12$K9LnThUOu.McIQNiWWZ99e9mjPD.EN/usid7AJGWghBz71073N5BS', 'STUDENT', 1, '2026-11-03 16:02:43', 5, 'Section A', 'ROLL-0b1840', 1, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL),
+    (23, 'Updated Name', 'updated_5ebe3d@univ.edu', '$2b$12$vvkLufEWQOIZGEX8mAuaW.vL1SFzlQC7JKVBBEubD/Zjn5ANJM8I.', 'STUDENT', 1, '2026-11-03 16:02:45', 7, 'Section A', 'NEW-5ebe3d', 1, NULL, 'AI & Data Science', NULL, NULL, NULL, NULL, 0, NULL),
+    (24, 'Vikram Malhotra', 'student_e409ee@univ.edu', '$2b$12$ITxx5Yeu/5OUO0qeDRhHIu.Vw3nTJAjK1AK5krriWYpNHXx19oLh.', 'STUDENT', 1, '2026-11-03 16:56:05', 7, 'Class 3A', '2026-AI-e409ee', 1, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL),
+    (25, 'Prof. S. Sengupta', 'admin_95bed5@univ.edu', '$2b$12$GDPZcSM0iqgS6YYUdxJgheNqQuF.Rm1UdKW3nlE6aSHt/noOW.LB2', 'ADMIN', 1, '2026-11-03 16:56:06', NULL, NULL, 'ADM-95bed5', 1, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL),
+    (26, 'Reset Test User', 'reset_9d3410@univ.edu', '$2b$12$Wdtv.6KOtHnyJcAUYfSecuVEeYpXdAUMKpVVoWx/3JKD4/lH0MZTC', 'STUDENT', 1, '2026-11-03 16:56:07', 5, 'Section A', 'ROLL-9d3410', 1, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL),
+    (27, 'Updated Name', 'updated_645a98@univ.edu', '$2b$12$0n7ulFK0.b2DWw7/TwO8v.d/iFodWUiy/ukqROH2.2Po2cBC.faR6', 'STUDENT', 1, '2026-11-03 16:56:08', 7, 'Section A', 'NEW-645a98', 1, NULL, 'AI & Data Science', NULL, NULL, NULL, NULL, 0, NULL),
+    (28, 'Vikram Malhotra', 'student_8f48fd@univ.edu', '$2b$12$7/bKYQdi5l7aPhrHx3.UZ.K8AkjIEED5/QlL7rNPe9CG.n3xcPFLK', 'STUDENT', 1, '2026-11-03 19:31:09', 7, 'Class 3A', '2026-AI-8f48fd', 1, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL),
+    (29, 'Prof. S. Sengupta', 'admin_b73e82@univ.edu', '$2b$12$TCg1of8Ydw21xUfw4Zrt6uoiG.S1zrqpIkkXzGwslMP/jqrwPUvJe', 'ADMIN', 1, '2026-11-03 19:31:10', NULL, NULL, 'ADM-b73e82', 1, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL),
+    (30, 'Reset Test User', 'reset_a8ff30@univ.edu', '$2b$12$rqm8NrrYfiey820HyHkeuuIaKT2EPpLOJaz6ymrLb9/BVFIehZ82a', 'STUDENT', 1, '2026-11-03 19:31:10', 5, 'Section A', 'ROLL-a8ff30', 1, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL),
+    (31, 'Original Name', 'user_0ca43a@univ.edu', '$2b$12$GYD5zzm7iDRWHnPmte8nUeuEBGw79B7ScljTa2c0UVG9hluwjDBei', 'STUDENT', 1, '2026-11-03 19:31:12', 5, 'Section A', 'OLD-0ca43a', 1, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL),
+    (32, 'Vikram Malhotra', 'student_28bc00@univ.edu', '$2b$12$ZnHXkW1Gdf/yg8ryWIAxB.ErBHyab7lIZULspbxlvPRYNpBB1ufty', 'STUDENT', 1, '2026-11-03 19:34:30', 7, 'Class 3A', '2026-AI-28bc00', 1, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL),
+    (33, 'Prof. S. Sengupta', 'admin_5aefbb@univ.edu', '$2b$12$rD0SFZMzO/3c2CNLzti36eEdZOZJN7lsCWOUBMwkMQBaJJEtsdBA6', 'ADMIN', 1, '2026-11-03 19:34:31', NULL, NULL, 'ADM-5aefbb', 1, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL),
+    (34, 'Reset Test User', 'reset_ac7bd8@univ.edu', '$2b$12$4qRi/sqDjjo9m/tILslfH.fKT5yZ.eoMdkqONxgvPHlKVgOks158m', 'STUDENT', 1, '2026-11-03 19:34:32', 5, 'Section A', 'ROLL-ac7bd8', 1, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL),
+    (35, 'Updated Name', 'updated_89d6eb@univ.edu', '$2b$12$d.KK5FjoyJGxrKf/rULY..9Cv59L.AES6GNAO3YMujIhO5H0zvPLm', 'STUDENT', 1, '2026-11-03 19:34:34', 7, 'Section A', 'NEW-89d6eb', 1, NULL, 'AI & Data Science', NULL, NULL, NULL, NULL, 0, NULL),
+    (36, 'Vikram Malhotra', 'student_f46c9b@univ.edu', '$2b$12$uWzQIQQdTnUkXl93UnCy7umpO73ckSW4WzHv/ZPPj2pxuz1Yj2Peu', 'STUDENT', 1, '2026-11-03 19:40:41', 7, 'Class 3A', '2026-AI-f46c9b', 1, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL),
+    (37, 'Prof. S. Sengupta', 'admin_fa123f@univ.edu', '$2b$12$nw6H0zg7MRQq4Qm/dXKgou4U5N//dKVffIKRJtX4hrp4sn2sfYMma', 'ADMIN', 1, '2026-11-03 19:40:42', NULL, NULL, 'ADM-fa123f', 1, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL),
+    (38, 'Reset Test User', 'reset_a11353@univ.edu', '$2b$12$VxB8ljspC2.TN2VfUo7B3OO1HKYNOIsJOd/yrvd0zNpx814B8VPiC', 'STUDENT', 1, '2026-11-03 19:40:42', 5, 'Section A', 'ROLL-a11353', 1, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL),
+    (39, 'Updated Name', 'updated_81d747@univ.edu', '$2b$12$nA8oAZdEV5tixUrcPzX0Pe.MHcOt7i8aLk43i7O0qEriSqkQc4dje', 'STUDENT', 1, '2026-11-03 19:40:44', 7, 'Section A', 'NEW-81d747', 1, NULL, 'AI & Data Science', NULL, NULL, NULL, NULL, 0, NULL),
+    (40, 'Vikram Malhotra', 'student_ed61a1@univ.edu', '$2b$12$N5AN76YeoqFKgdSvpX0VuODBh/4vib46FnRo.M0V1pcVqIIc4.lcK', 'STUDENT', 1, '2026-11-03 19:54:25', 7, 'Class 3A', '2026-AI-ed61a1', 1, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL),
+    (41, 'Prof. S. Sengupta', 'admin_ce3fb5@univ.edu', '$2b$12$cGsyR4SBsydso8AdMNsoGOU1cJq4NST7lCur2LxxNYF4m0alGErxy', 'ADMIN', 1, '2026-11-03 19:54:26', NULL, NULL, 'ADM-ce3fb5', 1, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL),
+    (42, 'Reset Test User', 'reset_f1af1d@univ.edu', '$2b$12$8VDUIanEpmV0QEQ0NndatOkApkUSNCZlc/EFQksTFcNWus.wYQI3G', 'STUDENT', 1, '2026-11-03 19:54:26', 5, 'Section A', 'ROLL-f1af1d', 1, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL),
+    (43, 'Updated Name', 'updated_dd7097@univ.edu', '$2b$12$iulBEOCt1yary/2IToGGQOqnlavt6LD.imyp1S84CwAHS/4kSZ.nW', 'STUDENT', 1, '2026-11-03 19:54:28', 7, 'Section A', 'NEW-dd7097', 1, NULL, 'AI & Data Science', NULL, NULL, NULL, NULL, 0, NULL),
+    (44, 'arunn', 'chejetivenkatarunnreddy24@ifheindia.org', '$2b$12$UlDGRurR/RIusiM9IWyW4uiMlhy1BIXi8pGUKnG6O/jqJTE1g/Xgm', 'STUDENT', 1, '2026-11-03 19:58:18', 5, 'Section I', '24STUCHH010266', 1, NULL, 'AI & Data Science', NULL, NULL, NULL, NULL, 0, NULL),
+    (45, 'arunn', 'a@gmail.com', '$2b$12$5kz8nA4zCOfg1Dw6ySJUHej881wMvORqs8xrGLc34Ff/qTu.2bLDa', 'ADMIN', 1, '2026-11-03 20:01:51', NULL, NULL, 'whdbj', 1, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL),
+    (46, 'Lockout Test User', 'lockout_test@univ.edu', '$2b$12$pWJAk1pzu7up7Vkgg2urgO0HlCVxnfBlSjqvbAaiZqtEPHOwe9iYG', 'STUDENT', 1, '2026-11-08 06:54:33', 5, 'Section D', '2026-AI-REG', 1, NULL, NULL, NULL, NULL, NULL, NULL, 5, '2026-11-08 07:09:35'),
+    (47, 'Refresh Token User', 'refresh_test@univ.edu', '$2b$12$C3F5sgwm7k3XFFd2XljEu.Xhp6aEMUOKiu15Pt5IT7t6QfzCbgfmS', 'STUDENT', 1, '2026-11-08 06:54:35', 5, 'Section A', '2026-AI-REG', 1, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL);
 
-ALTER TABLE public.academic_terms OWNER TO postgres;
+SELECT setval(pg_get_serial_sequence('users', 'user_id'), coalesce(max(user_id), 1)) FROM users;
 
---
--- TOC entry 233 (class 1259 OID 24989)
--- Name: academic_terms_term_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
---
-
-CREATE SEQUENCE public.academic_terms_term_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
-ALTER SEQUENCE public.academic_terms_term_id_seq OWNER TO postgres;
-
---
--- TOC entry 5221 (class 0 OID 0)
--- Dependencies: 233
--- Name: academic_terms_term_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
---
-
-ALTER SEQUENCE public.academic_terms_term_id_seq OWNED BY public.academic_terms.term_id;
-
-
---
--- TOC entry 224 (class 1259 OID 24866)
--- Name: batches; Type: TABLE; Schema: public; Owner: postgres
---
-
-CREATE TABLE public.batches (
-    batch_id integer NOT NULL,
-    program_id integer NOT NULL,
-    batch_name character varying(30) NOT NULL,
-    start_year integer NOT NULL,
-    end_year integer NOT NULL,
-    CONSTRAINT check_batch_year CHECK ((end_year > start_year))
+-- Table structure for semesters
+DROP TABLE IF EXISTS semesters CASCADE;
+CREATE TABLE semesters (
+    semester_id SERIAL PRIMARY KEY,
+    semester_number INTEGER NOT NULL,
+    term_name VARCHAR(100) NOT NULL,
+    academic_year VARCHAR(50) DEFAULT '2026-2027',
+    is_active BOOLEAN DEFAULT FALSE,
+    start_date VARCHAR(50),
+    end_date VARCHAR(50),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Seed data for semesters (9 records)
+INSERT INTO semesters (semester_id, semester_number, term_name, academic_year, is_active, start_date, end_date, created_at) VALUES
+    (1, 1, 'Fall 2024', '2024-2025', 0, NULL, NULL, '2026-11-01 17:21:30'),
+    (2, 2, 'Spring 2025', '2024-2025', 0, NULL, NULL, '2026-11-01 17:21:30'),
+    (3, 3, 'Fall 2025', '2025-2026', 0, NULL, NULL, '2026-11-01 17:21:30'),
+    (4, 4, 'Spring 2026', '2025-2026', 0, NULL, NULL, '2026-11-01 17:21:30'),
+    (5, 5, 'Fall 2026', '2026-2027', 0, NULL, NULL, '2026-11-01 17:21:30'),
+    (6, 6, 'Spring 2027', '2026-2027', 0, NULL, NULL, '2026-11-01 17:21:30'),
+    (7, 7, 'Fall 2027', '2027-2028', 0, NULL, NULL, '2026-11-01 17:21:30'),
+    (8, 8, 'Spring 2028', '2027-2028', 0, NULL, NULL, '2026-11-01 17:21:30'),
+    (9, 12, 'Autumn 2028 Test', '2028-2029', 1, NULL, NULL, '2026-11-01 17:28:24');
 
-ALTER TABLE public.batches OWNER TO postgres;
+SELECT setval(pg_get_serial_sequence('semesters', 'semester_id'), coalesce(max(semester_id), 1)) FROM semesters;
 
---
--- TOC entry 223 (class 1259 OID 24865)
--- Name: batches_batch_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
---
-
-CREATE SEQUENCE public.batches_batch_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
-ALTER SEQUENCE public.batches_batch_id_seq OWNER TO postgres;
-
---
--- TOC entry 5222 (class 0 OID 0)
--- Dependencies: 223
--- Name: batches_batch_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
---
-
-ALTER SEQUENCE public.batches_batch_id_seq OWNED BY public.batches.batch_id;
-
-
---
--- TOC entry 238 (class 1259 OID 25023)
--- Name: course_offerings; Type: TABLE; Schema: public; Owner: postgres
---
-
-CREATE TABLE public.course_offerings (
-    offering_id integer NOT NULL,
-    course_id integer NOT NULL,
-    faculty_id integer NOT NULL,
-    term_id integer NOT NULL,
-    section_id integer
+-- Table structure for courses
+DROP TABLE IF EXISTS courses CASCADE;
+CREATE TABLE courses (
+    course_id SERIAL PRIMARY KEY,
+    course_code VARCHAR(30) NOT NULL,
+    course_name VARCHAR(150) NOT NULL,
+    credits INTEGER DEFAULT 4,
+    department_name VARCHAR(100) DEFAULT 'AI & Data Science',
+    semester INTEGER NOT NULL,
+    program VARCHAR(20) DEFAULT 'B.Tech',
+    exam_slot VARCHAR(50),
+    course_type VARCHAR(50) DEFAULT 'Core',
+    syllabus_summary TEXT
 );
 
+-- Seed data for courses (117 records)
+INSERT INTO courses (course_id, course_code, course_name, credits, department_name, semester, program, exam_slot, course_type, syllabus_summary) VALUES
+    (1, 'CS101', 'Intro to Programming & Problem Solving', 4, 'Computer Science', 1, 'B.Tech', NULL, 'Core', NULL),
+    (2, 'MA101', 'Engineering Mathematics I', 4, 'Mathematics', 1, 'B.Tech', NULL, 'Core', NULL),
+    (3, 'PH101', 'Engineering Physics', 3, 'Physics', 1, 'B.Tech', NULL, 'Core', NULL),
+    (4, 'CS201', 'Data Structures & Algorithms', 4, 'Computer Science', 3, 'B.Tech', NULL, 'Core', NULL),
+    (5, 'CS204', 'Operating Systems', 4, 'Computer Science', 3, 'B.Tech', NULL, 'Core', NULL),
+    (6, 'MA201', 'Discrete Mathematics', 3, 'Mathematics', 3, 'B.Tech', NULL, 'Core', NULL),
+    (7, 'AI501', 'Natural Language Processing', 4, 'AI & Data Science', 5, 'B.Tech', NULL, 'Core', NULL),
+    (8, 'AI502', 'Machine Learning', 4, 'AI & Data Science', 5, 'B.Tech', NULL, 'Core', NULL),
+    (9, 'CS501', 'Computer Networks', 4, 'Computer Science', 5, 'B.Tech', NULL, 'Core', NULL),
+    (10, 'CS502', 'Database Management Systems', 4, 'Computer Science', 5, 'B.Tech', NULL, 'Core', NULL),
+    (11, 'AI601', 'Deep Learning & Neural Networks', 4, 'AI & Data Science', 6, 'B.Tech', NULL, 'Core', NULL),
+    (12, 'CS602', 'Cloud Computing & DevOps', 3, 'Computer Science', 6, 'B.Tech', NULL, 'Core', NULL),
+    (13, 'CS603', 'Information & Cyber Security', 3, 'Computer Science', 6, 'B.Tech', NULL, 'Core', NULL),
+    (14, 'AI701', 'Generative AI & LLMs', 4, 'AI & Data Science', 7, 'B.Tech', NULL, 'Core', NULL),
+    (15, 'CS702', 'Distributed Systems', 4, 'Computer Science', 7, 'B.Tech', NULL, 'Core', NULL),
+    (16, 'ES201', 'OBJECT ORIENTED PROGRAMMING CONCEPTS', 4, 'Computer Science', 3, 'B.Tech', '16-Sep-2026 (Morning)', 'Core', NULL),
+    (17, 'DS401', 'HUMAN COMPUTER INTERACTION', 4, 'Data Science', 7, 'B.Tech', '16-Sep-2026 (Morning)', 'Core', NULL),
+    (18, 'BCA408', 'ARTIFICIAL INTELLIGENCE', 4, 'Computer Applications (BCA)', 5, 'BCA', '16-Sep-2026 (Morning)', 'Core', NULL),
+    (19, 'BSCS302/BSDA302', 'Computer Networks', 4, 'B.Sc Computer Science', 5, 'BSC', '16-Sep-2026 (Morning)', 'Core', NULL),
+    (20, 'EC410', 'LOW POWER VLSI DESIGN', 4, 'Electronics & Communication', 7, 'B.Tech', '16-Sep-2026 (Morning)', 'Core', NULL),
+    (21, 'ME401', 'ADDITIVE MANUFACTURING', 4, 'Mechanical Engineering', 7, 'B.Tech', '16-Sep-2026 (Morning)', 'Core', NULL),
+    (22, 'BSPH303', 'ADVANCED MATHEMATICAL METHODS FOR PHYSICS', 4, 'B.Sc Physics', 5, 'BSC', '16-Sep-2026 (Morning)', 'Core', NULL),
+    (23, 'CS305', 'COMPUTER VISION', 4, 'Computer Science', 7, 'B.Tech', '22-Sep-2026 (Morning)', 'Core', NULL),
+    (24, 'BCA102', 'PROBABILITY & STATISTICS', 4, 'Computer Applications (BCA)', 3, 'BCA', '16-Sep-2026 (Afternoon)', 'Core', NULL),
+    (25, 'DS307', 'COMPUTER VISION', 4, 'Data Science', 5, 'B.Tech', '16-Sep-2026 (Afternoon)', 'Core', NULL),
+    (26, 'AI301', 'PREDICTIVE ANALYTICS', 4, 'Artificial Intelligence & Data Science', 5, 'B.Tech', '16-Sep-2026 (Afternoon)', 'Core', NULL),
+    (27, 'AIM301', 'SOFT COMPUTING', 4, 'Artificial Intelligence & Data Science', 5, 'B.Tech', '16-Sep-2026 (Afternoon)', 'Core', NULL),
+    (28, 'AEC103', 'ACADEMIC READING AND WRITING', 4, 'Electronics & Communication', 3, 'BSC', '16-Sep-2026 (Afternoon)', 'Core', NULL),
+    (29, 'EC321', 'ANALOG AND DIGITAL COMMUNICATION', 4, 'Electronics & Communication', 5, 'B.Tech', '16-Sep-2026 (Afternoon)', 'Core', NULL),
+    (30, 'ME305', 'CAD/CAM', 4, 'Mechanical Engineering', 5, 'B.Tech', '16-Sep-2026 (Afternoon)', 'Core', NULL),
+    (31, 'BS105', 'PROBABILITY & STATISTICS', 4, 'Computer Science', 3, 'B.Tech', '17-Sep-2026 (Morning)', 'Core', NULL),
+    (32, 'MG401', 'INTRODUCTION TO ENTREPRENEURSHIP', 4, 'Computer Science', 7, 'B.Tech', '17-Sep-2026 (Morning)', 'Core', NULL),
+    (33, 'HS206', 'PROFESSIONAL ETHICS', 4, 'Computer Science', 7, 'B.Tech', '17-Sep-2026 (Morning)', 'Core', NULL),
+    (34, 'BCA409', 'BIG DATA SYSTEMS', 4, 'Computer Applications (BCA)', 5, 'BCA', '17-Sep-2026 (Morning)', 'Core', NULL),
+    (35, 'BSCS305', 'Software Engineering', 4, 'B.Sc Computer Science', 5, 'BSC', '17-Sep-2026 (Morning)', 'Core', NULL),
+    (36, 'BSPH302', 'ELECTRONICS-I', 4, 'B.Sc Physics', 5, 'BSC', '17-Sep-2026 (Morning)', 'Core', NULL),
+    (37, 'CR301', 'POWER SKILLS-III', 4, 'Computer Science', 5, 'B.Tech', '17-Sep-2026 (Afternoon)', 'Core', NULL),
+    (38, 'BCA224', 'SOFTWARE ENGINEERING', 4, 'Computer Applications (BCA)', 3, 'BCA', '17-Sep-2026 (Afternoon)', 'Core', NULL),
+    (39, 'SEC103', 'IMPACTFUL PRESENTATIONS', 4, 'Electronics & Communication', 3, 'BSC', '17-Sep-2026 (Afternoon)', 'Core', NULL),
+    (40, 'CR201', 'POWER SKILLS - I', 4, 'Computer Science', 3, 'B.Tech', '18-Sep-2026 (Morning)', 'Core', NULL),
+    (41, 'CS307', 'CLOUD COMPUTING', 4, 'Computer Science', 7, 'B.Tech', '18-Sep-2026 (Morning)', 'Core', NULL),
+    (42, 'DS311', 'NATURAL LANGUAGE PROCESSING', 4, 'Data Science', 7, 'B.Tech', '18-Sep-2026 (Morning)', 'Core', NULL),
+    (43, 'BCA424', 'INFORMATION SECURITY', 4, 'Computer Applications (BCA)', 5, 'BCA', '18-Sep-2026 (Morning)', 'Core', NULL),
+    (44, 'BSDA309', 'DATA VISUALISATION', 4, 'B.Sc Data Analytics', 5, 'BSC', '18-Sep-2026 (Morning)', 'Core', NULL),
+    (45, 'BSDA304', 'Cryptography and Network Security', 4, 'B.Sc Data Analytics', 5, 'BSC', '18-Sep-2026 (Morning)', 'Core', NULL),
+    (46, 'EC409', 'SMART ANTENNAS FOR MOBILE COMMUNICATION', 4, 'Electronics & Communication', 7, 'B.Tech', '18-Sep-2026 (Morning)', 'Core', NULL),
+    (47, 'MT403', 'ADVANCES IN ROBOTICS', 4, 'Computer Science', 7, 'B.Tech', '18-Sep-2026 (Morning)', 'Core', NULL),
+    (48, 'BCA223 - ACC', 'COMPUTER NETWORKS', 4, 'Computer Applications (BCA)', 5, 'BCA', '18-Sep-2026 (Morning)', 'Core', NULL),
+    (49, 'HS301', 'CONSTITUTION OF INDIA', 4, 'Computer Science', 5, 'B.Tech', '18-Sep-2026 (Afternoon)', 'Core', NULL),
+    (50, 'SHAE401', 'ACADEMIC READING AND WRITING', 4, 'Computer Applications (BCA)', 3, 'BCA', '18-Sep-2026 (Afternoon)', 'Core', NULL);
+INSERT INTO courses (course_id, course_code, course_name, credits, department_name, semester, program, exam_slot, course_type, syllabus_summary) VALUES
+    (51, 'IDSC113', 'FOUNDATIONS OF ENTREPRENEURAL THINKING AND PRACTICE', 4, 'Data Science', 3, 'BSC', '18-Sep-2026 (Afternoon)', 'Core', NULL),
+    (52, 'BSRA202', 'BASIC ELECTRICAL AND ELECTRONICS ENGINEERING', 4, 'B.Sc Robotics', 3, 'BSC', '18-Sep-2026 (Afternoon)', 'Core', NULL),
+    (53, 'AI203/AIM203/CS203/DS203', 'ARTIFICIAL INTELLIGENCE', 4, 'Artificial Intelligence & Data Science', 3, 'B.Tech', '21-Sep-2026 (Morning)', 'Core', NULL),
+    (54, 'DS408', 'GENERATIVE AI', 4, 'Data Science', 7, 'B.Tech', '21-Sep-2026 (Morning)', 'Core', NULL),
+    (55, 'BCA311', 'MACHINE LEARNING', 4, 'Computer Applications (BCA)', 3, 'BCA', '24-Sep-2026 (Afternoon)', 'Core', NULL),
+    (56, 'BSCS301', 'Design and Analysis of Algorithms', 4, 'B.Sc Computer Science', 5, 'BSC', '21-Sep-2026 (Morning)', 'Core', NULL),
+    (57, 'BSDA301', 'DATA WRANGLING', 4, 'B.Sc Data Analytics', 3, 'BSC', '22-Sep-2026 (Afternoon)', 'Core', NULL),
+    (58, 'EC224', 'ELECTRONIC DEVICES', 4, 'Electronics & Communication', 3, 'B.Tech', '21-Sep-2026 (Morning)', 'Core', NULL),
+    (59, 'ME202', 'ENGINEERING MATERIALS', 4, 'Mechanical Engineering', 3, 'B.Tech', '21-Sep-2026 (Morning)', 'Core', NULL),
+    (60, 'EC407', 'RADAR SYSTEMS', 4, 'Electronics & Communication', 7, 'B.Tech', '21-Sep-2026 (Morning)', 'Core', NULL),
+    (61, 'ME408', 'COMPUTATIONAL FLUID DYNAMICS', 4, 'Mechanical Engineering', 7, 'B.Tech', '21-Sep-2026 (Morning)', 'Core', NULL),
+    (62, 'BSPH410', 'MATERIAL PHYSICS', 4, 'B.Sc Physics', 5, 'BSC', '21-Sep-2026 (Morning)', 'Core', NULL),
+    (63, 'BCA211', 'OBJECT ORIENTED ANALYSIS AND DESIGN', 4, 'Computer Applications (BCA)', 5, 'BCA', '21-Sep-2026 (Morning)', 'Core', NULL),
+    (64, 'AI302/AIM302/CS302/DS302', 'COMPUTER NETWORKS', 4, 'Artificial Intelligence & Data Science', 5, 'B.Tech', '21-Sep-2026 (Afternoon)', 'Core', NULL),
+    (65, 'BCA214', 'DATA STRUCTURES AND ALGORITHMS', 4, 'Computer Applications (BCA)', 3, 'BCA', '21-Sep-2026 (Afternoon)', 'Core', NULL),
+    (66, 'BSCS201', 'OBJECT ORIENTED ANALYSIS AND DESIGN', 4, 'B.Sc Computer Science', 3, 'BSC', '21-Sep-2026 (Afternoon)', 'Core', NULL),
+    (67, 'EC323', 'DIGITAL VLSI DESIGN', 4, 'Electronics & Communication', 5, 'B.Tech', '21-Sep-2026 (Afternoon)', 'Core', NULL),
+    (68, 'BSRA201', 'ENGINEERING MECHANICS', 4, 'B.Sc Robotics', 3, 'BSC', '21-Sep-2026 (Afternoon)', 'Core', NULL),
+    (69, 'BSPH202', 'INTRODUCTORY MATHEMATICAL METHODS FOR PHYSICS', 4, 'B.Sc Physics', 3, 'BSC', '21-Sep-2026 (Afternoon)', 'Core', NULL),
+    (70, 'ME302', 'DESIGN OF MACHINE ELEMENTS', 4, 'Mechanical Engineering', 5, 'B.Tech', '21-Sep-2026 (Afternoon)', 'Core', NULL),
+    (71, 'BSMA202', 'DISCRETE MATHEMATICS', 4, 'B.Sc Mathematics', 3, 'BSC', '21-Sep-2026 (Afternoon)', 'Core', NULL),
+    (72, 'AI204/AIM204/CS204/DS204', 'DESIGN AND ANALYSIS OF ALGORITHMS', 4, 'Artificial Intelligence & Data Science', 3, 'B.Tech', '22-Sep-2026 (Morning)', 'Core', NULL),
+    (74, 'BSCS304', 'Theory of Computation', 4, 'B.Sc Computer Science', 5, 'BSC', '22-Sep-2026 (Morning)', 'Core', NULL),
+    (75, 'BSDA303', 'Machine Learning', 4, 'B.Sc Data Analytics', 5, 'BSC', '22-Sep-2026 (Morning)', 'Core', NULL),
+    (76, 'EC222', 'CIRCUIT THEORY', 4, 'Electronics & Communication', 3, 'B.Tech', '22-Sep-2026 (Morning)', 'Core', NULL),
+    (77, 'ME201', 'ENGINEERING MECHANICS', 4, 'Mechanical Engineering', 3, 'B.Tech', '22-Sep-2026 (Morning)', 'Core', NULL),
+    (78, 'EC414', 'VLSI TESTING AND TESTABILITY', 4, 'Electronics & Communication', 7, 'B.Tech', '22-Sep-2026 (Morning)', 'Core', NULL),
+    (79, 'ME414', 'NON CONVENTIONAL SOURCES OF ENERGY', 4, 'Mechanical Engineering', 7, 'B.Tech', '22-Sep-2026 (Morning)', 'Core', NULL),
+    (80, 'BSPH301', 'MODERN PHYSICS', 4, 'B.Sc Physics', 5, 'BSC', '22-Sep-2026 (Morning)', 'Core', NULL),
+    (81, 'BCA222', 'WEB ENABLED TECHNOLOGIES', 4, 'Computer Applications (BCA)', 5, 'BCA', '22-Sep-2026 (Morning)', 'Core', NULL),
+    (82, 'AI303/AIM303/DS303', 'BLOCKCHAIN TECHNOLOGY', 4, 'Artificial Intelligence & Data Science', 5, 'B.Tech', '22-Sep-2026 (Afternoon)', 'Core', NULL),
+    (83, 'BCA212', 'DATABASE MANAGEMENT SYSTEMS', 4, 'Computer Applications (BCA)', 3, 'BCA', '22-Sep-2026 (Afternoon)', 'Core', NULL),
+    (85, 'BSCS206', 'DATABASE MANAGEMENT SYSTEMS', 4, 'B.Sc Computer Science', 3, 'BSC', '22-Sep-2026 (Afternoon)', 'Core', NULL),
+    (86, 'EC322', 'MICROPROCESSOR PROGRAMMING AND INTERFACING', 4, 'Electronics & Communication', 5, 'B.Tech', '22-Sep-2026 (Afternoon)', 'Core', NULL),
+    (87, 'BSRA203', 'MACHINE LEARNING', 4, 'B.Sc Robotics', 3, 'BSC', '22-Sep-2026 (Afternoon)', 'Core', NULL),
+    (88, 'ME304', 'HEAT AND MASS TRANSFER', 4, 'Mechanical Engineering', 5, 'B.Tech', '22-Sep-2026 (Afternoon)', 'Core', NULL),
+    (89, 'CS201/EC201', 'INTRODUCTION TO IOT', 4, 'Electronics & Communication', 3, 'B.Tech', '23-Sep-2026 (Morning)', 'Core', NULL),
+    (90, 'CS415', 'ETHICAL HACKING', 4, 'Computer Science', 7, 'B.Tech', '23-Sep-2026 (Morning)', 'Core', NULL),
+    (91, 'ES202', 'INDUSTRY CODING PRACTICES', 4, 'Computer Science', 3, 'B.Tech', '23-Sep-2026 (Morning)', 'Core', NULL),
+    (92, 'BSCS303', 'Web Enabled Technologies', 4, 'B.Sc Computer Science', 5, 'BSC', '23-Sep-2026 (Morning)', 'Core', NULL),
+    (93, 'BSDA305', 'Predictive Analytics', 4, 'B.Sc Data Analytics', 5, 'BSC', '23-Sep-2026 (Morning)', 'Core', NULL),
+    (94, 'EC308', 'EMBEDDED SYSTEMS', 4, 'Electronics & Communication', 7, 'B.Tech', '23-Sep-2026 (Morning)', 'Core', NULL),
+    (95, 'ME204', 'FLUID MECHANICS', 4, 'Mechanical Engineering', 3, 'B.Tech', '23-Sep-2026 (Morning)', 'Core', NULL),
+    (96, 'AI305/AIM305/DS305', 'DATA WRANGLING AND VISUALIZATION', 4, 'Artificial Intelligence & Data Science', 5, 'B.Tech', '23-Sep-2026 (Afternoon)', 'Core', NULL),
+    (97, 'CS301', 'PRINCIPLE OF CRYPTOGRAPHY', 4, 'Computer Science', 5, 'B.Tech', '23-Sep-2026 (Afternoon)', 'Core', NULL),
+    (98, 'SHIM407', 'IMPACTFUL PRESENTATIONS', 4, 'Computer Applications (BCA)', 3, 'BCA', '23-Sep-2026 (Afternoon)', 'Core', NULL),
+    (99, 'BSCS202', 'DATA STRUCTURES', 4, 'B.Sc Computer Science', 3, 'BSC', '23-Sep-2026 (Afternoon)', 'Core', NULL),
+    (100, 'BSCS205', 'COMPUTER ORGANIZATION & ARCHITECTURE', 4, 'B.Sc Computer Science', 3, 'BSC', '23-Sep-2026 (Afternoon)', 'Core', NULL),
+    (101, 'EC325', 'RF AND MICROWAVE ENGINEERING', 4, 'Electronics & Communication', 5, 'B.Tech', '23-Sep-2026 (Afternoon)', 'Core', NULL),
+    (102, 'BSRA204', 'MICROPROCESSOR AND MICROCONTROLLER', 4, 'B.Sc Robotics', 3, 'BSC', '23-Sep-2026 (Afternoon)', 'Core', NULL);
+INSERT INTO courses (course_id, course_code, course_name, credits, department_name, semester, program, exam_slot, course_type, syllabus_summary) VALUES
+    (103, 'BSPH201', 'WAVES AND OSCILLATIONS', 4, 'B.Sc Physics', 3, 'BSC', '23-Sep-2026 (Afternoon)', 'Core', NULL),
+    (104, 'ME303', 'INDUSTRIAL INTERNET OF THINGS', 4, 'Mechanical Engineering', 5, 'B.Tech', '23-Sep-2026 (Afternoon)', 'Core', NULL),
+    (105, 'BSMA201', 'GROUP THEORY', 4, 'B.Sc Mathematics', 3, 'BSC', '23-Sep-2026 (Afternoon)', 'Core', NULL),
+    (106, 'AIM206/DS206', 'COMPUTER ORGANIZATION AND ARCHITECTURE', 4, 'Artificial Intelligence & Data Science', 3, 'B.Tech', '24-Sep-2026 (Morning)', 'Core', NULL),
+    (107, 'MG201', 'ENGINEERING ECONOMICS AND MANAGEMENT', 4, 'Computer Science', 3, 'B.Tech', '24-Sep-2026 (Morning)', 'Core', NULL),
+    (108, 'DS306', 'DEEP LEARNING', 4, 'Data Science', 7, 'B.Tech', '24-Sep-2026 (Morning)', 'Core', NULL),
+    (109, 'CS413', 'QUANTUM COMPUTING', 4, 'Computer Science', 7, 'B.Tech', '24-Sep-2026 (Morning)', 'Core', NULL),
+    (110, 'AI304/CS304', 'MACHINE LEARNING', 4, 'Artificial Intelligence & Data Science', 5, 'B.Tech', '24-Sep-2026 (Afternoon)', 'Core', NULL),
+    (111, 'DS301', 'METAHEURISTIC OPTIMIZATION TECHNIQUES', 4, 'Data Science', 5, 'B.Tech', '24-Sep-2026 (Afternoon)', 'Core', NULL),
+    (113, 'AIM306', 'NATURAL LANGUAGE PROCESSING', 4, 'Artificial Intelligence & Data Science', 5, 'B.Tech', '24-Sep-2026 (Afternoon)', 'Core', NULL),
+    (114, 'BCA442', 'DATA VISUALIZATION', 4, 'Computer Applications (BCA)', 3, 'BCA', '24-Sep-2026 (Afternoon)', 'Core', NULL),
+    (115, 'EC324', 'SPEECH PROCESSING', 4, 'Electronics & Communication', 5, 'B.Tech', '24-Sep-2026 (Afternoon)', 'Core', NULL),
+    (116, 'ME301', 'MACHINE TOOLS AND METROLOGY', 4, 'Mechanical Engineering', 5, 'B.Tech', '24-Sep-2026 (Afternoon)', 'Core', NULL),
+    (117, 'AI202/CS202/AIM202/DS202', 'DATABASE MANAGEMENT SYSTEM', 4, 'Artificial Intelligence & Data Science', 3, 'B.Tech', '25-Sep-2026 (Morning)', 'Core', NULL),
+    (118, 'EC203', 'DIGITAL SYSTEM DESIGN', 4, 'Electronics & Communication', 3, 'B.Tech', '25-Sep-2026 (Morning)', 'Core', NULL),
+    (119, 'ME203', 'THERMODYNAMICS', 4, 'Mechanical Engineering', 3, 'B.Tech', '25-Sep-2026 (Morning)', 'Core', NULL),
+    (120, 'CS303', 'PROGRAMMING LANGUAGE AND COMPLIER CONSTRUCTION', 4, 'Computer Science', 5, 'B.Tech', '25-Sep-2026 (Afternoon)', 'Core', NULL);
 
-ALTER TABLE public.course_offerings OWNER TO postgres;
+SELECT setval(pg_get_serial_sequence('courses', 'course_id'), coalesce(max(course_id), 1)) FROM courses;
 
---
--- TOC entry 237 (class 1259 OID 25022)
--- Name: course_offerings_offering_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
---
-
-CREATE SEQUENCE public.course_offerings_offering_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
-ALTER SEQUENCE public.course_offerings_offering_id_seq OWNER TO postgres;
-
---
--- TOC entry 5223 (class 0 OID 0)
--- Dependencies: 237
--- Name: course_offerings_offering_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
---
-
-ALTER SEQUENCE public.course_offerings_offering_id_seq OWNED BY public.course_offerings.offering_id;
-
-
---
--- TOC entry 236 (class 1259 OID 25004)
--- Name: courses; Type: TABLE; Schema: public; Owner: postgres
---
-
-CREATE TABLE public.courses (
-    course_id integer NOT NULL,
-    course_code character varying(30) NOT NULL,
-    course_name character varying(150) NOT NULL,
-    credits integer,
-    department_id integer NOT NULL,
-    CONSTRAINT courses_credits_check CHECK ((credits >= 0))
+-- Table structure for sections
+DROP TABLE IF EXISTS sections CASCADE;
+CREATE TABLE sections (
+    section_id SERIAL PRIMARY KEY,
+    class_name VARCHAR(50) NOT NULL,
+    semester INTEGER NOT NULL,
+    department_name VARCHAR(100) DEFAULT 'AI & Data Science'
 );
 
+-- Seed data for sections (33 records)
+INSERT INTO sections (section_id, class_name, semester, department_name) VALUES
+    (7, 'Section A', 3, 'Faculty of Science & Technology'),
+    (8, 'Section B', 3, 'Faculty of Science & Technology'),
+    (9, 'Section C', 3, 'Faculty of Science & Technology'),
+    (10, 'Section D', 3, 'Faculty of Science & Technology'),
+    (11, 'Section E', 3, 'Faculty of Science & Technology'),
+    (12, 'Section F', 3, 'Faculty of Science & Technology'),
+    (13, 'Section G', 3, 'Faculty of Science & Technology'),
+    (14, 'Section H', 3, 'Faculty of Science & Technology'),
+    (15, 'Section I', 3, 'Faculty of Science & Technology'),
+    (16, 'Section J', 3, 'Faculty of Science & Technology'),
+    (17, 'Section K', 3, 'Faculty of Science & Technology'),
+    (18, 'Section A', 5, 'Faculty of Science & Technology'),
+    (19, 'Section B', 5, 'Faculty of Science & Technology'),
+    (20, 'Section C', 5, 'Faculty of Science & Technology'),
+    (21, 'Section D', 5, 'Faculty of Science & Technology'),
+    (22, 'Section E', 5, 'Faculty of Science & Technology'),
+    (23, 'Section F', 5, 'Faculty of Science & Technology'),
+    (24, 'Section G', 5, 'Faculty of Science & Technology'),
+    (25, 'Section H', 5, 'Faculty of Science & Technology'),
+    (26, 'Section I', 5, 'Faculty of Science & Technology'),
+    (27, 'Section J', 5, 'Faculty of Science & Technology'),
+    (28, 'Section K', 5, 'Faculty of Science & Technology'),
+    (29, 'Section A', 7, 'Faculty of Science & Technology'),
+    (30, 'Section B', 7, 'Faculty of Science & Technology'),
+    (31, 'Section C', 7, 'Faculty of Science & Technology'),
+    (32, 'Section D', 7, 'Faculty of Science & Technology'),
+    (33, 'Section E', 7, 'Faculty of Science & Technology'),
+    (34, 'Section F', 7, 'Faculty of Science & Technology'),
+    (35, 'Section G', 7, 'Faculty of Science & Technology'),
+    (36, 'Section H', 7, 'Faculty of Science & Technology'),
+    (37, 'Section I', 7, 'Faculty of Science & Technology'),
+    (38, 'Section J', 7, 'Faculty of Science & Technology'),
+    (39, 'Section K', 7, 'Faculty of Science & Technology');
 
-ALTER TABLE public.courses OWNER TO postgres;
+SELECT setval(pg_get_serial_sequence('sections', 'section_id'), coalesce(max(section_id), 1)) FROM sections;
 
---
--- TOC entry 235 (class 1259 OID 25003)
--- Name: courses_course_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
---
-
-CREATE SEQUENCE public.courses_course_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
-ALTER SEQUENCE public.courses_course_id_seq OWNER TO postgres;
-
---
--- TOC entry 5224 (class 0 OID 0)
--- Dependencies: 235
--- Name: courses_course_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
---
-
-ALTER SEQUENCE public.courses_course_id_seq OWNED BY public.courses.course_id;
-
-
---
--- TOC entry 220 (class 1259 OID 24835)
--- Name: departments; Type: TABLE; Schema: public; Owner: postgres
---
-
-CREATE TABLE public.departments (
-    department_id integer NOT NULL,
-    department_code character varying(20) NOT NULL,
-    department_name character varying(100) NOT NULL,
-    created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP
+-- Table structure for faculty
+DROP TABLE IF EXISTS faculty CASCADE;
+CREATE TABLE faculty (
+    faculty_id SERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    department VARCHAR(100) DEFAULT 'Science & Technology',
+    email VARCHAR(150)
 );
 
+-- Seed data for faculty (85 records)
+INSERT INTO faculty (faculty_id, name, department, email) VALUES
+    (1, 'A SRIRAM', 'Faculty of Science & Technology', 'a.sriram@univ.edu'),
+    (2, 'Dr B Deevena Raju', 'Faculty of Science & Technology', 'b.deevena.raju@univ.edu'),
+    (3, 'Dr Balaji Vejju', 'Faculty of Science & Technology', 'balaji.vejju@univ.edu'),
+    (4, 'Dr Dileep Kumar Murala', 'Faculty of Science & Technology', 'dileep.kumar.murala@univ.edu'),
+    (5, 'Dr H Sudheer', 'Faculty of Science & Technology', 'h.sudheer@univ.edu'),
+    (6, 'Dr Isha Jha', 'Faculty of Science & Technology', 'isha.jha@univ.edu'),
+    (7, 'Dr K Ramesh', 'Faculty of Science & Technology', 'k.ramesh@univ.edu'),
+    (8, 'Dr K Vara Prasada Rao', 'Faculty of Science & Technology', 'k.vara.prasada.rao@univ.edu'),
+    (9, 'Dr Kuncham Sreenivasa Rao', 'Faculty of Science & Technology', 'kuncham.sreenivasa.rao@univ.edu'),
+    (10, 'Dr Madhupama', 'Faculty of Science & Technology', 'madhupama@univ.edu'),
+    (11, 'Dr Pallavi Mishra', 'Faculty of Science & Technology', 'pallavi.mishra@univ.edu'),
+    (12, 'Dr R Balamurali', 'Faculty of Science & Technology', 'r.balamurali@univ.edu'),
+    (13, 'Dr Ramakrishna Reddy K', 'Faculty of Science & Technology', 'ramakrishna.reddy.k@univ.edu'),
+    (14, 'Dr Ramesh Ponnala', 'Faculty of Science & Technology', 'ramesh.ponnala@univ.edu'),
+    (15, 'Dr S Jayanthi', 'Faculty of Science & Technology', 's.jayanthi@univ.edu'),
+    (16, 'Dr Sandeep Kumar Panda', 'Faculty of Science & Technology', 'sandeep.kumar.panda@univ.edu'),
+    (17, 'Dr Sarit Chanda', 'Faculty of Science & Technology', 'sarit.chanda@univ.edu'),
+    (18, 'Dr Sowjanya Ramisetty', 'Faculty of Science & Technology', 'sowjanya.ramisetty@univ.edu'),
+    (19, 'Dr Suresh Kumar Grandhi', 'Faculty of Science & Technology', 'suresh.kumar.grandhi@univ.edu'),
+    (20, 'Dr Suresh N', 'Faculty of Science & Technology', 'suresh.n@univ.edu'),
+    (21, 'Dr Swathi', 'Faculty of Science & Technology', 'swathi@univ.edu'),
+    (22, 'Dr Upendar Mendu', 'Faculty of Science & Technology', 'upendar.mendu@univ.edu'),
+    (23, 'Dr. A MANMADHA CHARY', 'Faculty of Science & Technology', 'a.manmadha.chary@univ.edu'),
+    (24, 'Dr. AVINASH MALLADI', 'Faculty of Science & Technology', 'avinash.malladi@univ.edu'),
+    (25, 'Dr. Akhendra Kumar P', 'Faculty of Science & Technology', 'akhena.kumar.p@univ.edu'),
+    (26, 'Dr. B. Srinivas', 'Faculty of Science & Technology', 'b.srinivas@univ.edu'),
+    (27, 'Dr. BARLA MADHAVI', 'Faculty of Science & Technology', 'barla.madhavi@univ.edu'),
+    (28, 'Dr. CHANDRA SHEKHAR A', 'Faculty of Science & Technology', 'chana.shekhar.a@univ.edu'),
+    (29, 'Dr. D. V. Nair', 'Faculty of Science & Technology', 'd.v.nair@univ.edu'),
+    (30, 'Dr. Divya', 'Faculty of Science & Technology', 'divya@univ.edu'),
+    (31, 'Dr. E.L.N. Kiran Kumar', 'Faculty of Science & Technology', 'e.l.n.kiran.kumar@univ.edu'),
+    (32, 'Dr. Elizabeth Zacharias', 'Faculty of Science & Technology', 'elizabeth.zacharias@univ.edu'),
+    (33, 'Dr. GURSINGA LAKSHMAN KUMAR', 'Faculty of Science & Technology', 'gursinga.lakshman.kumar@univ.edu'),
+    (34, 'Dr. K. Adi Narayana Reddy', 'Faculty of Science & Technology', 'k.adi.narayana.reddy@univ.edu'),
+    (35, 'Dr. K. Sridevi', 'Faculty of Science & Technology', 'k.sridevi@univ.edu'),
+    (36, 'Dr. Kousik Midya', 'Faculty of Science & Technology', 'kousik.midya@univ.edu'),
+    (37, 'Dr. M L PAVAN KISHORE', 'Faculty of Science & Technology', 'm.l.pavan.kishore@univ.edu'),
+    (38, 'Dr. M L Pavan Kishore', 'Faculty of Science & Technology', 'm.l.pavan.kishore@univ.edu'),
+    (39, 'Dr. N. Prasad', 'Faculty of Science & Technology', 'n.prasad@univ.edu'),
+    (40, 'Dr. Nafis Uddin Khan', 'Faculty of Science & Technology', 'nafis.uddin.khan@univ.edu'),
+    (41, 'Dr. P. Chakradhar', 'Faculty of Science & Technology', 'p.chakradhar@univ.edu'),
+    (42, 'Dr. Priyanka Parimi', 'Faculty of Science & Technology', 'priyanka.parimi@univ.edu'),
+    (43, 'Dr. Rajesh Kumar Jha', 'Faculty of Science & Technology', 'rajesh.kumar.jha@univ.edu'),
+    (44, 'Dr. Rakesh Reddy', 'Faculty of Science & Technology', 'rakesh.reddy@univ.edu'),
+    (45, 'Dr. Ramesh', 'Faculty of Science & Technology', 'ramesh@univ.edu'),
+    (46, 'Dr. SOMDATTA MUKHERJEE', 'Faculty of Science & Technology', 'somdatta.mukherjee@univ.edu'),
+    (47, 'Dr. Sankar Ponnapalli', 'Faculty of Science & Technology', 'sankar.ponnapalli@univ.edu'),
+    (48, 'Dr. Santosh Kumar Sahoo', 'Faculty of Science & Technology', 'santosh.kumar.sahoo@univ.edu'),
+    (49, 'Dr. Shreecharan', 'Faculty of Science & Technology', 'shreecharan@univ.edu'),
+    (50, 'Dr. Soumit Samadder Chaudhury', 'Faculty of Science & Technology', 'soumit.samadder.chaudhury@univ.edu');
+INSERT INTO faculty (faculty_id, name, department, email) VALUES
+    (51, 'Dr. Srinivasa Rao Kongara', 'Faculty of Science & Technology', 'srinivasa.rao.kongara@univ.edu'),
+    (52, 'Dr. Sukanta Das', 'Faculty of Science & Technology', 'sukanta.das@univ.edu'),
+    (53, 'Dr. Sunil', 'Faculty of Science & Technology', 'sunil@univ.edu'),
+    (54, 'Dr. Surya Samantha. B', 'Faculty of Science & Technology', 'surya.samantha.b@univ.edu'),
+    (55, 'Dr. Swathi', 'Faculty of Science & Technology', 'swathi@univ.edu'),
+    (56, 'Dr. Syed Shakeel H', 'Faculty of Science & Technology', 'syed.shakeel.h@univ.edu'),
+    (57, 'Dr. THOKALA SOLOMAN RAJU', 'Faculty of Science & Technology', 'thokala.soloman.raju@univ.edu'),
+    (58, 'Dr. V. A. Sankar Ponnapalli', 'Faculty of Science & Technology', 'v.a.sankar.ponnapalli@univ.edu'),
+    (59, 'Dr.Ashwin Kumar', 'Faculty of Science & Technology', 'ashwin.kumar@univ.edu'),
+    (60, 'Dr.B.SEETHARAMULU', 'Faculty of Science & Technology', 'b.seetharamulu@univ.edu'),
+    (61, 'Dr.K.Bhargavi', 'Faculty of Science & Technology', 'k.bhargavi@univ.edu'),
+    (62, 'Dr.Mallavarapu Sandhya', 'Faculty of Science & Technology', 'mallavarapu.sandhya@univ.edu'),
+    (63, 'Dr.Pradosh Kumar Gantayat', 'Faculty of Science & Technology', 'pradosh.kumar.gantayat@univ.edu'),
+    (64, 'Dr.Rajesh Jha', 'Faculty of Science & Technology', 'rajesh.jha@univ.edu'),
+    (65, 'Dr.Sathya AR', 'Faculty of Science & Technology', 'sathya.ar@univ.edu'),
+    (66, 'Dr.Srinivasa Rao Dhanikonda', 'Faculty of Science & Technology', 'srinivasa.rao.dhanikonda@univ.edu'),
+    (67, 'Dr.T.Aruna Sri', 'Faculty of Science & Technology', 't.aruna.sri@univ.edu'),
+    (68, 'Dr.T.Bharath Kumar', 'Faculty of Science & Technology', 't.bharath.kumar@univ.edu'),
+    (69, 'Dr.TAMMINEEDI VENKATA SATYA VIVEK', 'Faculty of Science & Technology', 'tammineedi.venkata.satya.vivek@univ.edu'),
+    (70, 'JOYDEEP ROY', 'Faculty of Science & Technology', 'joydeep.roy@univ.edu'),
+    (71, 'K LOKESH REDDY', 'Faculty of Science & Technology', 'k.lokesh.reddy@univ.edu'),
+    (72, 'Mr Arram Sriram', 'Faculty of Science & Technology', 'arram.sriram@univ.edu'),
+    (73, 'Mr Girish Kulkarni', 'Faculty of Science & Technology', 'girish.kulkarni@univ.edu'),
+    (74, 'Mr Madhav', 'Faculty of Science & Technology', 'madhav@univ.edu'),
+    (75, 'Mr. Abhiram D', 'Faculty of Science & Technology', 'abhiram.d@univ.edu'),
+    (76, 'Mr. Mohammed Kaleem', 'Faculty of Science & Technology', 'mohammed.kaleem@univ.edu'),
+    (77, 'Mr. VENUGOPAL CHITTEMSETTY', 'Faculty of Science & Technology', 'venugopal.chitteetty@univ.edu'),
+    (78, 'Mr.Senthil Raja', 'Faculty of Science & Technology', 'senthil.raja@univ.edu'),
+    (79, 'Ms. PRIYANKA CHATTORAJ', 'Faculty of Science & Technology', 'priyanka.chattoraj@univ.edu'),
+    (80, 'Ms. Sai Prasanna', 'Faculty of Science & Technology', 'sai.prasanna@univ.edu'),
+    (2561, 'Dr. A. Sharma', 'AI & Data Science', 'faculty@univ.edu'),
+    (2562, 'Prof. R. Menon', 'Computer Science', 'r.menon@univ.edu'),
+    (2563, 'Dr. S. Nair', 'Computer Science', 's.nair@univ.edu'),
+    (2564, 'Dr. K. Iyer', 'Mathematics', 'k.iyer@univ.edu'),
+    (2565, 'Dr. V. Raman', 'Physics', 'v.raman@univ.edu');
 
-ALTER TABLE public.departments OWNER TO postgres;
+SELECT setval(pg_get_serial_sequence('faculty', 'faculty_id'), coalesce(max(faculty_id), 1)) FROM faculty;
 
---
--- TOC entry 219 (class 1259 OID 24834)
--- Name: departments_department_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
---
-
-CREATE SEQUENCE public.departments_department_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
-ALTER SEQUENCE public.departments_department_id_seq OWNER TO postgres;
-
---
--- TOC entry 5225 (class 0 OID 0)
--- Dependencies: 219
--- Name: departments_department_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
---
-
-ALTER SEQUENCE public.departments_department_id_seq OWNED BY public.departments.department_id;
-
-
---
--- TOC entry 240 (class 1259 OID 25054)
--- Name: enrollments; Type: TABLE; Schema: public; Owner: postgres
---
-
-CREATE TABLE public.enrollments (
-    enrollment_id integer NOT NULL,
-    student_id integer NOT NULL,
-    offering_id integer NOT NULL,
-    enrolled_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP
+-- Table structure for students
+DROP TABLE IF EXISTS students CASCADE;
+CREATE TABLE students (
+    student_id SERIAL PRIMARY KEY,
+    user_id INTEGER,
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(150) NOT NULL,
+    roll_number VARCHAR(50) NOT NULL,
+    semester INTEGER NOT NULL,
+    class_section VARCHAR(50) NOT NULL,
+    department_name VARCHAR(100) DEFAULT 'AI & Data Science',
+    phone TEXT,
+    bio TEXT
 );
 
+-- Seed data for students (66 records)
+INSERT INTO students (student_id, user_id, name, email, roll_number, semester, class_section, department_name, phone, bio) VALUES
+    (1, NULL, 'Arunn Reddy', 'student@univ.edu', '2024-AI-042', 5, 'Section D', 'AI & Data Science', '+91 98765 43210', 'B.Tech AI student focusing on Machine Learning and Deep Learning architectures.'),
+    (2, NULL, 'Test Student', 'student@test.com', 'TEST-AIDS-001', 5, 'Section D', 'AI & Data Science', NULL, NULL),
+    (3, NULL, 'Priya Patel', 'priya@univ.edu', '2025-CS-018', 3, 'Section B', 'Computer Science', NULL, NULL),
+    (4, NULL, 'Rahul Verma', 'rahul@univ.edu', '2024-AI-077', 5, 'Section E', 'AI & Data Science', NULL, NULL),
+    (5, NULL, 'Ananya Sen', 'ananya@univ.edu', '2026-CS-005', 7, 'Section A', 'Computer Science', NULL, NULL),
+    (6, NULL, 'Priya Patel', 'priya.p@student.univ.edu', '2024-CS-018', 5, 'Section A', 'Computer Science', NULL, NULL),
+    (7, NULL, 'Kavya Sharma', 'kavya.s@student.univ.edu', '2024-CS-033', 5, 'Section B', 'Computer Science', NULL, NULL),
+    (8, NULL, 'Ananya Sen', 'ananya.sen@student.univ.edu', '2025-CS-005', 3, 'Section C', 'Computer Science', NULL, NULL),
+    (9, NULL, 'Rohan Gupta', 'rohan.g@student.univ.edu', '2025-AI-021', 3, 'Section C', 'AI & Data Science', NULL, NULL),
+    (10, NULL, 'Sneha Rao', 'sneha.rao@student.univ.edu', '2024-EC-029', 5, 'Section D', 'Electronics & Comm', NULL, NULL),
+    (11, NULL, 'Aditya Roy', 'aditya.roy@student.univ.edu', '2024-EC-014', 5, 'Section D', 'Electronics & Comm', NULL, NULL),
+    (12, NULL, 'Vikramaditya Rao', 'vikram.r@student.univ.edu', '2023-ME-051', 7, 'Section E', 'Mechanical Engineering', NULL, NULL),
+    (13, NULL, 'Divya Menon', 'divya.m@student.univ.edu', '2023-ME-009', 7, 'Section E', 'Mechanical Engineering', NULL, NULL),
+    (14, NULL, 'Tanvi Deshmukh', 'tanvi.d@student.univ.edu', '2024-CS-088', 5, 'Section F', 'Computer Science', NULL, NULL),
+    (15, NULL, 'Manish Kumar', 'manish.k@student.univ.edu', '2024-CS-062', 5, 'Section F', 'Computer Science', NULL, NULL),
+    (16, NULL, 'Karthik Nair', 'karthik.n@student.univ.edu', '2024-DS-012', 5, 'Section G', 'Data Science', NULL, NULL),
+    (17, NULL, 'Meera Krishnan', 'meera.k@student.univ.edu', '2024-DS-045', 5, 'Section G', 'Data Science', NULL, NULL),
+    (18, NULL, 'Siddharth Joshi', 'siddharth.j@student.univ.edu', '2025-CS-102', 3, 'Section H', 'Computer Science', NULL, NULL),
+    (19, NULL, 'Rhea Kapoor', 'rhea.k@student.univ.edu', '2025-AI-066', 3, 'Section H', 'AI & Data Science', NULL, NULL),
+    (20, NULL, 'Nikhil Nair', 'nikhil.n@student.univ.edu', '2024-EC-073', 5, 'Section I', 'Electronics & Comm', NULL, NULL),
+    (21, NULL, 'Pooja Hegde', 'pooja.h@student.univ.edu', '2024-EC-084', 5, 'Section I', 'Electronics & Comm', NULL, NULL),
+    (22, NULL, 'Harsh Vardhan', 'harsh.v@student.univ.edu', '2023-CS-031', 7, 'Section J', 'Computer Science', NULL, NULL),
+    (23, NULL, 'Shruti Iyer', 'shruti.i@student.univ.edu', '2023-DS-022', 7, 'Section J', 'Data Science', NULL, NULL),
+    (24, NULL, 'Amitabh Sen', 'amitabh.s@student.univ.edu', '2024-AI-099', 5, 'Section K', 'AI & Data Science', NULL, NULL),
+    (25, NULL, 'Bhavana Reddy', 'bhavana.r@student.univ.edu', '2024-CS-115', 5, 'Section K', 'Computer Science', NULL, NULL),
+    (26, NULL, 'Deepak Chawla', 'deepak.c@student.univ.edu', '2025-CS-044', 3, 'Section A', 'Computer Science', NULL, NULL),
+    (27, NULL, 'Varun Dhawan', 'varun.d@student.univ.edu', '2025-AI-019', 3, 'Section B', 'AI & Data Science', NULL, NULL),
+    (28, NULL, 'Isha Ambani', 'isha.a@student.univ.edu', '2024-DS-081', 5, 'Section C', 'Data Science', NULL, NULL),
+    (29, NULL, 'Yash Singhal', 'yash.s@student.univ.edu', '2024-ME-023', 5, 'Section D', 'Mechanical Engineering', NULL, NULL),
+    (30, NULL, 'Swati Maliwal', 'swati.m@student.univ.edu', '2023-CS-011', 7, 'Section E', 'Computer Science', NULL, NULL),
+    (31, NULL, 'Abhay Deol', 'abhay.d@student.univ.edu', '2024-AI-035', 5, 'Section F', 'AI & Data Science', NULL, NULL),
+    (32, NULL, 'Simran Kaur', 'simran.k@student.univ.edu', '2025-EC-052', 3, 'Section G', 'Electronics & Comm', NULL, NULL),
+    (33, NULL, 'Gaurav Taneja', 'gaurav.t@student.univ.edu', '2023-ME-067', 7, 'Section H', 'Mechanical Engineering', NULL, NULL),
+    (34, NULL, 'Aarav Saxena', 'aarav.s@student.univ.edu', '2024-CS-093', 5, 'Section I', 'Computer Science', NULL, NULL),
+    (35, NULL, 'Diya Mirza', 'diya.m@student.univ.edu', '2025-AI-078', 3, 'Section J', 'AI & Data Science', NULL, NULL),
+    (36, NULL, 'Kunal Kemmu', 'kunal.k@student.univ.edu', '2024-DS-059', 5, 'Section K', 'Data Science', NULL, NULL),
+    (37, 8, 'Vikram Malhotra', 'student_9f42a5@univ.edu', '2026-AI-9f42a5', 7, 'Section D', 'AI & Data Science', NULL, NULL),
+    (38, 10, 'Reset Test User', 'reset_ba432e@univ.edu', 'ROLL-ba432e', 5, 'Section D', 'AI & Data Science', NULL, NULL),
+    (39, 11, 'Updated Name', 'updated_f61bd5@univ.edu', 'NEW-f61bd5', 7, 'Section E', 'AI & Data Science', NULL, NULL),
+    (40, 12, 'Vikram Malhotra', 'student_7f788c@univ.edu', '2026-AI-7f788c', 7, 'Section D', 'AI & Data Science', NULL, NULL),
+    (41, 14, 'Reset Test User', 'reset_817b3a@univ.edu', 'ROLL-817b3a', 5, 'Section D', 'AI & Data Science', NULL, NULL),
+    (42, 15, 'Updated Name', 'updated_197189@univ.edu', 'NEW-197189', 7, 'Section E', 'AI & Data Science', NULL, NULL),
+    (43, 16, 'Vikram Malhotra', 'student_4d9833@univ.edu', '2026-AI-4d9833', 7, 'Class 3A', 'AI & Data Science', NULL, NULL),
+    (44, 18, 'Reset Test User', 'reset_77a5df@univ.edu', 'ROLL-77a5df', 5, 'Section A', 'AI & Data Science', NULL, NULL),
+    (45, 19, 'Updated Name', 'updated_812e9f@univ.edu', 'NEW-812e9f', 7, 'Section A', 'AI & Data Science', NULL, NULL),
+    (46, 20, 'Vikram Malhotra', 'student_d9dd79@univ.edu', '2026-AI-d9dd79', 7, 'Class 3A', 'AI & Data Science', NULL, NULL),
+    (47, 22, 'Reset Test User', 'reset_0b1840@univ.edu', 'ROLL-0b1840', 5, 'Section A', 'AI & Data Science', NULL, NULL),
+    (48, 23, 'Updated Name', 'updated_5ebe3d@univ.edu', 'NEW-5ebe3d', 7, 'Section A', 'AI & Data Science', NULL, NULL),
+    (49, 24, 'Vikram Malhotra', 'student_e409ee@univ.edu', '2026-AI-e409ee', 7, 'Class 3A', 'AI & Data Science', NULL, NULL),
+    (50, 26, 'Reset Test User', 'reset_9d3410@univ.edu', 'ROLL-9d3410', 5, 'Section A', 'AI & Data Science', NULL, NULL);
+INSERT INTO students (student_id, user_id, name, email, roll_number, semester, class_section, department_name, phone, bio) VALUES
+    (51, 27, 'Updated Name', 'updated_645a98@univ.edu', 'NEW-645a98', 7, 'Section A', 'AI & Data Science', NULL, NULL),
+    (52, 28, 'Vikram Malhotra', 'student_8f48fd@univ.edu', '2026-AI-8f48fd', 7, 'Class 3A', 'AI & Data Science', NULL, NULL),
+    (53, 30, 'Reset Test User', 'reset_a8ff30@univ.edu', 'ROLL-a8ff30', 5, 'Section A', 'AI & Data Science', NULL, NULL),
+    (54, 31, 'Original Name', 'user_0ca43a@univ.edu', 'OLD-0ca43a', 5, 'Section A', 'AI & Data Science', NULL, NULL),
+    (55, 32, 'Vikram Malhotra', 'student_28bc00@univ.edu', '2026-AI-28bc00', 7, 'Class 3A', 'AI & Data Science', NULL, NULL),
+    (56, 34, 'Reset Test User', 'reset_ac7bd8@univ.edu', 'ROLL-ac7bd8', 5, 'Section A', 'AI & Data Science', NULL, NULL),
+    (57, 35, 'Updated Name', 'updated_89d6eb@univ.edu', 'NEW-89d6eb', 7, 'Section A', 'AI & Data Science', NULL, NULL),
+    (58, 36, 'Vikram Malhotra', 'student_f46c9b@univ.edu', '2026-AI-f46c9b', 7, 'Class 3A', 'AI & Data Science', NULL, NULL),
+    (59, 38, 'Reset Test User', 'reset_a11353@univ.edu', 'ROLL-a11353', 5, 'Section A', 'AI & Data Science', NULL, NULL),
+    (60, 39, 'Updated Name', 'updated_81d747@univ.edu', 'NEW-81d747', 7, 'Section A', 'AI & Data Science', NULL, NULL),
+    (61, 40, 'Vikram Malhotra', 'student_ed61a1@univ.edu', '2026-AI-ed61a1', 7, 'Class 3A', 'AI & Data Science', NULL, NULL),
+    (62, 42, 'Reset Test User', 'reset_f1af1d@univ.edu', 'ROLL-f1af1d', 5, 'Section A', 'AI & Data Science', NULL, NULL),
+    (63, 43, 'Updated Name', 'updated_dd7097@univ.edu', 'NEW-dd7097', 7, 'Section A', 'AI & Data Science', NULL, NULL),
+    (64, 44, 'arunn', 'chejetivenkatarunnreddy24@ifheindia.org', '24STUCHH010266', 5, 'Section I', 'AI & Data Science', NULL, NULL),
+    (65, 46, 'Lockout Test User', 'lockout_test@univ.edu', '2026-AI-REG', 5, 'Section D', 'AI & Data Science', NULL, NULL),
+    (66, 47, 'Refresh Token User', 'refresh_test@univ.edu', '2026-AI-REG', 5, 'Section A', 'AI & Data Science', NULL, NULL);
 
-ALTER TABLE public.enrollments OWNER TO postgres;
+SELECT setval(pg_get_serial_sequence('students', 'student_id'), coalesce(max(student_id), 1)) FROM students;
 
---
--- TOC entry 239 (class 1259 OID 25053)
--- Name: enrollments_enrollment_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
---
-
-CREATE SEQUENCE public.enrollments_enrollment_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
-ALTER SEQUENCE public.enrollments_enrollment_id_seq OWNER TO postgres;
-
---
--- TOC entry 5226 (class 0 OID 0)
--- Dependencies: 239
--- Name: enrollments_enrollment_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
---
-
-ALTER SEQUENCE public.enrollments_enrollment_id_seq OWNED BY public.enrollments.enrollment_id;
-
-
---
--- TOC entry 232 (class 1259 OID 24965)
--- Name: faculty; Type: TABLE; Schema: public; Owner: postgres
---
-
-CREATE TABLE public.faculty (
-    faculty_id integer NOT NULL,
-    user_id integer NOT NULL,
-    employee_id character varying(50) NOT NULL,
-    department_id integer NOT NULL,
-    designation character varying(100)
+-- Table structure for course_offerings
+DROP TABLE IF EXISTS course_offerings CASCADE;
+CREATE TABLE course_offerings (
+    offering_id SERIAL PRIMARY KEY,
+    course_id INTEGER NOT NULL,
+    faculty_id INTEGER DEFAULT 2,
+    faculty_name VARCHAR(100) NOT NULL,
+    class_section VARCHAR(50) NOT NULL,
+    semester INTEGER NOT NULL,
+    term_name VARCHAR(50) DEFAULT 'Fall 2026'
 );
 
+-- Seed data for course_offerings (1137 records)
+INSERT INTO course_offerings (offering_id, course_id, faculty_id, faculty_name, class_section, semester, term_name) VALUES
+    (1, 7, 2, 'Dr. A. Sharma', 'Section D', 5, 'Fall 2026'),
+    (2, 8, 2, 'Prof. R. Menon', 'Section D', 5, 'Fall 2026'),
+    (3, 9, 2, 'Dr. S. Nair', 'Section D', 5, 'Fall 2026'),
+    (4, 10, 2, 'Dr. K. Iyer', 'Section D', 5, 'Fall 2026'),
+    (5, 7, 2, 'Dr. A. Sharma', 'Section E', 5, 'Fall 2026'),
+    (6, 8, 2, 'Prof. R. Menon', 'Section E', 5, 'Fall 2026'),
+    (7, 9, 2, 'Dr. S. Nair', 'Section E', 5, 'Fall 2026'),
+    (8, 10, 2, 'Dr. K. Iyer', 'Section E', 5, 'Fall 2026'),
+    (9, 4, 2, 'Dr. A. Sharma', 'Section B', 3, 'Fall 2026'),
+    (10, 5, 2, 'Prof. R. Menon', 'Section B', 3, 'Fall 2026'),
+    (11, 6, 2, 'Dr. K. Iyer', 'Section B', 3, 'Fall 2026'),
+    (12, 1, 2, 'Dr. A. Sharma', 'Section A', 1, 'Fall 2026'),
+    (13, 2, 2, 'Dr. K. Iyer', 'Section A', 1, 'Fall 2026'),
+    (14, 3, 2, 'Dr. V. Raman', 'Section A', 1, 'Fall 2026'),
+    (15, 14, 2, 'Dr. A. Sharma', 'Section F', 7, 'Fall 2026'),
+    (16, 16, 2, 'Dr Ramesh Ponnala', 'Section A', 3, 'Sem-I, 2026-27'),
+    (17, 16, 2, 'Dr Ramesh Ponnala', 'Section B', 3, 'Sem-I, 2026-27'),
+    (18, 16, 2, 'Dr Ramesh Ponnala', 'Section C', 3, 'Sem-I, 2026-27'),
+    (19, 16, 2, 'Dr Ramesh Ponnala', 'Section D', 3, 'Sem-I, 2026-27'),
+    (20, 16, 2, 'Dr Ramesh Ponnala', 'Section E', 3, 'Sem-I, 2026-27'),
+    (21, 16, 2, 'Dr Ramesh Ponnala', 'Section F', 3, 'Sem-I, 2026-27'),
+    (22, 16, 2, 'Dr Ramesh Ponnala', 'Section G', 3, 'Sem-I, 2026-27'),
+    (23, 16, 2, 'Dr Ramesh Ponnala', 'Section H', 3, 'Sem-I, 2026-27'),
+    (24, 16, 2, 'Dr Ramesh Ponnala', 'Section I', 3, 'Sem-I, 2026-27'),
+    (25, 16, 2, 'Dr Ramesh Ponnala', 'Section J', 3, 'Sem-I, 2026-27'),
+    (26, 16, 2, 'Dr Ramesh Ponnala', 'Section K', 3, 'Sem-I, 2026-27'),
+    (27, 17, 2, 'Dr. Surya Samantha. B', 'Section A', 7, 'Sem-I, 2026-27'),
+    (28, 17, 2, 'Dr. Surya Samantha. B', 'Section B', 7, 'Sem-I, 2026-27'),
+    (29, 17, 2, 'Dr. Surya Samantha. B', 'Section C', 7, 'Sem-I, 2026-27'),
+    (30, 17, 2, 'Dr. Surya Samantha. B', 'Section D', 7, 'Sem-I, 2026-27'),
+    (31, 17, 2, 'Dr. Surya Samantha. B', 'Section E', 7, 'Sem-I, 2026-27'),
+    (32, 17, 2, 'Dr. Surya Samantha. B', 'Section F', 7, 'Sem-I, 2026-27'),
+    (33, 17, 2, 'Dr. Surya Samantha. B', 'Section G', 7, 'Sem-I, 2026-27'),
+    (34, 17, 2, 'Dr. Surya Samantha. B', 'Section H', 7, 'Sem-I, 2026-27'),
+    (35, 17, 2, 'Dr. Surya Samantha. B', 'Section I', 7, 'Sem-I, 2026-27'),
+    (36, 17, 2, 'Dr. Surya Samantha. B', 'Section J', 7, 'Sem-I, 2026-27'),
+    (37, 17, 2, 'Dr. Surya Samantha. B', 'Section K', 7, 'Sem-I, 2026-27'),
+    (38, 18, 2, 'Dr.K.Bhargavi', 'Section A', 5, 'Sem-I, 2026-27'),
+    (39, 18, 2, 'Dr.K.Bhargavi', 'Section B', 5, 'Sem-I, 2026-27'),
+    (40, 18, 2, 'Dr.K.Bhargavi', 'Section C', 5, 'Sem-I, 2026-27'),
+    (41, 18, 2, 'Dr.K.Bhargavi', 'Section D', 5, 'Sem-I, 2026-27'),
+    (42, 18, 2, 'Dr.K.Bhargavi', 'Section E', 5, 'Sem-I, 2026-27'),
+    (43, 18, 2, 'Dr.K.Bhargavi', 'Section F', 5, 'Sem-I, 2026-27'),
+    (44, 18, 2, 'Dr.K.Bhargavi', 'Section G', 5, 'Sem-I, 2026-27'),
+    (45, 18, 2, 'Dr.K.Bhargavi', 'Section H', 5, 'Sem-I, 2026-27'),
+    (46, 18, 2, 'Dr.K.Bhargavi', 'Section I', 5, 'Sem-I, 2026-27'),
+    (47, 18, 2, 'Dr.K.Bhargavi', 'Section J', 5, 'Sem-I, 2026-27'),
+    (48, 18, 2, 'Dr.K.Bhargavi', 'Section K', 5, 'Sem-I, 2026-27'),
+    (49, 19, 2, 'Mr Girish Kulkarni', 'Section A', 5, 'Sem-I, 2026-27'),
+    (50, 19, 2, 'Mr Girish Kulkarni', 'Section B', 5, 'Sem-I, 2026-27');
+INSERT INTO course_offerings (offering_id, course_id, faculty_id, faculty_name, class_section, semester, term_name) VALUES
+    (51, 19, 2, 'Mr Girish Kulkarni', 'Section C', 5, 'Sem-I, 2026-27'),
+    (52, 19, 2, 'Mr Girish Kulkarni', 'Section D', 5, 'Sem-I, 2026-27'),
+    (53, 19, 2, 'Mr Girish Kulkarni', 'Section E', 5, 'Sem-I, 2026-27'),
+    (54, 19, 2, 'Mr Girish Kulkarni', 'Section F', 5, 'Sem-I, 2026-27'),
+    (55, 19, 2, 'Mr Girish Kulkarni', 'Section G', 5, 'Sem-I, 2026-27'),
+    (56, 19, 2, 'Mr Girish Kulkarni', 'Section H', 5, 'Sem-I, 2026-27'),
+    (57, 19, 2, 'Mr Girish Kulkarni', 'Section I', 5, 'Sem-I, 2026-27'),
+    (58, 19, 2, 'Mr Girish Kulkarni', 'Section J', 5, 'Sem-I, 2026-27'),
+    (59, 19, 2, 'Mr Girish Kulkarni', 'Section K', 5, 'Sem-I, 2026-27'),
+    (60, 20, 2, 'Dr. Akhendra Kumar P', 'Section A', 7, 'Sem-I, 2026-27'),
+    (61, 20, 2, 'Dr. Akhendra Kumar P', 'Section B', 7, 'Sem-I, 2026-27'),
+    (62, 20, 2, 'Dr. Akhendra Kumar P', 'Section C', 7, 'Sem-I, 2026-27'),
+    (63, 20, 2, 'Dr. Akhendra Kumar P', 'Section D', 7, 'Sem-I, 2026-27'),
+    (64, 20, 2, 'Dr. Akhendra Kumar P', 'Section E', 7, 'Sem-I, 2026-27'),
+    (65, 20, 2, 'Dr. Akhendra Kumar P', 'Section F', 7, 'Sem-I, 2026-27'),
+    (66, 20, 2, 'Dr. Akhendra Kumar P', 'Section G', 7, 'Sem-I, 2026-27'),
+    (67, 20, 2, 'Dr. Akhendra Kumar P', 'Section H', 7, 'Sem-I, 2026-27'),
+    (68, 20, 2, 'Dr. Akhendra Kumar P', 'Section I', 7, 'Sem-I, 2026-27'),
+    (69, 20, 2, 'Dr. Akhendra Kumar P', 'Section J', 7, 'Sem-I, 2026-27'),
+    (70, 20, 2, 'Dr. Akhendra Kumar P', 'Section K', 7, 'Sem-I, 2026-27'),
+    (71, 21, 2, 'Ms. PRIYANKA CHATTORAJ', 'Section A', 7, 'Sem-I, 2026-27'),
+    (72, 21, 2, 'Ms. PRIYANKA CHATTORAJ', 'Section B', 7, 'Sem-I, 2026-27'),
+    (73, 21, 2, 'Ms. PRIYANKA CHATTORAJ', 'Section C', 7, 'Sem-I, 2026-27'),
+    (74, 21, 2, 'Ms. PRIYANKA CHATTORAJ', 'Section D', 7, 'Sem-I, 2026-27'),
+    (75, 21, 2, 'Ms. PRIYANKA CHATTORAJ', 'Section E', 7, 'Sem-I, 2026-27'),
+    (76, 21, 2, 'Ms. PRIYANKA CHATTORAJ', 'Section F', 7, 'Sem-I, 2026-27'),
+    (77, 21, 2, 'Ms. PRIYANKA CHATTORAJ', 'Section G', 7, 'Sem-I, 2026-27'),
+    (78, 21, 2, 'Ms. PRIYANKA CHATTORAJ', 'Section H', 7, 'Sem-I, 2026-27'),
+    (79, 21, 2, 'Ms. PRIYANKA CHATTORAJ', 'Section I', 7, 'Sem-I, 2026-27'),
+    (80, 21, 2, 'Ms. PRIYANKA CHATTORAJ', 'Section J', 7, 'Sem-I, 2026-27'),
+    (81, 21, 2, 'Ms. PRIYANKA CHATTORAJ', 'Section K', 7, 'Sem-I, 2026-27'),
+    (82, 22, 2, 'Dr. THOKALA SOLOMAN RAJU', 'Section A', 5, 'Sem-I, 2026-27'),
+    (83, 22, 2, 'Dr. THOKALA SOLOMAN RAJU', 'Section B', 5, 'Sem-I, 2026-27'),
+    (84, 22, 2, 'Dr. THOKALA SOLOMAN RAJU', 'Section C', 5, 'Sem-I, 2026-27'),
+    (85, 22, 2, 'Dr. THOKALA SOLOMAN RAJU', 'Section D', 5, 'Sem-I, 2026-27'),
+    (86, 22, 2, 'Dr. THOKALA SOLOMAN RAJU', 'Section E', 5, 'Sem-I, 2026-27'),
+    (87, 22, 2, 'Dr. THOKALA SOLOMAN RAJU', 'Section F', 5, 'Sem-I, 2026-27'),
+    (88, 22, 2, 'Dr. THOKALA SOLOMAN RAJU', 'Section G', 5, 'Sem-I, 2026-27'),
+    (89, 22, 2, 'Dr. THOKALA SOLOMAN RAJU', 'Section H', 5, 'Sem-I, 2026-27'),
+    (90, 22, 2, 'Dr. THOKALA SOLOMAN RAJU', 'Section I', 5, 'Sem-I, 2026-27'),
+    (91, 22, 2, 'Dr. THOKALA SOLOMAN RAJU', 'Section J', 5, 'Sem-I, 2026-27'),
+    (92, 22, 2, 'Dr. THOKALA SOLOMAN RAJU', 'Section K', 5, 'Sem-I, 2026-27'),
+    (93, 23, 2, 'Dr Sandeep Kumar Panda', 'Section A', 5, 'Sem-I, 2026-27'),
+    (94, 23, 2, 'Dr Sandeep Kumar Panda', 'Section B', 5, 'Sem-I, 2026-27'),
+    (95, 23, 2, 'Dr Sandeep Kumar Panda', 'Section C', 5, 'Sem-I, 2026-27'),
+    (96, 23, 2, 'Dr Sandeep Kumar Panda', 'Section D', 5, 'Sem-I, 2026-27'),
+    (97, 23, 2, 'Dr Sandeep Kumar Panda', 'Section E', 5, 'Sem-I, 2026-27'),
+    (98, 23, 2, 'Dr Sandeep Kumar Panda', 'Section F', 5, 'Sem-I, 2026-27'),
+    (99, 23, 2, 'Dr Sandeep Kumar Panda', 'Section G', 5, 'Sem-I, 2026-27'),
+    (100, 23, 2, 'Dr Sandeep Kumar Panda', 'Section H', 5, 'Sem-I, 2026-27');
+INSERT INTO course_offerings (offering_id, course_id, faculty_id, faculty_name, class_section, semester, term_name) VALUES
+    (101, 23, 2, 'Dr Sandeep Kumar Panda', 'Section I', 5, 'Sem-I, 2026-27'),
+    (102, 23, 2, 'Dr Sandeep Kumar Panda', 'Section J', 5, 'Sem-I, 2026-27'),
+    (103, 23, 2, 'Dr Sandeep Kumar Panda', 'Section K', 5, 'Sem-I, 2026-27'),
+    (104, 24, 2, 'Dr. Sunil', 'Section A', 3, 'Sem-I, 2026-27'),
+    (105, 24, 2, 'Dr. Sunil', 'Section B', 3, 'Sem-I, 2026-27'),
+    (106, 24, 2, 'Dr. Sunil', 'Section C', 3, 'Sem-I, 2026-27'),
+    (107, 24, 2, 'Dr. Sunil', 'Section D', 3, 'Sem-I, 2026-27'),
+    (108, 24, 2, 'Dr. Sunil', 'Section E', 3, 'Sem-I, 2026-27'),
+    (109, 24, 2, 'Dr. Sunil', 'Section F', 3, 'Sem-I, 2026-27'),
+    (110, 24, 2, 'Dr. Sunil', 'Section G', 3, 'Sem-I, 2026-27'),
+    (111, 24, 2, 'Dr. Sunil', 'Section H', 3, 'Sem-I, 2026-27'),
+    (112, 24, 2, 'Dr. Sunil', 'Section I', 3, 'Sem-I, 2026-27'),
+    (113, 24, 2, 'Dr. Sunil', 'Section J', 3, 'Sem-I, 2026-27'),
+    (114, 24, 2, 'Dr. Sunil', 'Section K', 3, 'Sem-I, 2026-27'),
+    (115, 25, 2, 'Dr Suresh N', 'Section A', 5, 'Sem-I, 2026-27'),
+    (116, 25, 2, 'Dr Suresh N', 'Section B', 5, 'Sem-I, 2026-27'),
+    (117, 25, 2, 'Dr Suresh N', 'Section C', 5, 'Sem-I, 2026-27'),
+    (118, 25, 2, 'Dr Suresh N', 'Section D', 5, 'Sem-I, 2026-27'),
+    (119, 25, 2, 'Dr Suresh N', 'Section E', 5, 'Sem-I, 2026-27'),
+    (120, 25, 2, 'Dr Suresh N', 'Section F', 5, 'Sem-I, 2026-27'),
+    (121, 25, 2, 'Dr Suresh N', 'Section G', 5, 'Sem-I, 2026-27'),
+    (122, 25, 2, 'Dr Suresh N', 'Section H', 5, 'Sem-I, 2026-27'),
+    (123, 25, 2, 'Dr Suresh N', 'Section I', 5, 'Sem-I, 2026-27'),
+    (124, 25, 2, 'Dr Suresh N', 'Section J', 5, 'Sem-I, 2026-27'),
+    (125, 25, 2, 'Dr Suresh N', 'Section K', 5, 'Sem-I, 2026-27'),
+    (126, 26, 2, 'Mr Madhav', 'Section A', 5, 'Sem-I, 2026-27'),
+    (127, 26, 2, 'Mr Madhav', 'Section B', 5, 'Sem-I, 2026-27'),
+    (128, 26, 2, 'Mr Madhav', 'Section C', 5, 'Sem-I, 2026-27'),
+    (129, 26, 2, 'Mr Madhav', 'Section D', 5, 'Sem-I, 2026-27'),
+    (130, 26, 2, 'Mr Madhav', 'Section E', 5, 'Sem-I, 2026-27'),
+    (131, 26, 2, 'Mr Madhav', 'Section F', 5, 'Sem-I, 2026-27'),
+    (132, 26, 2, 'Mr Madhav', 'Section G', 5, 'Sem-I, 2026-27'),
+    (133, 26, 2, 'Mr Madhav', 'Section H', 5, 'Sem-I, 2026-27'),
+    (134, 26, 2, 'Mr Madhav', 'Section I', 5, 'Sem-I, 2026-27'),
+    (135, 26, 2, 'Mr Madhav', 'Section J', 5, 'Sem-I, 2026-27'),
+    (136, 26, 2, 'Mr Madhav', 'Section K', 5, 'Sem-I, 2026-27'),
+    (137, 27, 2, 'Dr Pallavi Mishra', 'Section A', 5, 'Sem-I, 2026-27'),
+    (138, 27, 2, 'Dr Pallavi Mishra', 'Section B', 5, 'Sem-I, 2026-27'),
+    (139, 27, 2, 'Dr Pallavi Mishra', 'Section C', 5, 'Sem-I, 2026-27'),
+    (140, 27, 2, 'Dr Pallavi Mishra', 'Section D', 5, 'Sem-I, 2026-27'),
+    (141, 27, 2, 'Dr Pallavi Mishra', 'Section E', 5, 'Sem-I, 2026-27'),
+    (142, 27, 2, 'Dr Pallavi Mishra', 'Section F', 5, 'Sem-I, 2026-27'),
+    (143, 27, 2, 'Dr Pallavi Mishra', 'Section G', 5, 'Sem-I, 2026-27'),
+    (144, 27, 2, 'Dr Pallavi Mishra', 'Section H', 5, 'Sem-I, 2026-27'),
+    (145, 27, 2, 'Dr Pallavi Mishra', 'Section I', 5, 'Sem-I, 2026-27'),
+    (146, 27, 2, 'Dr Pallavi Mishra', 'Section J', 5, 'Sem-I, 2026-27'),
+    (147, 27, 2, 'Dr Pallavi Mishra', 'Section K', 5, 'Sem-I, 2026-27'),
+    (148, 28, 2, 'Dr. Swathi', 'Section A', 3, 'Sem-I, 2026-27'),
+    (149, 28, 2, 'Dr. Swathi', 'Section B', 3, 'Sem-I, 2026-27'),
+    (150, 28, 2, 'Dr. Swathi', 'Section C', 3, 'Sem-I, 2026-27');
+INSERT INTO course_offerings (offering_id, course_id, faculty_id, faculty_name, class_section, semester, term_name) VALUES
+    (151, 28, 2, 'Dr. Swathi', 'Section D', 3, 'Sem-I, 2026-27'),
+    (152, 28, 2, 'Dr. Swathi', 'Section E', 3, 'Sem-I, 2026-27'),
+    (153, 28, 2, 'Dr. Swathi', 'Section F', 3, 'Sem-I, 2026-27'),
+    (154, 28, 2, 'Dr. Swathi', 'Section G', 3, 'Sem-I, 2026-27'),
+    (155, 28, 2, 'Dr. Swathi', 'Section H', 3, 'Sem-I, 2026-27'),
+    (156, 28, 2, 'Dr. Swathi', 'Section I', 3, 'Sem-I, 2026-27'),
+    (157, 28, 2, 'Dr. Swathi', 'Section J', 3, 'Sem-I, 2026-27'),
+    (158, 28, 2, 'Dr. Swathi', 'Section K', 3, 'Sem-I, 2026-27'),
+    (159, 29, 2, 'Dr. Syed Shakeel H', 'Section A', 5, 'Sem-I, 2026-27'),
+    (160, 29, 2, 'Dr. Syed Shakeel H', 'Section B', 5, 'Sem-I, 2026-27'),
+    (161, 29, 2, 'Dr. Syed Shakeel H', 'Section C', 5, 'Sem-I, 2026-27'),
+    (162, 29, 2, 'Dr. Syed Shakeel H', 'Section D', 5, 'Sem-I, 2026-27'),
+    (163, 29, 2, 'Dr. Syed Shakeel H', 'Section E', 5, 'Sem-I, 2026-27'),
+    (164, 29, 2, 'Dr. Syed Shakeel H', 'Section F', 5, 'Sem-I, 2026-27'),
+    (165, 29, 2, 'Dr. Syed Shakeel H', 'Section G', 5, 'Sem-I, 2026-27'),
+    (166, 29, 2, 'Dr. Syed Shakeel H', 'Section H', 5, 'Sem-I, 2026-27'),
+    (167, 29, 2, 'Dr. Syed Shakeel H', 'Section I', 5, 'Sem-I, 2026-27'),
+    (168, 29, 2, 'Dr. Syed Shakeel H', 'Section J', 5, 'Sem-I, 2026-27'),
+    (169, 29, 2, 'Dr. Syed Shakeel H', 'Section K', 5, 'Sem-I, 2026-27'),
+    (170, 30, 2, 'Dr. A MANMADHA CHARY', 'Section A', 5, 'Sem-I, 2026-27'),
+    (171, 30, 2, 'Dr. A MANMADHA CHARY', 'Section B', 5, 'Sem-I, 2026-27'),
+    (172, 30, 2, 'Dr. A MANMADHA CHARY', 'Section C', 5, 'Sem-I, 2026-27'),
+    (173, 30, 2, 'Dr. A MANMADHA CHARY', 'Section D', 5, 'Sem-I, 2026-27'),
+    (174, 30, 2, 'Dr. A MANMADHA CHARY', 'Section E', 5, 'Sem-I, 2026-27'),
+    (175, 30, 2, 'Dr. A MANMADHA CHARY', 'Section F', 5, 'Sem-I, 2026-27'),
+    (176, 30, 2, 'Dr. A MANMADHA CHARY', 'Section G', 5, 'Sem-I, 2026-27'),
+    (177, 30, 2, 'Dr. A MANMADHA CHARY', 'Section H', 5, 'Sem-I, 2026-27'),
+    (178, 30, 2, 'Dr. A MANMADHA CHARY', 'Section I', 5, 'Sem-I, 2026-27'),
+    (179, 30, 2, 'Dr. A MANMADHA CHARY', 'Section J', 5, 'Sem-I, 2026-27'),
+    (180, 30, 2, 'Dr. A MANMADHA CHARY', 'Section K', 5, 'Sem-I, 2026-27'),
+    (181, 31, 2, 'Dr. Divya', 'Section A', 3, 'Sem-I, 2026-27'),
+    (182, 31, 2, 'Dr. Divya', 'Section B', 3, 'Sem-I, 2026-27'),
+    (183, 31, 2, 'Dr. Divya', 'Section C', 3, 'Sem-I, 2026-27'),
+    (184, 31, 2, 'Dr. Divya', 'Section D', 3, 'Sem-I, 2026-27'),
+    (185, 31, 2, 'Dr. Divya', 'Section E', 3, 'Sem-I, 2026-27'),
+    (186, 31, 2, 'Dr. Divya', 'Section F', 3, 'Sem-I, 2026-27'),
+    (187, 31, 2, 'Dr. Divya', 'Section G', 3, 'Sem-I, 2026-27'),
+    (188, 31, 2, 'Dr. Divya', 'Section H', 3, 'Sem-I, 2026-27'),
+    (189, 31, 2, 'Dr. Divya', 'Section I', 3, 'Sem-I, 2026-27'),
+    (190, 31, 2, 'Dr. Divya', 'Section J', 3, 'Sem-I, 2026-27'),
+    (191, 31, 2, 'Dr. Divya', 'Section K', 3, 'Sem-I, 2026-27'),
+    (192, 32, 2, 'Dr H Sudheer', 'Section A', 7, 'Sem-I, 2026-27'),
+    (193, 32, 2, 'Dr H Sudheer', 'Section B', 7, 'Sem-I, 2026-27'),
+    (194, 32, 2, 'Dr H Sudheer', 'Section C', 7, 'Sem-I, 2026-27'),
+    (195, 32, 2, 'Dr H Sudheer', 'Section D', 7, 'Sem-I, 2026-27'),
+    (196, 32, 2, 'Dr H Sudheer', 'Section E', 7, 'Sem-I, 2026-27'),
+    (197, 32, 2, 'Dr H Sudheer', 'Section F', 7, 'Sem-I, 2026-27'),
+    (198, 32, 2, 'Dr H Sudheer', 'Section G', 7, 'Sem-I, 2026-27'),
+    (199, 32, 2, 'Dr H Sudheer', 'Section H', 7, 'Sem-I, 2026-27'),
+    (200, 32, 2, 'Dr H Sudheer', 'Section I', 7, 'Sem-I, 2026-27');
+INSERT INTO course_offerings (offering_id, course_id, faculty_id, faculty_name, class_section, semester, term_name) VALUES
+    (201, 32, 2, 'Dr H Sudheer', 'Section J', 7, 'Sem-I, 2026-27'),
+    (202, 32, 2, 'Dr H Sudheer', 'Section K', 7, 'Sem-I, 2026-27'),
+    (203, 33, 2, 'Dr. SOMDATTA MUKHERJEE', 'Section A', 7, 'Sem-I, 2026-27'),
+    (204, 33, 2, 'Dr. SOMDATTA MUKHERJEE', 'Section B', 7, 'Sem-I, 2026-27'),
+    (205, 33, 2, 'Dr. SOMDATTA MUKHERJEE', 'Section C', 7, 'Sem-I, 2026-27'),
+    (206, 33, 2, 'Dr. SOMDATTA MUKHERJEE', 'Section D', 7, 'Sem-I, 2026-27'),
+    (207, 33, 2, 'Dr. SOMDATTA MUKHERJEE', 'Section E', 7, 'Sem-I, 2026-27'),
+    (208, 33, 2, 'Dr. SOMDATTA MUKHERJEE', 'Section F', 7, 'Sem-I, 2026-27'),
+    (209, 33, 2, 'Dr. SOMDATTA MUKHERJEE', 'Section G', 7, 'Sem-I, 2026-27'),
+    (210, 33, 2, 'Dr. SOMDATTA MUKHERJEE', 'Section H', 7, 'Sem-I, 2026-27'),
+    (211, 33, 2, 'Dr. SOMDATTA MUKHERJEE', 'Section I', 7, 'Sem-I, 2026-27'),
+    (212, 33, 2, 'Dr. SOMDATTA MUKHERJEE', 'Section J', 7, 'Sem-I, 2026-27'),
+    (213, 33, 2, 'Dr. SOMDATTA MUKHERJEE', 'Section K', 7, 'Sem-I, 2026-27'),
+    (214, 34, 2, 'Mr Arram Sriram', 'Section A', 5, 'Sem-I, 2026-27'),
+    (215, 34, 2, 'Mr Arram Sriram', 'Section B', 5, 'Sem-I, 2026-27'),
+    (216, 34, 2, 'Mr Arram Sriram', 'Section C', 5, 'Sem-I, 2026-27'),
+    (217, 34, 2, 'Mr Arram Sriram', 'Section D', 5, 'Sem-I, 2026-27'),
+    (218, 34, 2, 'Mr Arram Sriram', 'Section E', 5, 'Sem-I, 2026-27'),
+    (219, 34, 2, 'Mr Arram Sriram', 'Section F', 5, 'Sem-I, 2026-27'),
+    (220, 34, 2, 'Mr Arram Sriram', 'Section G', 5, 'Sem-I, 2026-27'),
+    (221, 34, 2, 'Mr Arram Sriram', 'Section H', 5, 'Sem-I, 2026-27'),
+    (222, 34, 2, 'Mr Arram Sriram', 'Section I', 5, 'Sem-I, 2026-27'),
+    (223, 34, 2, 'Mr Arram Sriram', 'Section J', 5, 'Sem-I, 2026-27'),
+    (224, 34, 2, 'Mr Arram Sriram', 'Section K', 5, 'Sem-I, 2026-27'),
+    (225, 35, 2, 'Dr S Jayanthi', 'Section A', 5, 'Sem-I, 2026-27'),
+    (226, 35, 2, 'Dr S Jayanthi', 'Section B', 5, 'Sem-I, 2026-27'),
+    (227, 35, 2, 'Dr S Jayanthi', 'Section C', 5, 'Sem-I, 2026-27'),
+    (228, 35, 2, 'Dr S Jayanthi', 'Section D', 5, 'Sem-I, 2026-27'),
+    (229, 35, 2, 'Dr S Jayanthi', 'Section E', 5, 'Sem-I, 2026-27'),
+    (230, 35, 2, 'Dr S Jayanthi', 'Section F', 5, 'Sem-I, 2026-27'),
+    (231, 35, 2, 'Dr S Jayanthi', 'Section G', 5, 'Sem-I, 2026-27'),
+    (232, 35, 2, 'Dr S Jayanthi', 'Section H', 5, 'Sem-I, 2026-27'),
+    (233, 35, 2, 'Dr S Jayanthi', 'Section I', 5, 'Sem-I, 2026-27'),
+    (234, 35, 2, 'Dr S Jayanthi', 'Section J', 5, 'Sem-I, 2026-27'),
+    (235, 35, 2, 'Dr S Jayanthi', 'Section K', 5, 'Sem-I, 2026-27'),
+    (236, 36, 2, 'Dr.Ashwin Kumar', 'Section A', 5, 'Sem-I, 2026-27'),
+    (237, 36, 2, 'Dr.Ashwin Kumar', 'Section B', 5, 'Sem-I, 2026-27'),
+    (238, 36, 2, 'Dr.Ashwin Kumar', 'Section C', 5, 'Sem-I, 2026-27'),
+    (239, 36, 2, 'Dr.Ashwin Kumar', 'Section D', 5, 'Sem-I, 2026-27'),
+    (240, 36, 2, 'Dr.Ashwin Kumar', 'Section E', 5, 'Sem-I, 2026-27'),
+    (241, 36, 2, 'Dr.Ashwin Kumar', 'Section F', 5, 'Sem-I, 2026-27'),
+    (242, 36, 2, 'Dr.Ashwin Kumar', 'Section G', 5, 'Sem-I, 2026-27'),
+    (243, 36, 2, 'Dr.Ashwin Kumar', 'Section H', 5, 'Sem-I, 2026-27'),
+    (244, 36, 2, 'Dr.Ashwin Kumar', 'Section I', 5, 'Sem-I, 2026-27'),
+    (245, 36, 2, 'Dr.Ashwin Kumar', 'Section J', 5, 'Sem-I, 2026-27'),
+    (246, 36, 2, 'Dr.Ashwin Kumar', 'Section K', 5, 'Sem-I, 2026-27'),
+    (247, 37, 2, 'Ms. Sai Prasanna', 'Section A', 5, 'Sem-I, 2026-27'),
+    (248, 37, 2, 'Ms. Sai Prasanna', 'Section B', 5, 'Sem-I, 2026-27'),
+    (249, 37, 2, 'Ms. Sai Prasanna', 'Section C', 5, 'Sem-I, 2026-27'),
+    (250, 37, 2, 'Ms. Sai Prasanna', 'Section D', 5, 'Sem-I, 2026-27');
+INSERT INTO course_offerings (offering_id, course_id, faculty_id, faculty_name, class_section, semester, term_name) VALUES
+    (251, 37, 2, 'Ms. Sai Prasanna', 'Section E', 5, 'Sem-I, 2026-27'),
+    (252, 37, 2, 'Ms. Sai Prasanna', 'Section F', 5, 'Sem-I, 2026-27'),
+    (253, 37, 2, 'Ms. Sai Prasanna', 'Section G', 5, 'Sem-I, 2026-27'),
+    (254, 37, 2, 'Ms. Sai Prasanna', 'Section H', 5, 'Sem-I, 2026-27'),
+    (255, 37, 2, 'Ms. Sai Prasanna', 'Section I', 5, 'Sem-I, 2026-27'),
+    (256, 37, 2, 'Ms. Sai Prasanna', 'Section J', 5, 'Sem-I, 2026-27'),
+    (257, 37, 2, 'Ms. Sai Prasanna', 'Section K', 5, 'Sem-I, 2026-27'),
+    (258, 38, 2, 'Dr S Jayanthi', 'Section A', 3, 'Sem-I, 2026-27'),
+    (259, 38, 2, 'Dr S Jayanthi', 'Section B', 3, 'Sem-I, 2026-27'),
+    (260, 38, 2, 'Dr S Jayanthi', 'Section C', 3, 'Sem-I, 2026-27'),
+    (261, 38, 2, 'Dr S Jayanthi', 'Section D', 3, 'Sem-I, 2026-27'),
+    (262, 38, 2, 'Dr S Jayanthi', 'Section E', 3, 'Sem-I, 2026-27'),
+    (263, 38, 2, 'Dr S Jayanthi', 'Section F', 3, 'Sem-I, 2026-27'),
+    (264, 38, 2, 'Dr S Jayanthi', 'Section G', 3, 'Sem-I, 2026-27'),
+    (265, 38, 2, 'Dr S Jayanthi', 'Section H', 3, 'Sem-I, 2026-27'),
+    (266, 38, 2, 'Dr S Jayanthi', 'Section I', 3, 'Sem-I, 2026-27'),
+    (267, 38, 2, 'Dr S Jayanthi', 'Section J', 3, 'Sem-I, 2026-27'),
+    (268, 38, 2, 'Dr S Jayanthi', 'Section K', 3, 'Sem-I, 2026-27'),
+    (269, 39, 2, 'Dr Madhupama', 'Section A', 3, 'Sem-I, 2026-27'),
+    (270, 39, 2, 'Dr Madhupama', 'Section B', 3, 'Sem-I, 2026-27'),
+    (271, 39, 2, 'Dr Madhupama', 'Section C', 3, 'Sem-I, 2026-27'),
+    (272, 39, 2, 'Dr Madhupama', 'Section D', 3, 'Sem-I, 2026-27'),
+    (273, 39, 2, 'Dr Madhupama', 'Section E', 3, 'Sem-I, 2026-27'),
+    (274, 39, 2, 'Dr Madhupama', 'Section F', 3, 'Sem-I, 2026-27'),
+    (275, 39, 2, 'Dr Madhupama', 'Section G', 3, 'Sem-I, 2026-27'),
+    (276, 39, 2, 'Dr Madhupama', 'Section H', 3, 'Sem-I, 2026-27'),
+    (277, 39, 2, 'Dr Madhupama', 'Section I', 3, 'Sem-I, 2026-27'),
+    (278, 39, 2, 'Dr Madhupama', 'Section J', 3, 'Sem-I, 2026-27'),
+    (279, 39, 2, 'Dr Madhupama', 'Section K', 3, 'Sem-I, 2026-27'),
+    (280, 40, 2, 'Dr K Ramesh', 'Section A', 3, 'Sem-I, 2026-27'),
+    (281, 40, 2, 'Dr K Ramesh', 'Section B', 3, 'Sem-I, 2026-27'),
+    (282, 40, 2, 'Dr K Ramesh', 'Section C', 3, 'Sem-I, 2026-27'),
+    (283, 40, 2, 'Dr K Ramesh', 'Section D', 3, 'Sem-I, 2026-27'),
+    (284, 40, 2, 'Dr K Ramesh', 'Section E', 3, 'Sem-I, 2026-27'),
+    (285, 40, 2, 'Dr K Ramesh', 'Section F', 3, 'Sem-I, 2026-27'),
+    (286, 40, 2, 'Dr K Ramesh', 'Section G', 3, 'Sem-I, 2026-27'),
+    (287, 40, 2, 'Dr K Ramesh', 'Section H', 3, 'Sem-I, 2026-27'),
+    (288, 40, 2, 'Dr K Ramesh', 'Section I', 3, 'Sem-I, 2026-27'),
+    (289, 40, 2, 'Dr K Ramesh', 'Section J', 3, 'Sem-I, 2026-27'),
+    (290, 40, 2, 'Dr K Ramesh', 'Section K', 3, 'Sem-I, 2026-27'),
+    (291, 41, 2, 'Dr K Vara Prasada Rao', 'Section A', 7, 'Sem-I, 2026-27'),
+    (292, 41, 2, 'Dr K Vara Prasada Rao', 'Section B', 7, 'Sem-I, 2026-27'),
+    (293, 41, 2, 'Dr K Vara Prasada Rao', 'Section C', 7, 'Sem-I, 2026-27'),
+    (294, 41, 2, 'Dr K Vara Prasada Rao', 'Section D', 7, 'Sem-I, 2026-27'),
+    (295, 41, 2, 'Dr K Vara Prasada Rao', 'Section E', 7, 'Sem-I, 2026-27'),
+    (296, 41, 2, 'Dr K Vara Prasada Rao', 'Section F', 7, 'Sem-I, 2026-27'),
+    (297, 41, 2, 'Dr K Vara Prasada Rao', 'Section G', 7, 'Sem-I, 2026-27'),
+    (298, 41, 2, 'Dr K Vara Prasada Rao', 'Section H', 7, 'Sem-I, 2026-27'),
+    (299, 41, 2, 'Dr K Vara Prasada Rao', 'Section I', 7, 'Sem-I, 2026-27'),
+    (300, 41, 2, 'Dr K Vara Prasada Rao', 'Section J', 7, 'Sem-I, 2026-27');
+INSERT INTO course_offerings (offering_id, course_id, faculty_id, faculty_name, class_section, semester, term_name) VALUES
+    (301, 41, 2, 'Dr K Vara Prasada Rao', 'Section K', 7, 'Sem-I, 2026-27'),
+    (302, 42, 2, 'Dr Kuncham Sreenivasa Rao', 'Section A', 7, 'Sem-I, 2026-27'),
+    (303, 42, 2, 'Dr Kuncham Sreenivasa Rao', 'Section B', 7, 'Sem-I, 2026-27'),
+    (304, 42, 2, 'Dr Kuncham Sreenivasa Rao', 'Section C', 7, 'Sem-I, 2026-27'),
+    (305, 42, 2, 'Dr Kuncham Sreenivasa Rao', 'Section D', 7, 'Sem-I, 2026-27'),
+    (306, 42, 2, 'Dr Kuncham Sreenivasa Rao', 'Section E', 7, 'Sem-I, 2026-27'),
+    (307, 42, 2, 'Dr Kuncham Sreenivasa Rao', 'Section F', 7, 'Sem-I, 2026-27'),
+    (308, 42, 2, 'Dr Kuncham Sreenivasa Rao', 'Section G', 7, 'Sem-I, 2026-27'),
+    (309, 42, 2, 'Dr Kuncham Sreenivasa Rao', 'Section H', 7, 'Sem-I, 2026-27'),
+    (310, 42, 2, 'Dr Kuncham Sreenivasa Rao', 'Section I', 7, 'Sem-I, 2026-27'),
+    (311, 42, 2, 'Dr Kuncham Sreenivasa Rao', 'Section J', 7, 'Sem-I, 2026-27'),
+    (312, 42, 2, 'Dr Kuncham Sreenivasa Rao', 'Section K', 7, 'Sem-I, 2026-27'),
+    (313, 43, 2, 'Dr.T.Bharath Kumar', 'Section A', 5, 'Sem-I, 2026-27'),
+    (314, 43, 2, 'Dr.T.Bharath Kumar', 'Section B', 5, 'Sem-I, 2026-27'),
+    (315, 43, 2, 'Dr.T.Bharath Kumar', 'Section C', 5, 'Sem-I, 2026-27'),
+    (316, 43, 2, 'Dr.T.Bharath Kumar', 'Section D', 5, 'Sem-I, 2026-27'),
+    (317, 43, 2, 'Dr.T.Bharath Kumar', 'Section E', 5, 'Sem-I, 2026-27'),
+    (318, 43, 2, 'Dr.T.Bharath Kumar', 'Section F', 5, 'Sem-I, 2026-27'),
+    (319, 43, 2, 'Dr.T.Bharath Kumar', 'Section G', 5, 'Sem-I, 2026-27'),
+    (320, 43, 2, 'Dr.T.Bharath Kumar', 'Section H', 5, 'Sem-I, 2026-27'),
+    (321, 43, 2, 'Dr.T.Bharath Kumar', 'Section I', 5, 'Sem-I, 2026-27'),
+    (322, 43, 2, 'Dr.T.Bharath Kumar', 'Section J', 5, 'Sem-I, 2026-27'),
+    (323, 43, 2, 'Dr.T.Bharath Kumar', 'Section K', 5, 'Sem-I, 2026-27'),
+    (324, 44, 2, 'Mr. Abhiram D', 'Section A', 5, 'Sem-I, 2026-27'),
+    (325, 44, 2, 'Mr. Abhiram D', 'Section B', 5, 'Sem-I, 2026-27'),
+    (326, 44, 2, 'Mr. Abhiram D', 'Section C', 5, 'Sem-I, 2026-27'),
+    (327, 44, 2, 'Mr. Abhiram D', 'Section D', 5, 'Sem-I, 2026-27'),
+    (328, 44, 2, 'Mr. Abhiram D', 'Section E', 5, 'Sem-I, 2026-27'),
+    (329, 44, 2, 'Mr. Abhiram D', 'Section F', 5, 'Sem-I, 2026-27'),
+    (330, 44, 2, 'Mr. Abhiram D', 'Section G', 5, 'Sem-I, 2026-27'),
+    (331, 44, 2, 'Mr. Abhiram D', 'Section H', 5, 'Sem-I, 2026-27'),
+    (332, 44, 2, 'Mr. Abhiram D', 'Section I', 5, 'Sem-I, 2026-27'),
+    (333, 44, 2, 'Mr. Abhiram D', 'Section J', 5, 'Sem-I, 2026-27'),
+    (334, 44, 2, 'Mr. Abhiram D', 'Section K', 5, 'Sem-I, 2026-27'),
+    (335, 45, 2, 'Mr Girish Kulkarni', 'Section A', 5, 'Sem-I, 2026-27'),
+    (336, 45, 2, 'Mr Girish Kulkarni', 'Section B', 5, 'Sem-I, 2026-27'),
+    (337, 45, 2, 'Mr Girish Kulkarni', 'Section C', 5, 'Sem-I, 2026-27'),
+    (338, 45, 2, 'Mr Girish Kulkarni', 'Section D', 5, 'Sem-I, 2026-27'),
+    (339, 45, 2, 'Mr Girish Kulkarni', 'Section E', 5, 'Sem-I, 2026-27'),
+    (340, 45, 2, 'Mr Girish Kulkarni', 'Section F', 5, 'Sem-I, 2026-27'),
+    (341, 45, 2, 'Mr Girish Kulkarni', 'Section G', 5, 'Sem-I, 2026-27'),
+    (342, 45, 2, 'Mr Girish Kulkarni', 'Section H', 5, 'Sem-I, 2026-27'),
+    (343, 45, 2, 'Mr Girish Kulkarni', 'Section I', 5, 'Sem-I, 2026-27'),
+    (344, 45, 2, 'Mr Girish Kulkarni', 'Section J', 5, 'Sem-I, 2026-27'),
+    (345, 45, 2, 'Mr Girish Kulkarni', 'Section K', 5, 'Sem-I, 2026-27'),
+    (346, 46, 2, 'Dr. Sankar Ponnapalli', 'Section A', 7, 'Sem-I, 2026-27'),
+    (347, 46, 2, 'Dr. Sankar Ponnapalli', 'Section B', 7, 'Sem-I, 2026-27'),
+    (348, 46, 2, 'Dr. Sankar Ponnapalli', 'Section C', 7, 'Sem-I, 2026-27'),
+    (349, 46, 2, 'Dr. Sankar Ponnapalli', 'Section D', 7, 'Sem-I, 2026-27'),
+    (350, 46, 2, 'Dr. Sankar Ponnapalli', 'Section E', 7, 'Sem-I, 2026-27');
+INSERT INTO course_offerings (offering_id, course_id, faculty_id, faculty_name, class_section, semester, term_name) VALUES
+    (351, 46, 2, 'Dr. Sankar Ponnapalli', 'Section F', 7, 'Sem-I, 2026-27'),
+    (352, 46, 2, 'Dr. Sankar Ponnapalli', 'Section G', 7, 'Sem-I, 2026-27'),
+    (353, 46, 2, 'Dr. Sankar Ponnapalli', 'Section H', 7, 'Sem-I, 2026-27'),
+    (354, 46, 2, 'Dr. Sankar Ponnapalli', 'Section I', 7, 'Sem-I, 2026-27'),
+    (355, 46, 2, 'Dr. Sankar Ponnapalli', 'Section J', 7, 'Sem-I, 2026-27'),
+    (356, 46, 2, 'Dr. Sankar Ponnapalli', 'Section K', 7, 'Sem-I, 2026-27'),
+    (357, 47, 2, 'Dr. CHANDRA SHEKHAR A', 'Section A', 7, 'Sem-I, 2026-27'),
+    (358, 47, 2, 'Dr. CHANDRA SHEKHAR A', 'Section B', 7, 'Sem-I, 2026-27'),
+    (359, 47, 2, 'Dr. CHANDRA SHEKHAR A', 'Section C', 7, 'Sem-I, 2026-27'),
+    (360, 47, 2, 'Dr. CHANDRA SHEKHAR A', 'Section D', 7, 'Sem-I, 2026-27'),
+    (361, 47, 2, 'Dr. CHANDRA SHEKHAR A', 'Section E', 7, 'Sem-I, 2026-27'),
+    (362, 47, 2, 'Dr. CHANDRA SHEKHAR A', 'Section F', 7, 'Sem-I, 2026-27'),
+    (363, 47, 2, 'Dr. CHANDRA SHEKHAR A', 'Section G', 7, 'Sem-I, 2026-27'),
+    (364, 47, 2, 'Dr. CHANDRA SHEKHAR A', 'Section H', 7, 'Sem-I, 2026-27'),
+    (365, 47, 2, 'Dr. CHANDRA SHEKHAR A', 'Section I', 7, 'Sem-I, 2026-27'),
+    (366, 47, 2, 'Dr. CHANDRA SHEKHAR A', 'Section J', 7, 'Sem-I, 2026-27'),
+    (367, 47, 2, 'Dr. CHANDRA SHEKHAR A', 'Section K', 7, 'Sem-I, 2026-27'),
+    (368, 48, 2, 'JOYDEEP ROY', 'Section A', 5, 'Sem-I, 2026-27'),
+    (369, 48, 2, 'JOYDEEP ROY', 'Section B', 5, 'Sem-I, 2026-27'),
+    (370, 48, 2, 'JOYDEEP ROY', 'Section C', 5, 'Sem-I, 2026-27'),
+    (371, 48, 2, 'JOYDEEP ROY', 'Section D', 5, 'Sem-I, 2026-27'),
+    (372, 48, 2, 'JOYDEEP ROY', 'Section E', 5, 'Sem-I, 2026-27'),
+    (373, 48, 2, 'JOYDEEP ROY', 'Section F', 5, 'Sem-I, 2026-27'),
+    (374, 48, 2, 'JOYDEEP ROY', 'Section G', 5, 'Sem-I, 2026-27'),
+    (375, 48, 2, 'JOYDEEP ROY', 'Section H', 5, 'Sem-I, 2026-27'),
+    (376, 48, 2, 'JOYDEEP ROY', 'Section I', 5, 'Sem-I, 2026-27'),
+    (377, 48, 2, 'JOYDEEP ROY', 'Section J', 5, 'Sem-I, 2026-27'),
+    (378, 48, 2, 'JOYDEEP ROY', 'Section K', 5, 'Sem-I, 2026-27'),
+    (379, 49, 2, 'Dr. GURSINGA LAKSHMAN KUMAR', 'Section A', 5, 'Sem-I, 2026-27'),
+    (380, 49, 2, 'Dr. GURSINGA LAKSHMAN KUMAR', 'Section B', 5, 'Sem-I, 2026-27'),
+    (381, 49, 2, 'Dr. GURSINGA LAKSHMAN KUMAR', 'Section C', 5, 'Sem-I, 2026-27'),
+    (382, 49, 2, 'Dr. GURSINGA LAKSHMAN KUMAR', 'Section D', 5, 'Sem-I, 2026-27'),
+    (383, 49, 2, 'Dr. GURSINGA LAKSHMAN KUMAR', 'Section E', 5, 'Sem-I, 2026-27'),
+    (384, 49, 2, 'Dr. GURSINGA LAKSHMAN KUMAR', 'Section F', 5, 'Sem-I, 2026-27'),
+    (385, 49, 2, 'Dr. GURSINGA LAKSHMAN KUMAR', 'Section G', 5, 'Sem-I, 2026-27'),
+    (386, 49, 2, 'Dr. GURSINGA LAKSHMAN KUMAR', 'Section H', 5, 'Sem-I, 2026-27'),
+    (387, 49, 2, 'Dr. GURSINGA LAKSHMAN KUMAR', 'Section I', 5, 'Sem-I, 2026-27'),
+    (388, 49, 2, 'Dr. GURSINGA LAKSHMAN KUMAR', 'Section J', 5, 'Sem-I, 2026-27'),
+    (389, 49, 2, 'Dr. GURSINGA LAKSHMAN KUMAR', 'Section K', 5, 'Sem-I, 2026-27'),
+    (390, 50, 2, 'Dr Swathi', 'Section A', 3, 'Sem-I, 2026-27'),
+    (391, 50, 2, 'Dr Swathi', 'Section B', 3, 'Sem-I, 2026-27'),
+    (392, 50, 2, 'Dr Swathi', 'Section C', 3, 'Sem-I, 2026-27'),
+    (393, 50, 2, 'Dr Swathi', 'Section D', 3, 'Sem-I, 2026-27'),
+    (394, 50, 2, 'Dr Swathi', 'Section E', 3, 'Sem-I, 2026-27'),
+    (395, 50, 2, 'Dr Swathi', 'Section F', 3, 'Sem-I, 2026-27'),
+    (396, 50, 2, 'Dr Swathi', 'Section G', 3, 'Sem-I, 2026-27'),
+    (397, 50, 2, 'Dr Swathi', 'Section H', 3, 'Sem-I, 2026-27'),
+    (398, 50, 2, 'Dr Swathi', 'Section I', 3, 'Sem-I, 2026-27'),
+    (399, 50, 2, 'Dr Swathi', 'Section J', 3, 'Sem-I, 2026-27'),
+    (400, 50, 2, 'Dr Swathi', 'Section K', 3, 'Sem-I, 2026-27');
+INSERT INTO course_offerings (offering_id, course_id, faculty_id, faculty_name, class_section, semester, term_name) VALUES
+    (401, 51, 2, 'Dr Isha Jha', 'Section A', 3, 'Sem-I, 2026-27'),
+    (402, 51, 2, 'Dr Isha Jha', 'Section B', 3, 'Sem-I, 2026-27'),
+    (403, 51, 2, 'Dr Isha Jha', 'Section C', 3, 'Sem-I, 2026-27'),
+    (404, 51, 2, 'Dr Isha Jha', 'Section D', 3, 'Sem-I, 2026-27'),
+    (405, 51, 2, 'Dr Isha Jha', 'Section E', 3, 'Sem-I, 2026-27'),
+    (406, 51, 2, 'Dr Isha Jha', 'Section F', 3, 'Sem-I, 2026-27'),
+    (407, 51, 2, 'Dr Isha Jha', 'Section G', 3, 'Sem-I, 2026-27'),
+    (408, 51, 2, 'Dr Isha Jha', 'Section H', 3, 'Sem-I, 2026-27'),
+    (409, 51, 2, 'Dr Isha Jha', 'Section I', 3, 'Sem-I, 2026-27'),
+    (410, 51, 2, 'Dr Isha Jha', 'Section J', 3, 'Sem-I, 2026-27'),
+    (411, 51, 2, 'Dr Isha Jha', 'Section K', 3, 'Sem-I, 2026-27'),
+    (412, 52, 2, 'Dr. Akhendra Kumar P', 'Section A', 3, 'Sem-I, 2026-27'),
+    (413, 52, 2, 'Dr. Akhendra Kumar P', 'Section B', 3, 'Sem-I, 2026-27'),
+    (414, 52, 2, 'Dr. Akhendra Kumar P', 'Section C', 3, 'Sem-I, 2026-27'),
+    (415, 52, 2, 'Dr. Akhendra Kumar P', 'Section D', 3, 'Sem-I, 2026-27'),
+    (416, 52, 2, 'Dr. Akhendra Kumar P', 'Section E', 3, 'Sem-I, 2026-27'),
+    (417, 52, 2, 'Dr. Akhendra Kumar P', 'Section F', 3, 'Sem-I, 2026-27'),
+    (418, 52, 2, 'Dr. Akhendra Kumar P', 'Section G', 3, 'Sem-I, 2026-27'),
+    (419, 52, 2, 'Dr. Akhendra Kumar P', 'Section H', 3, 'Sem-I, 2026-27'),
+    (420, 52, 2, 'Dr. Akhendra Kumar P', 'Section I', 3, 'Sem-I, 2026-27'),
+    (421, 52, 2, 'Dr. Akhendra Kumar P', 'Section J', 3, 'Sem-I, 2026-27'),
+    (422, 52, 2, 'Dr. Akhendra Kumar P', 'Section K', 3, 'Sem-I, 2026-27'),
+    (423, 53, 2, 'Dr R Balamurali', 'Section A', 3, 'Sem-I, 2026-27'),
+    (424, 53, 2, 'Dr R Balamurali', 'Section B', 3, 'Sem-I, 2026-27'),
+    (425, 53, 2, 'Dr R Balamurali', 'Section C', 3, 'Sem-I, 2026-27'),
+    (426, 53, 2, 'Dr R Balamurali', 'Section D', 3, 'Sem-I, 2026-27'),
+    (427, 53, 2, 'Dr R Balamurali', 'Section E', 3, 'Sem-I, 2026-27'),
+    (428, 53, 2, 'Dr R Balamurali', 'Section F', 3, 'Sem-I, 2026-27'),
+    (429, 53, 2, 'Dr R Balamurali', 'Section G', 3, 'Sem-I, 2026-27'),
+    (430, 53, 2, 'Dr R Balamurali', 'Section H', 3, 'Sem-I, 2026-27'),
+    (431, 53, 2, 'Dr R Balamurali', 'Section I', 3, 'Sem-I, 2026-27'),
+    (432, 53, 2, 'Dr R Balamurali', 'Section J', 3, 'Sem-I, 2026-27'),
+    (433, 53, 2, 'Dr R Balamurali', 'Section K', 3, 'Sem-I, 2026-27'),
+    (434, 54, 2, 'Dr Sarit Chanda', 'Section A', 7, 'Sem-I, 2026-27'),
+    (435, 54, 2, 'Dr Sarit Chanda', 'Section B', 7, 'Sem-I, 2026-27'),
+    (436, 54, 2, 'Dr Sarit Chanda', 'Section C', 7, 'Sem-I, 2026-27'),
+    (437, 54, 2, 'Dr Sarit Chanda', 'Section D', 7, 'Sem-I, 2026-27'),
+    (438, 54, 2, 'Dr Sarit Chanda', 'Section E', 7, 'Sem-I, 2026-27'),
+    (439, 54, 2, 'Dr Sarit Chanda', 'Section F', 7, 'Sem-I, 2026-27'),
+    (440, 54, 2, 'Dr Sarit Chanda', 'Section G', 7, 'Sem-I, 2026-27'),
+    (441, 54, 2, 'Dr Sarit Chanda', 'Section H', 7, 'Sem-I, 2026-27'),
+    (442, 54, 2, 'Dr Sarit Chanda', 'Section I', 7, 'Sem-I, 2026-27'),
+    (443, 54, 2, 'Dr Sarit Chanda', 'Section J', 7, 'Sem-I, 2026-27'),
+    (444, 54, 2, 'Dr Sarit Chanda', 'Section K', 7, 'Sem-I, 2026-27'),
+    (445, 55, 2, 'Dr.T.Aruna Sri', 'Section A', 5, 'Sem-I, 2026-27'),
+    (446, 55, 2, 'Dr.T.Aruna Sri', 'Section B', 5, 'Sem-I, 2026-27'),
+    (447, 55, 2, 'Dr.T.Aruna Sri', 'Section C', 5, 'Sem-I, 2026-27'),
+    (448, 55, 2, 'Dr.T.Aruna Sri', 'Section D', 5, 'Sem-I, 2026-27'),
+    (449, 55, 2, 'Dr.T.Aruna Sri', 'Section E', 5, 'Sem-I, 2026-27'),
+    (450, 55, 2, 'Dr.T.Aruna Sri', 'Section F', 5, 'Sem-I, 2026-27');
+INSERT INTO course_offerings (offering_id, course_id, faculty_id, faculty_name, class_section, semester, term_name) VALUES
+    (451, 55, 2, 'Dr.T.Aruna Sri', 'Section G', 5, 'Sem-I, 2026-27'),
+    (452, 55, 2, 'Dr.T.Aruna Sri', 'Section H', 5, 'Sem-I, 2026-27'),
+    (453, 55, 2, 'Dr.T.Aruna Sri', 'Section I', 5, 'Sem-I, 2026-27'),
+    (454, 55, 2, 'Dr.T.Aruna Sri', 'Section J', 5, 'Sem-I, 2026-27'),
+    (455, 55, 2, 'Dr.T.Aruna Sri', 'Section K', 5, 'Sem-I, 2026-27'),
+    (456, 56, 2, 'Dr B Deevena Raju', 'Section A', 5, 'Sem-I, 2026-27'),
+    (457, 56, 2, 'Dr B Deevena Raju', 'Section B', 5, 'Sem-I, 2026-27'),
+    (458, 56, 2, 'Dr B Deevena Raju', 'Section C', 5, 'Sem-I, 2026-27'),
+    (459, 56, 2, 'Dr B Deevena Raju', 'Section D', 5, 'Sem-I, 2026-27'),
+    (460, 56, 2, 'Dr B Deevena Raju', 'Section E', 5, 'Sem-I, 2026-27'),
+    (461, 56, 2, 'Dr B Deevena Raju', 'Section F', 5, 'Sem-I, 2026-27'),
+    (462, 56, 2, 'Dr B Deevena Raju', 'Section G', 5, 'Sem-I, 2026-27'),
+    (463, 56, 2, 'Dr B Deevena Raju', 'Section H', 5, 'Sem-I, 2026-27'),
+    (464, 56, 2, 'Dr B Deevena Raju', 'Section I', 5, 'Sem-I, 2026-27'),
+    (465, 56, 2, 'Dr B Deevena Raju', 'Section J', 5, 'Sem-I, 2026-27'),
+    (466, 56, 2, 'Dr B Deevena Raju', 'Section K', 5, 'Sem-I, 2026-27'),
+    (467, 57, 2, 'Mr. Abhiram D', 'Section A', 5, 'Sem-I, 2026-27'),
+    (468, 57, 2, 'Mr. Abhiram D', 'Section B', 5, 'Sem-I, 2026-27'),
+    (469, 57, 2, 'Mr. Abhiram D', 'Section C', 5, 'Sem-I, 2026-27'),
+    (470, 57, 2, 'Mr. Abhiram D', 'Section D', 5, 'Sem-I, 2026-27'),
+    (471, 57, 2, 'Mr. Abhiram D', 'Section E', 5, 'Sem-I, 2026-27'),
+    (472, 57, 2, 'Mr. Abhiram D', 'Section F', 5, 'Sem-I, 2026-27'),
+    (473, 57, 2, 'Mr. Abhiram D', 'Section G', 5, 'Sem-I, 2026-27'),
+    (474, 57, 2, 'Mr. Abhiram D', 'Section H', 5, 'Sem-I, 2026-27'),
+    (475, 57, 2, 'Mr. Abhiram D', 'Section I', 5, 'Sem-I, 2026-27'),
+    (476, 57, 2, 'Mr. Abhiram D', 'Section J', 5, 'Sem-I, 2026-27'),
+    (477, 57, 2, 'Mr. Abhiram D', 'Section K', 5, 'Sem-I, 2026-27'),
+    (478, 58, 2, 'Dr. Kousik Midya', 'Section A', 3, 'Sem-I, 2026-27'),
+    (479, 58, 2, 'Dr. Kousik Midya', 'Section B', 3, 'Sem-I, 2026-27'),
+    (480, 58, 2, 'Dr. Kousik Midya', 'Section C', 3, 'Sem-I, 2026-27'),
+    (481, 58, 2, 'Dr. Kousik Midya', 'Section D', 3, 'Sem-I, 2026-27'),
+    (482, 58, 2, 'Dr. Kousik Midya', 'Section E', 3, 'Sem-I, 2026-27'),
+    (483, 58, 2, 'Dr. Kousik Midya', 'Section F', 3, 'Sem-I, 2026-27'),
+    (484, 58, 2, 'Dr. Kousik Midya', 'Section G', 3, 'Sem-I, 2026-27'),
+    (485, 58, 2, 'Dr. Kousik Midya', 'Section H', 3, 'Sem-I, 2026-27'),
+    (486, 58, 2, 'Dr. Kousik Midya', 'Section I', 3, 'Sem-I, 2026-27'),
+    (487, 58, 2, 'Dr. Kousik Midya', 'Section J', 3, 'Sem-I, 2026-27'),
+    (488, 58, 2, 'Dr. Kousik Midya', 'Section K', 3, 'Sem-I, 2026-27'),
+    (489, 59, 2, 'Dr. AVINASH MALLADI', 'Section A', 3, 'Sem-I, 2026-27'),
+    (490, 59, 2, 'Dr. AVINASH MALLADI', 'Section B', 3, 'Sem-I, 2026-27'),
+    (491, 59, 2, 'Dr. AVINASH MALLADI', 'Section C', 3, 'Sem-I, 2026-27'),
+    (492, 59, 2, 'Dr. AVINASH MALLADI', 'Section D', 3, 'Sem-I, 2026-27'),
+    (493, 59, 2, 'Dr. AVINASH MALLADI', 'Section E', 3, 'Sem-I, 2026-27'),
+    (494, 59, 2, 'Dr. AVINASH MALLADI', 'Section F', 3, 'Sem-I, 2026-27'),
+    (495, 59, 2, 'Dr. AVINASH MALLADI', 'Section G', 3, 'Sem-I, 2026-27'),
+    (496, 59, 2, 'Dr. AVINASH MALLADI', 'Section H', 3, 'Sem-I, 2026-27'),
+    (497, 59, 2, 'Dr. AVINASH MALLADI', 'Section I', 3, 'Sem-I, 2026-27'),
+    (498, 59, 2, 'Dr. AVINASH MALLADI', 'Section J', 3, 'Sem-I, 2026-27'),
+    (499, 59, 2, 'Dr. AVINASH MALLADI', 'Section K', 3, 'Sem-I, 2026-27'),
+    (500, 60, 2, 'Dr.Mallavarapu Sandhya', 'Section A', 7, 'Sem-I, 2026-27');
+INSERT INTO course_offerings (offering_id, course_id, faculty_id, faculty_name, class_section, semester, term_name) VALUES
+    (501, 60, 2, 'Dr.Mallavarapu Sandhya', 'Section B', 7, 'Sem-I, 2026-27'),
+    (502, 60, 2, 'Dr.Mallavarapu Sandhya', 'Section C', 7, 'Sem-I, 2026-27'),
+    (503, 60, 2, 'Dr.Mallavarapu Sandhya', 'Section D', 7, 'Sem-I, 2026-27'),
+    (504, 60, 2, 'Dr.Mallavarapu Sandhya', 'Section E', 7, 'Sem-I, 2026-27'),
+    (505, 60, 2, 'Dr.Mallavarapu Sandhya', 'Section F', 7, 'Sem-I, 2026-27'),
+    (506, 60, 2, 'Dr.Mallavarapu Sandhya', 'Section G', 7, 'Sem-I, 2026-27'),
+    (507, 60, 2, 'Dr.Mallavarapu Sandhya', 'Section H', 7, 'Sem-I, 2026-27'),
+    (508, 60, 2, 'Dr.Mallavarapu Sandhya', 'Section I', 7, 'Sem-I, 2026-27'),
+    (509, 60, 2, 'Dr.Mallavarapu Sandhya', 'Section J', 7, 'Sem-I, 2026-27'),
+    (510, 60, 2, 'Dr.Mallavarapu Sandhya', 'Section K', 7, 'Sem-I, 2026-27'),
+    (511, 61, 2, 'Dr. M L PAVAN KISHORE', 'Section A', 7, 'Sem-I, 2026-27'),
+    (512, 61, 2, 'Dr. M L PAVAN KISHORE', 'Section B', 7, 'Sem-I, 2026-27'),
+    (513, 61, 2, 'Dr. M L PAVAN KISHORE', 'Section C', 7, 'Sem-I, 2026-27'),
+    (514, 61, 2, 'Dr. M L PAVAN KISHORE', 'Section D', 7, 'Sem-I, 2026-27'),
+    (515, 61, 2, 'Dr. M L PAVAN KISHORE', 'Section E', 7, 'Sem-I, 2026-27'),
+    (516, 61, 2, 'Dr. M L PAVAN KISHORE', 'Section F', 7, 'Sem-I, 2026-27'),
+    (517, 61, 2, 'Dr. M L PAVAN KISHORE', 'Section G', 7, 'Sem-I, 2026-27'),
+    (518, 61, 2, 'Dr. M L PAVAN KISHORE', 'Section H', 7, 'Sem-I, 2026-27'),
+    (519, 61, 2, 'Dr. M L PAVAN KISHORE', 'Section I', 7, 'Sem-I, 2026-27'),
+    (520, 61, 2, 'Dr. M L PAVAN KISHORE', 'Section J', 7, 'Sem-I, 2026-27'),
+    (521, 61, 2, 'Dr. M L PAVAN KISHORE', 'Section K', 7, 'Sem-I, 2026-27'),
+    (522, 62, 2, 'Dr. Elizabeth Zacharias', 'Section A', 5, 'Sem-I, 2026-27'),
+    (523, 62, 2, 'Dr. Elizabeth Zacharias', 'Section B', 5, 'Sem-I, 2026-27'),
+    (524, 62, 2, 'Dr. Elizabeth Zacharias', 'Section C', 5, 'Sem-I, 2026-27'),
+    (525, 62, 2, 'Dr. Elizabeth Zacharias', 'Section D', 5, 'Sem-I, 2026-27'),
+    (526, 62, 2, 'Dr. Elizabeth Zacharias', 'Section E', 5, 'Sem-I, 2026-27'),
+    (527, 62, 2, 'Dr. Elizabeth Zacharias', 'Section F', 5, 'Sem-I, 2026-27'),
+    (528, 62, 2, 'Dr. Elizabeth Zacharias', 'Section G', 5, 'Sem-I, 2026-27'),
+    (529, 62, 2, 'Dr. Elizabeth Zacharias', 'Section H', 5, 'Sem-I, 2026-27'),
+    (530, 62, 2, 'Dr. Elizabeth Zacharias', 'Section I', 5, 'Sem-I, 2026-27'),
+    (531, 62, 2, 'Dr. Elizabeth Zacharias', 'Section J', 5, 'Sem-I, 2026-27'),
+    (532, 62, 2, 'Dr. Elizabeth Zacharias', 'Section K', 5, 'Sem-I, 2026-27'),
+    (533, 63, 2, 'Mr. Mohammed Kaleem', 'Section A', 5, 'Sem-I, 2026-27'),
+    (534, 63, 2, 'Mr. Mohammed Kaleem', 'Section B', 5, 'Sem-I, 2026-27'),
+    (535, 63, 2, 'Mr. Mohammed Kaleem', 'Section C', 5, 'Sem-I, 2026-27'),
+    (536, 63, 2, 'Mr. Mohammed Kaleem', 'Section D', 5, 'Sem-I, 2026-27'),
+    (537, 63, 2, 'Mr. Mohammed Kaleem', 'Section E', 5, 'Sem-I, 2026-27'),
+    (538, 63, 2, 'Mr. Mohammed Kaleem', 'Section F', 5, 'Sem-I, 2026-27'),
+    (539, 63, 2, 'Mr. Mohammed Kaleem', 'Section G', 5, 'Sem-I, 2026-27'),
+    (540, 63, 2, 'Mr. Mohammed Kaleem', 'Section H', 5, 'Sem-I, 2026-27'),
+    (541, 63, 2, 'Mr. Mohammed Kaleem', 'Section I', 5, 'Sem-I, 2026-27'),
+    (542, 63, 2, 'Mr. Mohammed Kaleem', 'Section J', 5, 'Sem-I, 2026-27'),
+    (543, 63, 2, 'Mr. Mohammed Kaleem', 'Section K', 5, 'Sem-I, 2026-27'),
+    (544, 64, 2, 'Dr. K. Sridevi', 'Section A', 5, 'Sem-I, 2026-27'),
+    (545, 64, 2, 'Dr. K. Sridevi', 'Section B', 5, 'Sem-I, 2026-27'),
+    (546, 64, 2, 'Dr. K. Sridevi', 'Section C', 5, 'Sem-I, 2026-27'),
+    (547, 64, 2, 'Dr. K. Sridevi', 'Section D', 5, 'Sem-I, 2026-27'),
+    (548, 64, 2, 'Dr. K. Sridevi', 'Section E', 5, 'Sem-I, 2026-27'),
+    (549, 64, 2, 'Dr. K. Sridevi', 'Section F', 5, 'Sem-I, 2026-27'),
+    (550, 64, 2, 'Dr. K. Sridevi', 'Section G', 5, 'Sem-I, 2026-27');
+INSERT INTO course_offerings (offering_id, course_id, faculty_id, faculty_name, class_section, semester, term_name) VALUES
+    (551, 64, 2, 'Dr. K. Sridevi', 'Section H', 5, 'Sem-I, 2026-27'),
+    (552, 64, 2, 'Dr. K. Sridevi', 'Section I', 5, 'Sem-I, 2026-27'),
+    (553, 64, 2, 'Dr. K. Sridevi', 'Section J', 5, 'Sem-I, 2026-27'),
+    (554, 64, 2, 'Dr. K. Sridevi', 'Section K', 5, 'Sem-I, 2026-27'),
+    (555, 65, 2, 'Dr. P. Chakradhar', 'Section A', 3, 'Sem-I, 2026-27'),
+    (556, 65, 2, 'Dr. P. Chakradhar', 'Section B', 3, 'Sem-I, 2026-27'),
+    (557, 65, 2, 'Dr. P. Chakradhar', 'Section C', 3, 'Sem-I, 2026-27'),
+    (558, 65, 2, 'Dr. P. Chakradhar', 'Section D', 3, 'Sem-I, 2026-27'),
+    (559, 65, 2, 'Dr. P. Chakradhar', 'Section E', 3, 'Sem-I, 2026-27'),
+    (560, 65, 2, 'Dr. P. Chakradhar', 'Section F', 3, 'Sem-I, 2026-27'),
+    (561, 65, 2, 'Dr. P. Chakradhar', 'Section G', 3, 'Sem-I, 2026-27'),
+    (562, 65, 2, 'Dr. P. Chakradhar', 'Section H', 3, 'Sem-I, 2026-27'),
+    (563, 65, 2, 'Dr. P. Chakradhar', 'Section I', 3, 'Sem-I, 2026-27'),
+    (564, 65, 2, 'Dr. P. Chakradhar', 'Section J', 3, 'Sem-I, 2026-27'),
+    (565, 65, 2, 'Dr. P. Chakradhar', 'Section K', 3, 'Sem-I, 2026-27'),
+    (566, 66, 2, 'Mr. Mohammed Kaleem', 'Section A', 3, 'Sem-I, 2026-27'),
+    (567, 66, 2, 'Mr. Mohammed Kaleem', 'Section B', 3, 'Sem-I, 2026-27'),
+    (568, 66, 2, 'Mr. Mohammed Kaleem', 'Section C', 3, 'Sem-I, 2026-27'),
+    (569, 66, 2, 'Mr. Mohammed Kaleem', 'Section D', 3, 'Sem-I, 2026-27'),
+    (570, 66, 2, 'Mr. Mohammed Kaleem', 'Section E', 3, 'Sem-I, 2026-27'),
+    (571, 66, 2, 'Mr. Mohammed Kaleem', 'Section F', 3, 'Sem-I, 2026-27'),
+    (572, 66, 2, 'Mr. Mohammed Kaleem', 'Section G', 3, 'Sem-I, 2026-27'),
+    (573, 66, 2, 'Mr. Mohammed Kaleem', 'Section H', 3, 'Sem-I, 2026-27'),
+    (574, 66, 2, 'Mr. Mohammed Kaleem', 'Section I', 3, 'Sem-I, 2026-27'),
+    (575, 66, 2, 'Mr. Mohammed Kaleem', 'Section J', 3, 'Sem-I, 2026-27'),
+    (576, 66, 2, 'Mr. Mohammed Kaleem', 'Section K', 3, 'Sem-I, 2026-27'),
+    (577, 67, 2, 'Dr. Rajesh Kumar Jha', 'Section A', 5, 'Sem-I, 2026-27'),
+    (578, 67, 2, 'Dr. Rajesh Kumar Jha', 'Section B', 5, 'Sem-I, 2026-27'),
+    (579, 67, 2, 'Dr. Rajesh Kumar Jha', 'Section C', 5, 'Sem-I, 2026-27'),
+    (580, 67, 2, 'Dr. Rajesh Kumar Jha', 'Section D', 5, 'Sem-I, 2026-27'),
+    (581, 67, 2, 'Dr. Rajesh Kumar Jha', 'Section E', 5, 'Sem-I, 2026-27'),
+    (582, 67, 2, 'Dr. Rajesh Kumar Jha', 'Section F', 5, 'Sem-I, 2026-27'),
+    (583, 67, 2, 'Dr. Rajesh Kumar Jha', 'Section G', 5, 'Sem-I, 2026-27'),
+    (584, 67, 2, 'Dr. Rajesh Kumar Jha', 'Section H', 5, 'Sem-I, 2026-27'),
+    (585, 67, 2, 'Dr. Rajesh Kumar Jha', 'Section I', 5, 'Sem-I, 2026-27'),
+    (586, 67, 2, 'Dr. Rajesh Kumar Jha', 'Section J', 5, 'Sem-I, 2026-27'),
+    (587, 67, 2, 'Dr. Rajesh Kumar Jha', 'Section K', 5, 'Sem-I, 2026-27'),
+    (588, 68, 2, 'Dr. M L Pavan Kishore', 'Section A', 3, 'Sem-I, 2026-27'),
+    (589, 68, 2, 'Dr. M L Pavan Kishore', 'Section B', 3, 'Sem-I, 2026-27'),
+    (590, 68, 2, 'Dr. M L Pavan Kishore', 'Section C', 3, 'Sem-I, 2026-27'),
+    (591, 68, 2, 'Dr. M L Pavan Kishore', 'Section D', 3, 'Sem-I, 2026-27'),
+    (592, 68, 2, 'Dr. M L Pavan Kishore', 'Section E', 3, 'Sem-I, 2026-27'),
+    (593, 68, 2, 'Dr. M L Pavan Kishore', 'Section F', 3, 'Sem-I, 2026-27'),
+    (594, 68, 2, 'Dr. M L Pavan Kishore', 'Section G', 3, 'Sem-I, 2026-27'),
+    (595, 68, 2, 'Dr. M L Pavan Kishore', 'Section H', 3, 'Sem-I, 2026-27'),
+    (596, 68, 2, 'Dr. M L Pavan Kishore', 'Section I', 3, 'Sem-I, 2026-27'),
+    (597, 68, 2, 'Dr. M L Pavan Kishore', 'Section J', 3, 'Sem-I, 2026-27'),
+    (598, 68, 2, 'Dr. M L Pavan Kishore', 'Section K', 3, 'Sem-I, 2026-27'),
+    (599, 69, 2, 'Dr. Shreecharan', 'Section A', 3, 'Sem-I, 2026-27'),
+    (600, 69, 2, 'Dr. Shreecharan', 'Section B', 3, 'Sem-I, 2026-27');
+INSERT INTO course_offerings (offering_id, course_id, faculty_id, faculty_name, class_section, semester, term_name) VALUES
+    (601, 69, 2, 'Dr. Shreecharan', 'Section C', 3, 'Sem-I, 2026-27'),
+    (602, 69, 2, 'Dr. Shreecharan', 'Section D', 3, 'Sem-I, 2026-27'),
+    (603, 69, 2, 'Dr. Shreecharan', 'Section E', 3, 'Sem-I, 2026-27'),
+    (604, 69, 2, 'Dr. Shreecharan', 'Section F', 3, 'Sem-I, 2026-27'),
+    (605, 69, 2, 'Dr. Shreecharan', 'Section G', 3, 'Sem-I, 2026-27'),
+    (606, 69, 2, 'Dr. Shreecharan', 'Section H', 3, 'Sem-I, 2026-27'),
+    (607, 69, 2, 'Dr. Shreecharan', 'Section I', 3, 'Sem-I, 2026-27'),
+    (608, 69, 2, 'Dr. Shreecharan', 'Section J', 3, 'Sem-I, 2026-27'),
+    (609, 69, 2, 'Dr. Shreecharan', 'Section K', 3, 'Sem-I, 2026-27'),
+    (610, 70, 2, 'Dr. M L Pavan Kishore', 'Section A', 5, 'Sem-I, 2026-27'),
+    (611, 70, 2, 'Dr. M L Pavan Kishore', 'Section B', 5, 'Sem-I, 2026-27'),
+    (612, 70, 2, 'Dr. M L Pavan Kishore', 'Section C', 5, 'Sem-I, 2026-27'),
+    (613, 70, 2, 'Dr. M L Pavan Kishore', 'Section D', 5, 'Sem-I, 2026-27'),
+    (614, 70, 2, 'Dr. M L Pavan Kishore', 'Section E', 5, 'Sem-I, 2026-27'),
+    (615, 70, 2, 'Dr. M L Pavan Kishore', 'Section F', 5, 'Sem-I, 2026-27'),
+    (616, 70, 2, 'Dr. M L Pavan Kishore', 'Section G', 5, 'Sem-I, 2026-27'),
+    (617, 70, 2, 'Dr. M L Pavan Kishore', 'Section H', 5, 'Sem-I, 2026-27'),
+    (618, 70, 2, 'Dr. M L Pavan Kishore', 'Section I', 5, 'Sem-I, 2026-27'),
+    (619, 70, 2, 'Dr. M L Pavan Kishore', 'Section J', 5, 'Sem-I, 2026-27'),
+    (620, 70, 2, 'Dr. M L Pavan Kishore', 'Section K', 5, 'Sem-I, 2026-27'),
+    (621, 71, 2, 'Dr. Ramesh', 'Section A', 3, 'Sem-I, 2026-27'),
+    (622, 71, 2, 'Dr. Ramesh', 'Section B', 3, 'Sem-I, 2026-27'),
+    (623, 71, 2, 'Dr. Ramesh', 'Section C', 3, 'Sem-I, 2026-27'),
+    (624, 71, 2, 'Dr. Ramesh', 'Section D', 3, 'Sem-I, 2026-27'),
+    (625, 71, 2, 'Dr. Ramesh', 'Section E', 3, 'Sem-I, 2026-27'),
+    (626, 71, 2, 'Dr. Ramesh', 'Section F', 3, 'Sem-I, 2026-27'),
+    (627, 71, 2, 'Dr. Ramesh', 'Section G', 3, 'Sem-I, 2026-27'),
+    (628, 71, 2, 'Dr. Ramesh', 'Section H', 3, 'Sem-I, 2026-27'),
+    (629, 71, 2, 'Dr. Ramesh', 'Section I', 3, 'Sem-I, 2026-27'),
+    (630, 71, 2, 'Dr. Ramesh', 'Section J', 3, 'Sem-I, 2026-27'),
+    (631, 71, 2, 'Dr. Ramesh', 'Section K', 3, 'Sem-I, 2026-27'),
+    (632, 72, 2, 'Dr Dileep Kumar Murala', 'Section A', 3, 'Sem-I, 2026-27'),
+    (633, 72, 2, 'Dr Dileep Kumar Murala', 'Section B', 3, 'Sem-I, 2026-27'),
+    (634, 72, 2, 'Dr Dileep Kumar Murala', 'Section C', 3, 'Sem-I, 2026-27'),
+    (635, 72, 2, 'Dr Dileep Kumar Murala', 'Section D', 3, 'Sem-I, 2026-27'),
+    (636, 72, 2, 'Dr Dileep Kumar Murala', 'Section E', 3, 'Sem-I, 2026-27'),
+    (637, 72, 2, 'Dr Dileep Kumar Murala', 'Section F', 3, 'Sem-I, 2026-27'),
+    (638, 72, 2, 'Dr Dileep Kumar Murala', 'Section G', 3, 'Sem-I, 2026-27'),
+    (639, 72, 2, 'Dr Dileep Kumar Murala', 'Section H', 3, 'Sem-I, 2026-27'),
+    (640, 72, 2, 'Dr Dileep Kumar Murala', 'Section I', 3, 'Sem-I, 2026-27'),
+    (641, 72, 2, 'Dr Dileep Kumar Murala', 'Section J', 3, 'Sem-I, 2026-27'),
+    (642, 72, 2, 'Dr Dileep Kumar Murala', 'Section K', 3, 'Sem-I, 2026-27'),
+    (643, 74, 2, 'Dr.Pradosh Kumar Gantayat', 'Section A', 5, 'Sem-I, 2026-27'),
+    (644, 74, 2, 'Dr.Pradosh Kumar Gantayat', 'Section B', 5, 'Sem-I, 2026-27'),
+    (645, 74, 2, 'Dr.Pradosh Kumar Gantayat', 'Section C', 5, 'Sem-I, 2026-27'),
+    (646, 74, 2, 'Dr.Pradosh Kumar Gantayat', 'Section D', 5, 'Sem-I, 2026-27'),
+    (647, 74, 2, 'Dr.Pradosh Kumar Gantayat', 'Section E', 5, 'Sem-I, 2026-27'),
+    (648, 74, 2, 'Dr.Pradosh Kumar Gantayat', 'Section F', 5, 'Sem-I, 2026-27'),
+    (649, 74, 2, 'Dr.Pradosh Kumar Gantayat', 'Section G', 5, 'Sem-I, 2026-27'),
+    (650, 74, 2, 'Dr.Pradosh Kumar Gantayat', 'Section H', 5, 'Sem-I, 2026-27');
+INSERT INTO course_offerings (offering_id, course_id, faculty_id, faculty_name, class_section, semester, term_name) VALUES
+    (651, 74, 2, 'Dr.Pradosh Kumar Gantayat', 'Section I', 5, 'Sem-I, 2026-27'),
+    (652, 74, 2, 'Dr.Pradosh Kumar Gantayat', 'Section J', 5, 'Sem-I, 2026-27'),
+    (653, 74, 2, 'Dr.Pradosh Kumar Gantayat', 'Section K', 5, 'Sem-I, 2026-27'),
+    (654, 75, 2, 'Dr. Nafis Uddin Khan', 'Section A', 5, 'Sem-I, 2026-27'),
+    (655, 75, 2, 'Dr. Nafis Uddin Khan', 'Section B', 5, 'Sem-I, 2026-27'),
+    (656, 75, 2, 'Dr. Nafis Uddin Khan', 'Section C', 5, 'Sem-I, 2026-27'),
+    (657, 75, 2, 'Dr. Nafis Uddin Khan', 'Section D', 5, 'Sem-I, 2026-27'),
+    (658, 75, 2, 'Dr. Nafis Uddin Khan', 'Section E', 5, 'Sem-I, 2026-27'),
+    (659, 75, 2, 'Dr. Nafis Uddin Khan', 'Section F', 5, 'Sem-I, 2026-27'),
+    (660, 75, 2, 'Dr. Nafis Uddin Khan', 'Section G', 5, 'Sem-I, 2026-27'),
+    (661, 75, 2, 'Dr. Nafis Uddin Khan', 'Section H', 5, 'Sem-I, 2026-27'),
+    (662, 75, 2, 'Dr. Nafis Uddin Khan', 'Section I', 5, 'Sem-I, 2026-27'),
+    (663, 75, 2, 'Dr. Nafis Uddin Khan', 'Section J', 5, 'Sem-I, 2026-27'),
+    (664, 75, 2, 'Dr. Nafis Uddin Khan', 'Section K', 5, 'Sem-I, 2026-27'),
+    (665, 76, 2, 'Dr. D. V. Nair', 'Section A', 3, 'Sem-I, 2026-27'),
+    (666, 76, 2, 'Dr. D. V. Nair', 'Section B', 3, 'Sem-I, 2026-27'),
+    (667, 76, 2, 'Dr. D. V. Nair', 'Section C', 3, 'Sem-I, 2026-27'),
+    (668, 76, 2, 'Dr. D. V. Nair', 'Section D', 3, 'Sem-I, 2026-27'),
+    (669, 76, 2, 'Dr. D. V. Nair', 'Section E', 3, 'Sem-I, 2026-27'),
+    (670, 76, 2, 'Dr. D. V. Nair', 'Section F', 3, 'Sem-I, 2026-27'),
+    (671, 76, 2, 'Dr. D. V. Nair', 'Section G', 3, 'Sem-I, 2026-27'),
+    (672, 76, 2, 'Dr. D. V. Nair', 'Section H', 3, 'Sem-I, 2026-27'),
+    (673, 76, 2, 'Dr. D. V. Nair', 'Section I', 3, 'Sem-I, 2026-27'),
+    (674, 76, 2, 'Dr. D. V. Nair', 'Section J', 3, 'Sem-I, 2026-27'),
+    (675, 76, 2, 'Dr. D. V. Nair', 'Section K', 3, 'Sem-I, 2026-27'),
+    (676, 77, 2, 'Dr. M L Pavan Kishore', 'Section A', 3, 'Sem-I, 2026-27'),
+    (677, 77, 2, 'Dr. M L Pavan Kishore', 'Section B', 3, 'Sem-I, 2026-27'),
+    (678, 77, 2, 'Dr. M L Pavan Kishore', 'Section C', 3, 'Sem-I, 2026-27'),
+    (679, 77, 2, 'Dr. M L Pavan Kishore', 'Section D', 3, 'Sem-I, 2026-27'),
+    (680, 77, 2, 'Dr. M L Pavan Kishore', 'Section E', 3, 'Sem-I, 2026-27'),
+    (681, 77, 2, 'Dr. M L Pavan Kishore', 'Section F', 3, 'Sem-I, 2026-27'),
+    (682, 77, 2, 'Dr. M L Pavan Kishore', 'Section G', 3, 'Sem-I, 2026-27'),
+    (683, 77, 2, 'Dr. M L Pavan Kishore', 'Section H', 3, 'Sem-I, 2026-27'),
+    (684, 77, 2, 'Dr. M L Pavan Kishore', 'Section I', 3, 'Sem-I, 2026-27'),
+    (685, 77, 2, 'Dr. M L Pavan Kishore', 'Section J', 3, 'Sem-I, 2026-27'),
+    (686, 77, 2, 'Dr. M L Pavan Kishore', 'Section K', 3, 'Sem-I, 2026-27'),
+    (687, 78, 2, 'Dr. Rajesh Kumar Jha', 'Section A', 7, 'Sem-I, 2026-27'),
+    (688, 78, 2, 'Dr. Rajesh Kumar Jha', 'Section B', 7, 'Sem-I, 2026-27'),
+    (689, 78, 2, 'Dr. Rajesh Kumar Jha', 'Section C', 7, 'Sem-I, 2026-27'),
+    (690, 78, 2, 'Dr. Rajesh Kumar Jha', 'Section D', 7, 'Sem-I, 2026-27'),
+    (691, 78, 2, 'Dr. Rajesh Kumar Jha', 'Section E', 7, 'Sem-I, 2026-27'),
+    (692, 78, 2, 'Dr. Rajesh Kumar Jha', 'Section F', 7, 'Sem-I, 2026-27'),
+    (693, 78, 2, 'Dr. Rajesh Kumar Jha', 'Section G', 7, 'Sem-I, 2026-27'),
+    (694, 78, 2, 'Dr. Rajesh Kumar Jha', 'Section H', 7, 'Sem-I, 2026-27'),
+    (695, 78, 2, 'Dr. Rajesh Kumar Jha', 'Section I', 7, 'Sem-I, 2026-27'),
+    (696, 78, 2, 'Dr. Rajesh Kumar Jha', 'Section J', 7, 'Sem-I, 2026-27'),
+    (697, 78, 2, 'Dr. Rajesh Kumar Jha', 'Section K', 7, 'Sem-I, 2026-27'),
+    (698, 79, 2, 'Dr Suresh Kumar Grandhi', 'Section A', 7, 'Sem-I, 2026-27'),
+    (699, 79, 2, 'Dr Suresh Kumar Grandhi', 'Section B', 7, 'Sem-I, 2026-27'),
+    (700, 79, 2, 'Dr Suresh Kumar Grandhi', 'Section C', 7, 'Sem-I, 2026-27');
+INSERT INTO course_offerings (offering_id, course_id, faculty_id, faculty_name, class_section, semester, term_name) VALUES
+    (701, 79, 2, 'Dr Suresh Kumar Grandhi', 'Section D', 7, 'Sem-I, 2026-27'),
+    (702, 79, 2, 'Dr Suresh Kumar Grandhi', 'Section E', 7, 'Sem-I, 2026-27'),
+    (703, 79, 2, 'Dr Suresh Kumar Grandhi', 'Section F', 7, 'Sem-I, 2026-27'),
+    (704, 79, 2, 'Dr Suresh Kumar Grandhi', 'Section G', 7, 'Sem-I, 2026-27'),
+    (705, 79, 2, 'Dr Suresh Kumar Grandhi', 'Section H', 7, 'Sem-I, 2026-27'),
+    (706, 79, 2, 'Dr Suresh Kumar Grandhi', 'Section I', 7, 'Sem-I, 2026-27'),
+    (707, 79, 2, 'Dr Suresh Kumar Grandhi', 'Section J', 7, 'Sem-I, 2026-27'),
+    (708, 79, 2, 'Dr Suresh Kumar Grandhi', 'Section K', 7, 'Sem-I, 2026-27'),
+    (709, 80, 2, 'Dr. Shreecharan', 'Section A', 5, 'Sem-I, 2026-27'),
+    (710, 80, 2, 'Dr. Shreecharan', 'Section B', 5, 'Sem-I, 2026-27'),
+    (711, 80, 2, 'Dr. Shreecharan', 'Section C', 5, 'Sem-I, 2026-27'),
+    (712, 80, 2, 'Dr. Shreecharan', 'Section D', 5, 'Sem-I, 2026-27'),
+    (713, 80, 2, 'Dr. Shreecharan', 'Section E', 5, 'Sem-I, 2026-27'),
+    (714, 80, 2, 'Dr. Shreecharan', 'Section F', 5, 'Sem-I, 2026-27'),
+    (715, 80, 2, 'Dr. Shreecharan', 'Section G', 5, 'Sem-I, 2026-27'),
+    (716, 80, 2, 'Dr. Shreecharan', 'Section H', 5, 'Sem-I, 2026-27'),
+    (717, 80, 2, 'Dr. Shreecharan', 'Section I', 5, 'Sem-I, 2026-27'),
+    (718, 80, 2, 'Dr. Shreecharan', 'Section J', 5, 'Sem-I, 2026-27'),
+    (719, 80, 2, 'Dr. Shreecharan', 'Section K', 5, 'Sem-I, 2026-27'),
+    (720, 81, 2, 'A SRIRAM', 'Section A', 5, 'Sem-I, 2026-27'),
+    (721, 81, 2, 'A SRIRAM', 'Section B', 5, 'Sem-I, 2026-27'),
+    (722, 81, 2, 'A SRIRAM', 'Section C', 5, 'Sem-I, 2026-27'),
+    (723, 81, 2, 'A SRIRAM', 'Section D', 5, 'Sem-I, 2026-27'),
+    (724, 81, 2, 'A SRIRAM', 'Section E', 5, 'Sem-I, 2026-27'),
+    (725, 81, 2, 'A SRIRAM', 'Section F', 5, 'Sem-I, 2026-27'),
+    (726, 81, 2, 'A SRIRAM', 'Section G', 5, 'Sem-I, 2026-27'),
+    (727, 81, 2, 'A SRIRAM', 'Section H', 5, 'Sem-I, 2026-27'),
+    (728, 81, 2, 'A SRIRAM', 'Section I', 5, 'Sem-I, 2026-27'),
+    (729, 81, 2, 'A SRIRAM', 'Section J', 5, 'Sem-I, 2026-27'),
+    (730, 81, 2, 'A SRIRAM', 'Section K', 5, 'Sem-I, 2026-27'),
+    (731, 82, 2, 'Dr.TAMMINEEDI VENKATA SATYA VIVEK', 'Section A', 5, 'Sem-I, 2026-27'),
+    (732, 82, 2, 'Dr.TAMMINEEDI VENKATA SATYA VIVEK', 'Section B', 5, 'Sem-I, 2026-27'),
+    (733, 82, 2, 'Dr.TAMMINEEDI VENKATA SATYA VIVEK', 'Section C', 5, 'Sem-I, 2026-27'),
+    (734, 82, 2, 'Dr.TAMMINEEDI VENKATA SATYA VIVEK', 'Section D', 5, 'Sem-I, 2026-27'),
+    (735, 82, 2, 'Dr.TAMMINEEDI VENKATA SATYA VIVEK', 'Section E', 5, 'Sem-I, 2026-27'),
+    (736, 82, 2, 'Dr.TAMMINEEDI VENKATA SATYA VIVEK', 'Section F', 5, 'Sem-I, 2026-27'),
+    (737, 82, 2, 'Dr.TAMMINEEDI VENKATA SATYA VIVEK', 'Section G', 5, 'Sem-I, 2026-27'),
+    (738, 82, 2, 'Dr.TAMMINEEDI VENKATA SATYA VIVEK', 'Section H', 5, 'Sem-I, 2026-27'),
+    (739, 82, 2, 'Dr.TAMMINEEDI VENKATA SATYA VIVEK', 'Section I', 5, 'Sem-I, 2026-27'),
+    (740, 82, 2, 'Dr.TAMMINEEDI VENKATA SATYA VIVEK', 'Section J', 5, 'Sem-I, 2026-27'),
+    (741, 82, 2, 'Dr.TAMMINEEDI VENKATA SATYA VIVEK', 'Section K', 5, 'Sem-I, 2026-27'),
+    (742, 83, 2, 'K LOKESH REDDY', 'Section A', 3, 'Sem-I, 2026-27'),
+    (743, 83, 2, 'K LOKESH REDDY', 'Section B', 3, 'Sem-I, 2026-27'),
+    (744, 83, 2, 'K LOKESH REDDY', 'Section C', 3, 'Sem-I, 2026-27'),
+    (745, 83, 2, 'K LOKESH REDDY', 'Section D', 3, 'Sem-I, 2026-27'),
+    (746, 83, 2, 'K LOKESH REDDY', 'Section E', 3, 'Sem-I, 2026-27'),
+    (747, 83, 2, 'K LOKESH REDDY', 'Section F', 3, 'Sem-I, 2026-27'),
+    (748, 83, 2, 'K LOKESH REDDY', 'Section G', 3, 'Sem-I, 2026-27'),
+    (749, 83, 2, 'K LOKESH REDDY', 'Section H', 3, 'Sem-I, 2026-27'),
+    (750, 83, 2, 'K LOKESH REDDY', 'Section I', 3, 'Sem-I, 2026-27');
+INSERT INTO course_offerings (offering_id, course_id, faculty_id, faculty_name, class_section, semester, term_name) VALUES
+    (751, 83, 2, 'K LOKESH REDDY', 'Section J', 3, 'Sem-I, 2026-27'),
+    (752, 83, 2, 'K LOKESH REDDY', 'Section K', 3, 'Sem-I, 2026-27'),
+    (753, 85, 2, 'Dr Suresh Kumar Grandhi', 'Section A', 3, 'Sem-I, 2026-27'),
+    (754, 85, 2, 'Dr Suresh Kumar Grandhi', 'Section B', 3, 'Sem-I, 2026-27'),
+    (755, 85, 2, 'Dr Suresh Kumar Grandhi', 'Section C', 3, 'Sem-I, 2026-27'),
+    (756, 85, 2, 'Dr Suresh Kumar Grandhi', 'Section D', 3, 'Sem-I, 2026-27'),
+    (757, 85, 2, 'Dr Suresh Kumar Grandhi', 'Section E', 3, 'Sem-I, 2026-27'),
+    (758, 85, 2, 'Dr Suresh Kumar Grandhi', 'Section F', 3, 'Sem-I, 2026-27'),
+    (759, 85, 2, 'Dr Suresh Kumar Grandhi', 'Section G', 3, 'Sem-I, 2026-27'),
+    (760, 85, 2, 'Dr Suresh Kumar Grandhi', 'Section H', 3, 'Sem-I, 2026-27'),
+    (761, 85, 2, 'Dr Suresh Kumar Grandhi', 'Section I', 3, 'Sem-I, 2026-27'),
+    (762, 85, 2, 'Dr Suresh Kumar Grandhi', 'Section J', 3, 'Sem-I, 2026-27'),
+    (763, 85, 2, 'Dr Suresh Kumar Grandhi', 'Section K', 3, 'Sem-I, 2026-27'),
+    (764, 86, 2, 'Dr. D. V. Nair', 'Section A', 5, 'Sem-I, 2026-27'),
+    (765, 86, 2, 'Dr. D. V. Nair', 'Section B', 5, 'Sem-I, 2026-27'),
+    (766, 86, 2, 'Dr. D. V. Nair', 'Section C', 5, 'Sem-I, 2026-27'),
+    (767, 86, 2, 'Dr. D. V. Nair', 'Section D', 5, 'Sem-I, 2026-27'),
+    (768, 86, 2, 'Dr. D. V. Nair', 'Section E', 5, 'Sem-I, 2026-27'),
+    (769, 86, 2, 'Dr. D. V. Nair', 'Section F', 5, 'Sem-I, 2026-27'),
+    (770, 86, 2, 'Dr. D. V. Nair', 'Section G', 5, 'Sem-I, 2026-27'),
+    (771, 86, 2, 'Dr. D. V. Nair', 'Section H', 5, 'Sem-I, 2026-27'),
+    (772, 86, 2, 'Dr. D. V. Nair', 'Section I', 5, 'Sem-I, 2026-27'),
+    (773, 86, 2, 'Dr. D. V. Nair', 'Section J', 5, 'Sem-I, 2026-27'),
+    (774, 86, 2, 'Dr. D. V. Nair', 'Section K', 5, 'Sem-I, 2026-27'),
+    (775, 87, 2, 'Dr. A MANMADHA CHARY', 'Section A', 3, 'Sem-I, 2026-27'),
+    (776, 87, 2, 'Dr. A MANMADHA CHARY', 'Section B', 3, 'Sem-I, 2026-27'),
+    (777, 87, 2, 'Dr. A MANMADHA CHARY', 'Section C', 3, 'Sem-I, 2026-27'),
+    (778, 87, 2, 'Dr. A MANMADHA CHARY', 'Section D', 3, 'Sem-I, 2026-27'),
+    (779, 87, 2, 'Dr. A MANMADHA CHARY', 'Section E', 3, 'Sem-I, 2026-27'),
+    (780, 87, 2, 'Dr. A MANMADHA CHARY', 'Section F', 3, 'Sem-I, 2026-27'),
+    (781, 87, 2, 'Dr. A MANMADHA CHARY', 'Section G', 3, 'Sem-I, 2026-27'),
+    (782, 87, 2, 'Dr. A MANMADHA CHARY', 'Section H', 3, 'Sem-I, 2026-27'),
+    (783, 87, 2, 'Dr. A MANMADHA CHARY', 'Section I', 3, 'Sem-I, 2026-27'),
+    (784, 87, 2, 'Dr. A MANMADHA CHARY', 'Section J', 3, 'Sem-I, 2026-27'),
+    (785, 87, 2, 'Dr. A MANMADHA CHARY', 'Section K', 3, 'Sem-I, 2026-27'),
+    (786, 88, 2, 'Mr. VENUGOPAL CHITTEMSETTY', 'Section A', 5, 'Sem-I, 2026-27'),
+    (787, 88, 2, 'Mr. VENUGOPAL CHITTEMSETTY', 'Section B', 5, 'Sem-I, 2026-27'),
+    (788, 88, 2, 'Mr. VENUGOPAL CHITTEMSETTY', 'Section C', 5, 'Sem-I, 2026-27'),
+    (789, 88, 2, 'Mr. VENUGOPAL CHITTEMSETTY', 'Section D', 5, 'Sem-I, 2026-27'),
+    (790, 88, 2, 'Mr. VENUGOPAL CHITTEMSETTY', 'Section E', 5, 'Sem-I, 2026-27'),
+    (791, 88, 2, 'Mr. VENUGOPAL CHITTEMSETTY', 'Section F', 5, 'Sem-I, 2026-27'),
+    (792, 88, 2, 'Mr. VENUGOPAL CHITTEMSETTY', 'Section G', 5, 'Sem-I, 2026-27'),
+    (793, 88, 2, 'Mr. VENUGOPAL CHITTEMSETTY', 'Section H', 5, 'Sem-I, 2026-27'),
+    (794, 88, 2, 'Mr. VENUGOPAL CHITTEMSETTY', 'Section I', 5, 'Sem-I, 2026-27'),
+    (795, 88, 2, 'Mr. VENUGOPAL CHITTEMSETTY', 'Section J', 5, 'Sem-I, 2026-27'),
+    (796, 88, 2, 'Mr. VENUGOPAL CHITTEMSETTY', 'Section K', 5, 'Sem-I, 2026-27'),
+    (797, 89, 2, 'Dr. V. A. Sankar Ponnapalli', 'Section A', 3, 'Sem-I, 2026-27'),
+    (798, 89, 2, 'Dr. V. A. Sankar Ponnapalli', 'Section B', 3, 'Sem-I, 2026-27'),
+    (799, 89, 2, 'Dr. V. A. Sankar Ponnapalli', 'Section C', 3, 'Sem-I, 2026-27'),
+    (800, 89, 2, 'Dr. V. A. Sankar Ponnapalli', 'Section D', 3, 'Sem-I, 2026-27');
+INSERT INTO course_offerings (offering_id, course_id, faculty_id, faculty_name, class_section, semester, term_name) VALUES
+    (801, 89, 2, 'Dr. V. A. Sankar Ponnapalli', 'Section E', 3, 'Sem-I, 2026-27'),
+    (802, 89, 2, 'Dr. V. A. Sankar Ponnapalli', 'Section F', 3, 'Sem-I, 2026-27'),
+    (803, 89, 2, 'Dr. V. A. Sankar Ponnapalli', 'Section G', 3, 'Sem-I, 2026-27'),
+    (804, 89, 2, 'Dr. V. A. Sankar Ponnapalli', 'Section H', 3, 'Sem-I, 2026-27'),
+    (805, 89, 2, 'Dr. V. A. Sankar Ponnapalli', 'Section I', 3, 'Sem-I, 2026-27'),
+    (806, 89, 2, 'Dr. V. A. Sankar Ponnapalli', 'Section J', 3, 'Sem-I, 2026-27'),
+    (807, 89, 2, 'Dr. V. A. Sankar Ponnapalli', 'Section K', 3, 'Sem-I, 2026-27'),
+    (808, 90, 2, 'Dr Sowjanya Ramisetty', 'Section A', 7, 'Sem-I, 2026-27'),
+    (809, 90, 2, 'Dr Sowjanya Ramisetty', 'Section B', 7, 'Sem-I, 2026-27'),
+    (810, 90, 2, 'Dr Sowjanya Ramisetty', 'Section C', 7, 'Sem-I, 2026-27'),
+    (811, 90, 2, 'Dr Sowjanya Ramisetty', 'Section D', 7, 'Sem-I, 2026-27'),
+    (812, 90, 2, 'Dr Sowjanya Ramisetty', 'Section E', 7, 'Sem-I, 2026-27'),
+    (813, 90, 2, 'Dr Sowjanya Ramisetty', 'Section F', 7, 'Sem-I, 2026-27'),
+    (814, 90, 2, 'Dr Sowjanya Ramisetty', 'Section G', 7, 'Sem-I, 2026-27'),
+    (815, 90, 2, 'Dr Sowjanya Ramisetty', 'Section H', 7, 'Sem-I, 2026-27'),
+    (816, 90, 2, 'Dr Sowjanya Ramisetty', 'Section I', 7, 'Sem-I, 2026-27'),
+    (817, 90, 2, 'Dr Sowjanya Ramisetty', 'Section J', 7, 'Sem-I, 2026-27'),
+    (818, 90, 2, 'Dr Sowjanya Ramisetty', 'Section K', 7, 'Sem-I, 2026-27'),
+    (819, 91, 2, 'Dr.Sathya AR', 'Section A', 3, 'Sem-I, 2026-27'),
+    (820, 91, 2, 'Dr.Sathya AR', 'Section B', 3, 'Sem-I, 2026-27'),
+    (821, 91, 2, 'Dr.Sathya AR', 'Section C', 3, 'Sem-I, 2026-27'),
+    (822, 91, 2, 'Dr.Sathya AR', 'Section D', 3, 'Sem-I, 2026-27'),
+    (823, 91, 2, 'Dr.Sathya AR', 'Section E', 3, 'Sem-I, 2026-27'),
+    (824, 91, 2, 'Dr.Sathya AR', 'Section F', 3, 'Sem-I, 2026-27'),
+    (825, 91, 2, 'Dr.Sathya AR', 'Section G', 3, 'Sem-I, 2026-27'),
+    (826, 91, 2, 'Dr.Sathya AR', 'Section H', 3, 'Sem-I, 2026-27'),
+    (827, 91, 2, 'Dr.Sathya AR', 'Section I', 3, 'Sem-I, 2026-27'),
+    (828, 91, 2, 'Dr.Sathya AR', 'Section J', 3, 'Sem-I, 2026-27'),
+    (829, 91, 2, 'Dr.Sathya AR', 'Section K', 3, 'Sem-I, 2026-27'),
+    (830, 92, 2, 'Mr Arram Sriram', 'Section A', 5, 'Sem-I, 2026-27'),
+    (831, 92, 2, 'Mr Arram Sriram', 'Section B', 5, 'Sem-I, 2026-27'),
+    (832, 92, 2, 'Mr Arram Sriram', 'Section C', 5, 'Sem-I, 2026-27'),
+    (833, 92, 2, 'Mr Arram Sriram', 'Section D', 5, 'Sem-I, 2026-27'),
+    (834, 92, 2, 'Mr Arram Sriram', 'Section E', 5, 'Sem-I, 2026-27'),
+    (835, 92, 2, 'Mr Arram Sriram', 'Section F', 5, 'Sem-I, 2026-27'),
+    (836, 92, 2, 'Mr Arram Sriram', 'Section G', 5, 'Sem-I, 2026-27'),
+    (837, 92, 2, 'Mr Arram Sriram', 'Section H', 5, 'Sem-I, 2026-27'),
+    (838, 92, 2, 'Mr Arram Sriram', 'Section I', 5, 'Sem-I, 2026-27'),
+    (839, 92, 2, 'Mr Arram Sriram', 'Section J', 5, 'Sem-I, 2026-27'),
+    (840, 92, 2, 'Mr Arram Sriram', 'Section K', 5, 'Sem-I, 2026-27'),
+    (841, 93, 2, 'Dr Kuncham Sreenivasa Rao', 'Section A', 5, 'Sem-I, 2026-27'),
+    (842, 93, 2, 'Dr Kuncham Sreenivasa Rao', 'Section B', 5, 'Sem-I, 2026-27'),
+    (843, 93, 2, 'Dr Kuncham Sreenivasa Rao', 'Section C', 5, 'Sem-I, 2026-27'),
+    (844, 93, 2, 'Dr Kuncham Sreenivasa Rao', 'Section D', 5, 'Sem-I, 2026-27'),
+    (845, 93, 2, 'Dr Kuncham Sreenivasa Rao', 'Section E', 5, 'Sem-I, 2026-27'),
+    (846, 93, 2, 'Dr Kuncham Sreenivasa Rao', 'Section F', 5, 'Sem-I, 2026-27'),
+    (847, 93, 2, 'Dr Kuncham Sreenivasa Rao', 'Section G', 5, 'Sem-I, 2026-27'),
+    (848, 93, 2, 'Dr Kuncham Sreenivasa Rao', 'Section H', 5, 'Sem-I, 2026-27'),
+    (849, 93, 2, 'Dr Kuncham Sreenivasa Rao', 'Section I', 5, 'Sem-I, 2026-27'),
+    (850, 93, 2, 'Dr Kuncham Sreenivasa Rao', 'Section J', 5, 'Sem-I, 2026-27');
+INSERT INTO course_offerings (offering_id, course_id, faculty_id, faculty_name, class_section, semester, term_name) VALUES
+    (851, 93, 2, 'Dr Kuncham Sreenivasa Rao', 'Section K', 5, 'Sem-I, 2026-27'),
+    (852, 94, 2, 'Dr.Rajesh Jha', 'Section A', 7, 'Sem-I, 2026-27'),
+    (853, 94, 2, 'Dr.Rajesh Jha', 'Section B', 7, 'Sem-I, 2026-27'),
+    (854, 94, 2, 'Dr.Rajesh Jha', 'Section C', 7, 'Sem-I, 2026-27'),
+    (855, 94, 2, 'Dr.Rajesh Jha', 'Section D', 7, 'Sem-I, 2026-27'),
+    (856, 94, 2, 'Dr.Rajesh Jha', 'Section E', 7, 'Sem-I, 2026-27'),
+    (857, 94, 2, 'Dr.Rajesh Jha', 'Section F', 7, 'Sem-I, 2026-27'),
+    (858, 94, 2, 'Dr.Rajesh Jha', 'Section G', 7, 'Sem-I, 2026-27'),
+    (859, 94, 2, 'Dr.Rajesh Jha', 'Section H', 7, 'Sem-I, 2026-27'),
+    (860, 94, 2, 'Dr.Rajesh Jha', 'Section I', 7, 'Sem-I, 2026-27'),
+    (861, 94, 2, 'Dr.Rajesh Jha', 'Section J', 7, 'Sem-I, 2026-27'),
+    (862, 94, 2, 'Dr.Rajesh Jha', 'Section K', 7, 'Sem-I, 2026-27'),
+    (863, 95, 2, 'Ms. PRIYANKA CHATTORAJ', 'Section A', 3, 'Sem-I, 2026-27'),
+    (864, 95, 2, 'Ms. PRIYANKA CHATTORAJ', 'Section B', 3, 'Sem-I, 2026-27'),
+    (865, 95, 2, 'Ms. PRIYANKA CHATTORAJ', 'Section C', 3, 'Sem-I, 2026-27'),
+    (866, 95, 2, 'Ms. PRIYANKA CHATTORAJ', 'Section D', 3, 'Sem-I, 2026-27'),
+    (867, 95, 2, 'Ms. PRIYANKA CHATTORAJ', 'Section E', 3, 'Sem-I, 2026-27'),
+    (868, 95, 2, 'Ms. PRIYANKA CHATTORAJ', 'Section F', 3, 'Sem-I, 2026-27'),
+    (869, 95, 2, 'Ms. PRIYANKA CHATTORAJ', 'Section G', 3, 'Sem-I, 2026-27'),
+    (870, 95, 2, 'Ms. PRIYANKA CHATTORAJ', 'Section H', 3, 'Sem-I, 2026-27'),
+    (871, 95, 2, 'Ms. PRIYANKA CHATTORAJ', 'Section I', 3, 'Sem-I, 2026-27'),
+    (872, 95, 2, 'Ms. PRIYANKA CHATTORAJ', 'Section J', 3, 'Sem-I, 2026-27'),
+    (873, 95, 2, 'Ms. PRIYANKA CHATTORAJ', 'Section K', 3, 'Sem-I, 2026-27'),
+    (874, 96, 2, 'Mr.Senthil Raja', 'Section A', 5, 'Sem-I, 2026-27'),
+    (875, 96, 2, 'Mr.Senthil Raja', 'Section B', 5, 'Sem-I, 2026-27'),
+    (876, 96, 2, 'Mr.Senthil Raja', 'Section C', 5, 'Sem-I, 2026-27'),
+    (877, 96, 2, 'Mr.Senthil Raja', 'Section D', 5, 'Sem-I, 2026-27'),
+    (878, 96, 2, 'Mr.Senthil Raja', 'Section E', 5, 'Sem-I, 2026-27'),
+    (879, 96, 2, 'Mr.Senthil Raja', 'Section F', 5, 'Sem-I, 2026-27'),
+    (880, 96, 2, 'Mr.Senthil Raja', 'Section G', 5, 'Sem-I, 2026-27'),
+    (881, 96, 2, 'Mr.Senthil Raja', 'Section H', 5, 'Sem-I, 2026-27'),
+    (882, 96, 2, 'Mr.Senthil Raja', 'Section I', 5, 'Sem-I, 2026-27'),
+    (883, 96, 2, 'Mr.Senthil Raja', 'Section J', 5, 'Sem-I, 2026-27'),
+    (884, 96, 2, 'Mr.Senthil Raja', 'Section K', 5, 'Sem-I, 2026-27'),
+    (885, 97, 2, 'Dr. K. Adi Narayana Reddy', 'Section A', 5, 'Sem-I, 2026-27'),
+    (886, 97, 2, 'Dr. K. Adi Narayana Reddy', 'Section B', 5, 'Sem-I, 2026-27'),
+    (887, 97, 2, 'Dr. K. Adi Narayana Reddy', 'Section C', 5, 'Sem-I, 2026-27'),
+    (888, 97, 2, 'Dr. K. Adi Narayana Reddy', 'Section D', 5, 'Sem-I, 2026-27'),
+    (889, 97, 2, 'Dr. K. Adi Narayana Reddy', 'Section E', 5, 'Sem-I, 2026-27'),
+    (890, 97, 2, 'Dr. K. Adi Narayana Reddy', 'Section F', 5, 'Sem-I, 2026-27'),
+    (891, 97, 2, 'Dr. K. Adi Narayana Reddy', 'Section G', 5, 'Sem-I, 2026-27'),
+    (892, 97, 2, 'Dr. K. Adi Narayana Reddy', 'Section H', 5, 'Sem-I, 2026-27'),
+    (893, 97, 2, 'Dr. K. Adi Narayana Reddy', 'Section I', 5, 'Sem-I, 2026-27'),
+    (894, 97, 2, 'Dr. K. Adi Narayana Reddy', 'Section J', 5, 'Sem-I, 2026-27'),
+    (895, 97, 2, 'Dr. K. Adi Narayana Reddy', 'Section K', 5, 'Sem-I, 2026-27'),
+    (896, 98, 2, 'Dr Madhupama', 'Section A', 3, 'Sem-I, 2026-27'),
+    (897, 98, 2, 'Dr Madhupama', 'Section B', 3, 'Sem-I, 2026-27'),
+    (898, 98, 2, 'Dr Madhupama', 'Section C', 3, 'Sem-I, 2026-27'),
+    (899, 98, 2, 'Dr Madhupama', 'Section D', 3, 'Sem-I, 2026-27'),
+    (900, 98, 2, 'Dr Madhupama', 'Section E', 3, 'Sem-I, 2026-27');
+INSERT INTO course_offerings (offering_id, course_id, faculty_id, faculty_name, class_section, semester, term_name) VALUES
+    (901, 98, 2, 'Dr Madhupama', 'Section F', 3, 'Sem-I, 2026-27'),
+    (902, 98, 2, 'Dr Madhupama', 'Section G', 3, 'Sem-I, 2026-27'),
+    (903, 98, 2, 'Dr Madhupama', 'Section H', 3, 'Sem-I, 2026-27'),
+    (904, 98, 2, 'Dr Madhupama', 'Section I', 3, 'Sem-I, 2026-27'),
+    (905, 98, 2, 'Dr Madhupama', 'Section J', 3, 'Sem-I, 2026-27'),
+    (906, 98, 2, 'Dr Madhupama', 'Section K', 3, 'Sem-I, 2026-27'),
+    (907, 99, 2, 'Dr. Priyanka Parimi', 'Section A', 3, 'Sem-I, 2026-27'),
+    (908, 99, 2, 'Dr. Priyanka Parimi', 'Section B', 3, 'Sem-I, 2026-27'),
+    (909, 99, 2, 'Dr. Priyanka Parimi', 'Section C', 3, 'Sem-I, 2026-27'),
+    (910, 99, 2, 'Dr. Priyanka Parimi', 'Section D', 3, 'Sem-I, 2026-27'),
+    (911, 99, 2, 'Dr. Priyanka Parimi', 'Section E', 3, 'Sem-I, 2026-27'),
+    (912, 99, 2, 'Dr. Priyanka Parimi', 'Section F', 3, 'Sem-I, 2026-27'),
+    (913, 99, 2, 'Dr. Priyanka Parimi', 'Section G', 3, 'Sem-I, 2026-27'),
+    (914, 99, 2, 'Dr. Priyanka Parimi', 'Section H', 3, 'Sem-I, 2026-27'),
+    (915, 99, 2, 'Dr. Priyanka Parimi', 'Section I', 3, 'Sem-I, 2026-27'),
+    (916, 99, 2, 'Dr. Priyanka Parimi', 'Section J', 3, 'Sem-I, 2026-27'),
+    (917, 99, 2, 'Dr. Priyanka Parimi', 'Section K', 3, 'Sem-I, 2026-27'),
+    (918, 100, 2, 'Dr. Santosh Kumar Sahoo', 'Section A', 3, 'Sem-I, 2026-27'),
+    (919, 100, 2, 'Dr. Santosh Kumar Sahoo', 'Section B', 3, 'Sem-I, 2026-27'),
+    (920, 100, 2, 'Dr. Santosh Kumar Sahoo', 'Section C', 3, 'Sem-I, 2026-27'),
+    (921, 100, 2, 'Dr. Santosh Kumar Sahoo', 'Section D', 3, 'Sem-I, 2026-27'),
+    (922, 100, 2, 'Dr. Santosh Kumar Sahoo', 'Section E', 3, 'Sem-I, 2026-27'),
+    (923, 100, 2, 'Dr. Santosh Kumar Sahoo', 'Section F', 3, 'Sem-I, 2026-27'),
+    (924, 100, 2, 'Dr. Santosh Kumar Sahoo', 'Section G', 3, 'Sem-I, 2026-27'),
+    (925, 100, 2, 'Dr. Santosh Kumar Sahoo', 'Section H', 3, 'Sem-I, 2026-27'),
+    (926, 100, 2, 'Dr. Santosh Kumar Sahoo', 'Section I', 3, 'Sem-I, 2026-27'),
+    (927, 100, 2, 'Dr. Santosh Kumar Sahoo', 'Section J', 3, 'Sem-I, 2026-27'),
+    (928, 100, 2, 'Dr. Santosh Kumar Sahoo', 'Section K', 3, 'Sem-I, 2026-27'),
+    (929, 101, 2, 'Dr. Soumit Samadder Chaudhury', 'Section A', 5, 'Sem-I, 2026-27'),
+    (930, 101, 2, 'Dr. Soumit Samadder Chaudhury', 'Section B', 5, 'Sem-I, 2026-27'),
+    (931, 101, 2, 'Dr. Soumit Samadder Chaudhury', 'Section C', 5, 'Sem-I, 2026-27'),
+    (932, 101, 2, 'Dr. Soumit Samadder Chaudhury', 'Section D', 5, 'Sem-I, 2026-27'),
+    (933, 101, 2, 'Dr. Soumit Samadder Chaudhury', 'Section E', 5, 'Sem-I, 2026-27'),
+    (934, 101, 2, 'Dr. Soumit Samadder Chaudhury', 'Section F', 5, 'Sem-I, 2026-27'),
+    (935, 101, 2, 'Dr. Soumit Samadder Chaudhury', 'Section G', 5, 'Sem-I, 2026-27'),
+    (936, 101, 2, 'Dr. Soumit Samadder Chaudhury', 'Section H', 5, 'Sem-I, 2026-27'),
+    (937, 101, 2, 'Dr. Soumit Samadder Chaudhury', 'Section I', 5, 'Sem-I, 2026-27'),
+    (938, 101, 2, 'Dr. Soumit Samadder Chaudhury', 'Section J', 5, 'Sem-I, 2026-27'),
+    (939, 101, 2, 'Dr. Soumit Samadder Chaudhury', 'Section K', 5, 'Sem-I, 2026-27'),
+    (940, 102, 2, 'Dr. BARLA MADHAVI', 'Section A', 3, 'Sem-I, 2026-27'),
+    (941, 102, 2, 'Dr. BARLA MADHAVI', 'Section B', 3, 'Sem-I, 2026-27'),
+    (942, 102, 2, 'Dr. BARLA MADHAVI', 'Section C', 3, 'Sem-I, 2026-27'),
+    (943, 102, 2, 'Dr. BARLA MADHAVI', 'Section D', 3, 'Sem-I, 2026-27'),
+    (944, 102, 2, 'Dr. BARLA MADHAVI', 'Section E', 3, 'Sem-I, 2026-27'),
+    (945, 102, 2, 'Dr. BARLA MADHAVI', 'Section F', 3, 'Sem-I, 2026-27'),
+    (946, 102, 2, 'Dr. BARLA MADHAVI', 'Section G', 3, 'Sem-I, 2026-27'),
+    (947, 102, 2, 'Dr. BARLA MADHAVI', 'Section H', 3, 'Sem-I, 2026-27'),
+    (948, 102, 2, 'Dr. BARLA MADHAVI', 'Section I', 3, 'Sem-I, 2026-27'),
+    (949, 102, 2, 'Dr. BARLA MADHAVI', 'Section J', 3, 'Sem-I, 2026-27'),
+    (950, 102, 2, 'Dr. BARLA MADHAVI', 'Section K', 3, 'Sem-I, 2026-27');
+INSERT INTO course_offerings (offering_id, course_id, faculty_id, faculty_name, class_section, semester, term_name) VALUES
+    (951, 103, 2, 'Dr. THOKALA SOLOMAN RAJU', 'Section A', 3, 'Sem-I, 2026-27'),
+    (952, 103, 2, 'Dr. THOKALA SOLOMAN RAJU', 'Section B', 3, 'Sem-I, 2026-27'),
+    (953, 103, 2, 'Dr. THOKALA SOLOMAN RAJU', 'Section C', 3, 'Sem-I, 2026-27'),
+    (954, 103, 2, 'Dr. THOKALA SOLOMAN RAJU', 'Section D', 3, 'Sem-I, 2026-27'),
+    (955, 103, 2, 'Dr. THOKALA SOLOMAN RAJU', 'Section E', 3, 'Sem-I, 2026-27'),
+    (956, 103, 2, 'Dr. THOKALA SOLOMAN RAJU', 'Section F', 3, 'Sem-I, 2026-27'),
+    (957, 103, 2, 'Dr. THOKALA SOLOMAN RAJU', 'Section G', 3, 'Sem-I, 2026-27'),
+    (958, 103, 2, 'Dr. THOKALA SOLOMAN RAJU', 'Section H', 3, 'Sem-I, 2026-27'),
+    (959, 103, 2, 'Dr. THOKALA SOLOMAN RAJU', 'Section I', 3, 'Sem-I, 2026-27'),
+    (960, 103, 2, 'Dr. THOKALA SOLOMAN RAJU', 'Section J', 3, 'Sem-I, 2026-27'),
+    (961, 103, 2, 'Dr. THOKALA SOLOMAN RAJU', 'Section K', 3, 'Sem-I, 2026-27'),
+    (962, 104, 2, 'Dr. CHANDRA SHEKHAR A', 'Section A', 5, 'Sem-I, 2026-27'),
+    (963, 104, 2, 'Dr. CHANDRA SHEKHAR A', 'Section B', 5, 'Sem-I, 2026-27'),
+    (964, 104, 2, 'Dr. CHANDRA SHEKHAR A', 'Section C', 5, 'Sem-I, 2026-27'),
+    (965, 104, 2, 'Dr. CHANDRA SHEKHAR A', 'Section D', 5, 'Sem-I, 2026-27'),
+    (966, 104, 2, 'Dr. CHANDRA SHEKHAR A', 'Section E', 5, 'Sem-I, 2026-27'),
+    (967, 104, 2, 'Dr. CHANDRA SHEKHAR A', 'Section F', 5, 'Sem-I, 2026-27'),
+    (968, 104, 2, 'Dr. CHANDRA SHEKHAR A', 'Section G', 5, 'Sem-I, 2026-27'),
+    (969, 104, 2, 'Dr. CHANDRA SHEKHAR A', 'Section H', 5, 'Sem-I, 2026-27'),
+    (970, 104, 2, 'Dr. CHANDRA SHEKHAR A', 'Section I', 5, 'Sem-I, 2026-27'),
+    (971, 104, 2, 'Dr. CHANDRA SHEKHAR A', 'Section J', 5, 'Sem-I, 2026-27'),
+    (972, 104, 2, 'Dr. CHANDRA SHEKHAR A', 'Section K', 5, 'Sem-I, 2026-27'),
+    (973, 105, 2, 'Dr. Rakesh Reddy', 'Section A', 3, 'Sem-I, 2026-27'),
+    (974, 105, 2, 'Dr. Rakesh Reddy', 'Section B', 3, 'Sem-I, 2026-27'),
+    (975, 105, 2, 'Dr. Rakesh Reddy', 'Section C', 3, 'Sem-I, 2026-27'),
+    (976, 105, 2, 'Dr. Rakesh Reddy', 'Section D', 3, 'Sem-I, 2026-27'),
+    (977, 105, 2, 'Dr. Rakesh Reddy', 'Section E', 3, 'Sem-I, 2026-27'),
+    (978, 105, 2, 'Dr. Rakesh Reddy', 'Section F', 3, 'Sem-I, 2026-27'),
+    (979, 105, 2, 'Dr. Rakesh Reddy', 'Section G', 3, 'Sem-I, 2026-27'),
+    (980, 105, 2, 'Dr. Rakesh Reddy', 'Section H', 3, 'Sem-I, 2026-27'),
+    (981, 105, 2, 'Dr. Rakesh Reddy', 'Section I', 3, 'Sem-I, 2026-27'),
+    (982, 105, 2, 'Dr. Rakesh Reddy', 'Section J', 3, 'Sem-I, 2026-27'),
+    (983, 105, 2, 'Dr. Rakesh Reddy', 'Section K', 3, 'Sem-I, 2026-27'),
+    (984, 106, 2, 'Dr. Sukanta Das', 'Section A', 3, 'Sem-I, 2026-27'),
+    (985, 106, 2, 'Dr. Sukanta Das', 'Section B', 3, 'Sem-I, 2026-27'),
+    (986, 106, 2, 'Dr. Sukanta Das', 'Section C', 3, 'Sem-I, 2026-27'),
+    (987, 106, 2, 'Dr. Sukanta Das', 'Section D', 3, 'Sem-I, 2026-27'),
+    (988, 106, 2, 'Dr. Sukanta Das', 'Section E', 3, 'Sem-I, 2026-27'),
+    (989, 106, 2, 'Dr. Sukanta Das', 'Section F', 3, 'Sem-I, 2026-27'),
+    (990, 106, 2, 'Dr. Sukanta Das', 'Section G', 3, 'Sem-I, 2026-27'),
+    (991, 106, 2, 'Dr. Sukanta Das', 'Section H', 3, 'Sem-I, 2026-27'),
+    (992, 106, 2, 'Dr. Sukanta Das', 'Section I', 3, 'Sem-I, 2026-27'),
+    (993, 106, 2, 'Dr. Sukanta Das', 'Section J', 3, 'Sem-I, 2026-27'),
+    (994, 106, 2, 'Dr. Sukanta Das', 'Section K', 3, 'Sem-I, 2026-27'),
+    (995, 107, 2, 'Dr Balaji Vejju', 'Section A', 3, 'Sem-I, 2026-27'),
+    (996, 107, 2, 'Dr Balaji Vejju', 'Section B', 3, 'Sem-I, 2026-27'),
+    (997, 107, 2, 'Dr Balaji Vejju', 'Section C', 3, 'Sem-I, 2026-27'),
+    (998, 107, 2, 'Dr Balaji Vejju', 'Section D', 3, 'Sem-I, 2026-27'),
+    (999, 107, 2, 'Dr Balaji Vejju', 'Section E', 3, 'Sem-I, 2026-27'),
+    (1000, 107, 2, 'Dr Balaji Vejju', 'Section F', 3, 'Sem-I, 2026-27');
+INSERT INTO course_offerings (offering_id, course_id, faculty_id, faculty_name, class_section, semester, term_name) VALUES
+    (1001, 107, 2, 'Dr Balaji Vejju', 'Section G', 3, 'Sem-I, 2026-27'),
+    (1002, 107, 2, 'Dr Balaji Vejju', 'Section H', 3, 'Sem-I, 2026-27'),
+    (1003, 107, 2, 'Dr Balaji Vejju', 'Section I', 3, 'Sem-I, 2026-27'),
+    (1004, 107, 2, 'Dr Balaji Vejju', 'Section J', 3, 'Sem-I, 2026-27'),
+    (1005, 107, 2, 'Dr Balaji Vejju', 'Section K', 3, 'Sem-I, 2026-27'),
+    (1006, 108, 2, 'Dr. Srinivasa Rao Kongara', 'Section A', 7, 'Sem-I, 2026-27'),
+    (1007, 108, 2, 'Dr. Srinivasa Rao Kongara', 'Section B', 7, 'Sem-I, 2026-27'),
+    (1008, 108, 2, 'Dr. Srinivasa Rao Kongara', 'Section C', 7, 'Sem-I, 2026-27'),
+    (1009, 108, 2, 'Dr. Srinivasa Rao Kongara', 'Section D', 7, 'Sem-I, 2026-27'),
+    (1010, 108, 2, 'Dr. Srinivasa Rao Kongara', 'Section E', 7, 'Sem-I, 2026-27'),
+    (1011, 108, 2, 'Dr. Srinivasa Rao Kongara', 'Section F', 7, 'Sem-I, 2026-27'),
+    (1012, 108, 2, 'Dr. Srinivasa Rao Kongara', 'Section G', 7, 'Sem-I, 2026-27'),
+    (1013, 108, 2, 'Dr. Srinivasa Rao Kongara', 'Section H', 7, 'Sem-I, 2026-27'),
+    (1014, 108, 2, 'Dr. Srinivasa Rao Kongara', 'Section I', 7, 'Sem-I, 2026-27'),
+    (1015, 108, 2, 'Dr. Srinivasa Rao Kongara', 'Section J', 7, 'Sem-I, 2026-27'),
+    (1016, 108, 2, 'Dr. Srinivasa Rao Kongara', 'Section K', 7, 'Sem-I, 2026-27'),
+    (1017, 109, 2, 'Dr.B.SEETHARAMULU', 'Section A', 7, 'Sem-I, 2026-27'),
+    (1018, 109, 2, 'Dr.B.SEETHARAMULU', 'Section B', 7, 'Sem-I, 2026-27'),
+    (1019, 109, 2, 'Dr.B.SEETHARAMULU', 'Section C', 7, 'Sem-I, 2026-27'),
+    (1020, 109, 2, 'Dr.B.SEETHARAMULU', 'Section D', 7, 'Sem-I, 2026-27'),
+    (1021, 109, 2, 'Dr.B.SEETHARAMULU', 'Section E', 7, 'Sem-I, 2026-27'),
+    (1022, 109, 2, 'Dr.B.SEETHARAMULU', 'Section F', 7, 'Sem-I, 2026-27'),
+    (1023, 109, 2, 'Dr.B.SEETHARAMULU', 'Section G', 7, 'Sem-I, 2026-27'),
+    (1024, 109, 2, 'Dr.B.SEETHARAMULU', 'Section H', 7, 'Sem-I, 2026-27'),
+    (1025, 109, 2, 'Dr.B.SEETHARAMULU', 'Section I', 7, 'Sem-I, 2026-27'),
+    (1026, 109, 2, 'Dr.B.SEETHARAMULU', 'Section J', 7, 'Sem-I, 2026-27'),
+    (1027, 109, 2, 'Dr.B.SEETHARAMULU', 'Section K', 7, 'Sem-I, 2026-27'),
+    (1028, 110, 2, 'Dr. Nafis Uddin Khan', 'Section A', 5, 'Sem-I, 2026-27'),
+    (1029, 110, 2, 'Dr. Nafis Uddin Khan', 'Section B', 5, 'Sem-I, 2026-27'),
+    (1030, 110, 2, 'Dr. Nafis Uddin Khan', 'Section C', 5, 'Sem-I, 2026-27'),
+    (1031, 110, 2, 'Dr. Nafis Uddin Khan', 'Section D', 5, 'Sem-I, 2026-27'),
+    (1032, 110, 2, 'Dr. Nafis Uddin Khan', 'Section E', 5, 'Sem-I, 2026-27'),
+    (1033, 110, 2, 'Dr. Nafis Uddin Khan', 'Section F', 5, 'Sem-I, 2026-27'),
+    (1034, 110, 2, 'Dr. Nafis Uddin Khan', 'Section G', 5, 'Sem-I, 2026-27'),
+    (1035, 110, 2, 'Dr. Nafis Uddin Khan', 'Section H', 5, 'Sem-I, 2026-27'),
+    (1036, 110, 2, 'Dr. Nafis Uddin Khan', 'Section I', 5, 'Sem-I, 2026-27'),
+    (1037, 110, 2, 'Dr. Nafis Uddin Khan', 'Section J', 5, 'Sem-I, 2026-27'),
+    (1038, 110, 2, 'Dr. Nafis Uddin Khan', 'Section K', 5, 'Sem-I, 2026-27'),
+    (1039, 111, 2, 'Dr Upendar Mendu', 'Section A', 5, 'Sem-I, 2026-27'),
+    (1040, 111, 2, 'Dr Upendar Mendu', 'Section B', 5, 'Sem-I, 2026-27'),
+    (1041, 111, 2, 'Dr Upendar Mendu', 'Section C', 5, 'Sem-I, 2026-27'),
+    (1042, 111, 2, 'Dr Upendar Mendu', 'Section D', 5, 'Sem-I, 2026-27'),
+    (1043, 111, 2, 'Dr Upendar Mendu', 'Section E', 5, 'Sem-I, 2026-27'),
+    (1044, 111, 2, 'Dr Upendar Mendu', 'Section F', 5, 'Sem-I, 2026-27'),
+    (1045, 111, 2, 'Dr Upendar Mendu', 'Section G', 5, 'Sem-I, 2026-27'),
+    (1046, 111, 2, 'Dr Upendar Mendu', 'Section H', 5, 'Sem-I, 2026-27'),
+    (1047, 111, 2, 'Dr Upendar Mendu', 'Section I', 5, 'Sem-I, 2026-27'),
+    (1048, 111, 2, 'Dr Upendar Mendu', 'Section J', 5, 'Sem-I, 2026-27'),
+    (1049, 111, 2, 'Dr Upendar Mendu', 'Section K', 5, 'Sem-I, 2026-27'),
+    (1050, 113, 2, 'Dr. B. Srinivas', 'Section A', 5, 'Sem-I, 2026-27');
+INSERT INTO course_offerings (offering_id, course_id, faculty_id, faculty_name, class_section, semester, term_name) VALUES
+    (1051, 113, 2, 'Dr. B. Srinivas', 'Section B', 5, 'Sem-I, 2026-27'),
+    (1052, 113, 2, 'Dr. B. Srinivas', 'Section C', 5, 'Sem-I, 2026-27'),
+    (1053, 113, 2, 'Dr. B. Srinivas', 'Section D', 5, 'Sem-I, 2026-27'),
+    (1054, 113, 2, 'Dr. B. Srinivas', 'Section E', 5, 'Sem-I, 2026-27'),
+    (1055, 113, 2, 'Dr. B. Srinivas', 'Section F', 5, 'Sem-I, 2026-27'),
+    (1056, 113, 2, 'Dr. B. Srinivas', 'Section G', 5, 'Sem-I, 2026-27'),
+    (1057, 113, 2, 'Dr. B. Srinivas', 'Section H', 5, 'Sem-I, 2026-27'),
+    (1058, 113, 2, 'Dr. B. Srinivas', 'Section I', 5, 'Sem-I, 2026-27'),
+    (1059, 113, 2, 'Dr. B. Srinivas', 'Section J', 5, 'Sem-I, 2026-27'),
+    (1060, 113, 2, 'Dr. B. Srinivas', 'Section K', 5, 'Sem-I, 2026-27'),
+    (1061, 114, 2, 'Dr.Srinivasa Rao Dhanikonda', 'Section A', 3, 'Sem-I, 2026-27'),
+    (1062, 114, 2, 'Dr.Srinivasa Rao Dhanikonda', 'Section B', 3, 'Sem-I, 2026-27'),
+    (1063, 114, 2, 'Dr.Srinivasa Rao Dhanikonda', 'Section C', 3, 'Sem-I, 2026-27'),
+    (1064, 114, 2, 'Dr.Srinivasa Rao Dhanikonda', 'Section D', 3, 'Sem-I, 2026-27'),
+    (1065, 114, 2, 'Dr.Srinivasa Rao Dhanikonda', 'Section E', 3, 'Sem-I, 2026-27'),
+    (1066, 114, 2, 'Dr.Srinivasa Rao Dhanikonda', 'Section F', 3, 'Sem-I, 2026-27'),
+    (1067, 114, 2, 'Dr.Srinivasa Rao Dhanikonda', 'Section G', 3, 'Sem-I, 2026-27'),
+    (1068, 114, 2, 'Dr.Srinivasa Rao Dhanikonda', 'Section H', 3, 'Sem-I, 2026-27'),
+    (1069, 114, 2, 'Dr.Srinivasa Rao Dhanikonda', 'Section I', 3, 'Sem-I, 2026-27'),
+    (1070, 114, 2, 'Dr.Srinivasa Rao Dhanikonda', 'Section J', 3, 'Sem-I, 2026-27'),
+    (1071, 114, 2, 'Dr.Srinivasa Rao Dhanikonda', 'Section K', 3, 'Sem-I, 2026-27'),
+    (1072, 115, 2, 'Dr. N. Prasad', 'Section A', 5, 'Sem-I, 2026-27'),
+    (1073, 115, 2, 'Dr. N. Prasad', 'Section B', 5, 'Sem-I, 2026-27'),
+    (1074, 115, 2, 'Dr. N. Prasad', 'Section C', 5, 'Sem-I, 2026-27'),
+    (1075, 115, 2, 'Dr. N. Prasad', 'Section D', 5, 'Sem-I, 2026-27'),
+    (1076, 115, 2, 'Dr. N. Prasad', 'Section E', 5, 'Sem-I, 2026-27'),
+    (1077, 115, 2, 'Dr. N. Prasad', 'Section F', 5, 'Sem-I, 2026-27'),
+    (1078, 115, 2, 'Dr. N. Prasad', 'Section G', 5, 'Sem-I, 2026-27'),
+    (1079, 115, 2, 'Dr. N. Prasad', 'Section H', 5, 'Sem-I, 2026-27'),
+    (1080, 115, 2, 'Dr. N. Prasad', 'Section I', 5, 'Sem-I, 2026-27'),
+    (1081, 115, 2, 'Dr. N. Prasad', 'Section J', 5, 'Sem-I, 2026-27'),
+    (1082, 115, 2, 'Dr. N. Prasad', 'Section K', 5, 'Sem-I, 2026-27'),
+    (1083, 116, 2, 'Dr. AVINASH MALLADI', 'Section A', 5, 'Sem-I, 2026-27'),
+    (1084, 116, 2, 'Dr. AVINASH MALLADI', 'Section B', 5, 'Sem-I, 2026-27'),
+    (1085, 116, 2, 'Dr. AVINASH MALLADI', 'Section C', 5, 'Sem-I, 2026-27'),
+    (1086, 116, 2, 'Dr. AVINASH MALLADI', 'Section D', 5, 'Sem-I, 2026-27'),
+    (1087, 116, 2, 'Dr. AVINASH MALLADI', 'Section E', 5, 'Sem-I, 2026-27'),
+    (1088, 116, 2, 'Dr. AVINASH MALLADI', 'Section F', 5, 'Sem-I, 2026-27'),
+    (1089, 116, 2, 'Dr. AVINASH MALLADI', 'Section G', 5, 'Sem-I, 2026-27'),
+    (1090, 116, 2, 'Dr. AVINASH MALLADI', 'Section H', 5, 'Sem-I, 2026-27'),
+    (1091, 116, 2, 'Dr. AVINASH MALLADI', 'Section I', 5, 'Sem-I, 2026-27'),
+    (1092, 116, 2, 'Dr. AVINASH MALLADI', 'Section J', 5, 'Sem-I, 2026-27'),
+    (1093, 116, 2, 'Dr. AVINASH MALLADI', 'Section K', 5, 'Sem-I, 2026-27'),
+    (1094, 117, 2, 'Dr Ramakrishna Reddy K', 'Section A', 3, 'Sem-I, 2026-27'),
+    (1095, 117, 2, 'Dr Ramakrishna Reddy K', 'Section B', 3, 'Sem-I, 2026-27'),
+    (1096, 117, 2, 'Dr Ramakrishna Reddy K', 'Section C', 3, 'Sem-I, 2026-27'),
+    (1097, 117, 2, 'Dr Ramakrishna Reddy K', 'Section D', 3, 'Sem-I, 2026-27'),
+    (1098, 117, 2, 'Dr Ramakrishna Reddy K', 'Section E', 3, 'Sem-I, 2026-27'),
+    (1099, 117, 2, 'Dr Ramakrishna Reddy K', 'Section F', 3, 'Sem-I, 2026-27'),
+    (1100, 117, 2, 'Dr Ramakrishna Reddy K', 'Section G', 3, 'Sem-I, 2026-27');
+INSERT INTO course_offerings (offering_id, course_id, faculty_id, faculty_name, class_section, semester, term_name) VALUES
+    (1101, 117, 2, 'Dr Ramakrishna Reddy K', 'Section H', 3, 'Sem-I, 2026-27'),
+    (1102, 117, 2, 'Dr Ramakrishna Reddy K', 'Section I', 3, 'Sem-I, 2026-27'),
+    (1103, 117, 2, 'Dr Ramakrishna Reddy K', 'Section J', 3, 'Sem-I, 2026-27'),
+    (1104, 117, 2, 'Dr Ramakrishna Reddy K', 'Section K', 3, 'Sem-I, 2026-27'),
+    (1105, 118, 2, 'Dr. Soumit Samadder Chaudhury', 'Section A', 3, 'Sem-I, 2026-27'),
+    (1106, 118, 2, 'Dr. Soumit Samadder Chaudhury', 'Section B', 3, 'Sem-I, 2026-27'),
+    (1107, 118, 2, 'Dr. Soumit Samadder Chaudhury', 'Section C', 3, 'Sem-I, 2026-27'),
+    (1108, 118, 2, 'Dr. Soumit Samadder Chaudhury', 'Section D', 3, 'Sem-I, 2026-27'),
+    (1109, 118, 2, 'Dr. Soumit Samadder Chaudhury', 'Section E', 3, 'Sem-I, 2026-27'),
+    (1110, 118, 2, 'Dr. Soumit Samadder Chaudhury', 'Section F', 3, 'Sem-I, 2026-27'),
+    (1111, 118, 2, 'Dr. Soumit Samadder Chaudhury', 'Section G', 3, 'Sem-I, 2026-27'),
+    (1112, 118, 2, 'Dr. Soumit Samadder Chaudhury', 'Section H', 3, 'Sem-I, 2026-27'),
+    (1113, 118, 2, 'Dr. Soumit Samadder Chaudhury', 'Section I', 3, 'Sem-I, 2026-27'),
+    (1114, 118, 2, 'Dr. Soumit Samadder Chaudhury', 'Section J', 3, 'Sem-I, 2026-27'),
+    (1115, 118, 2, 'Dr. Soumit Samadder Chaudhury', 'Section K', 3, 'Sem-I, 2026-27'),
+    (1116, 119, 2, 'Mr. VENUGOPAL CHITTEMSETTY', 'Section A', 3, 'Sem-I, 2026-27'),
+    (1117, 119, 2, 'Mr. VENUGOPAL CHITTEMSETTY', 'Section B', 3, 'Sem-I, 2026-27'),
+    (1118, 119, 2, 'Mr. VENUGOPAL CHITTEMSETTY', 'Section C', 3, 'Sem-I, 2026-27'),
+    (1119, 119, 2, 'Mr. VENUGOPAL CHITTEMSETTY', 'Section D', 3, 'Sem-I, 2026-27'),
+    (1120, 119, 2, 'Mr. VENUGOPAL CHITTEMSETTY', 'Section E', 3, 'Sem-I, 2026-27'),
+    (1121, 119, 2, 'Mr. VENUGOPAL CHITTEMSETTY', 'Section F', 3, 'Sem-I, 2026-27'),
+    (1122, 119, 2, 'Mr. VENUGOPAL CHITTEMSETTY', 'Section G', 3, 'Sem-I, 2026-27'),
+    (1123, 119, 2, 'Mr. VENUGOPAL CHITTEMSETTY', 'Section H', 3, 'Sem-I, 2026-27'),
+    (1124, 119, 2, 'Mr. VENUGOPAL CHITTEMSETTY', 'Section I', 3, 'Sem-I, 2026-27'),
+    (1125, 119, 2, 'Mr. VENUGOPAL CHITTEMSETTY', 'Section J', 3, 'Sem-I, 2026-27'),
+    (1126, 119, 2, 'Mr. VENUGOPAL CHITTEMSETTY', 'Section K', 3, 'Sem-I, 2026-27'),
+    (1127, 120, 2, 'Dr B Deevena Raju', 'Section A', 5, 'Sem-I, 2026-27'),
+    (1128, 120, 2, 'Dr B Deevena Raju', 'Section B', 5, 'Sem-I, 2026-27'),
+    (1129, 120, 2, 'Dr B Deevena Raju', 'Section C', 5, 'Sem-I, 2026-27'),
+    (1130, 120, 2, 'Dr B Deevena Raju', 'Section D', 5, 'Sem-I, 2026-27'),
+    (1131, 120, 2, 'Dr B Deevena Raju', 'Section E', 5, 'Sem-I, 2026-27'),
+    (1132, 120, 2, 'Dr B Deevena Raju', 'Section F', 5, 'Sem-I, 2026-27'),
+    (1133, 120, 2, 'Dr B Deevena Raju', 'Section G', 5, 'Sem-I, 2026-27'),
+    (1134, 120, 2, 'Dr B Deevena Raju', 'Section H', 5, 'Sem-I, 2026-27'),
+    (1135, 120, 2, 'Dr B Deevena Raju', 'Section I', 5, 'Sem-I, 2026-27'),
+    (1136, 120, 2, 'Dr B Deevena Raju', 'Section J', 5, 'Sem-I, 2026-27'),
+    (1137, 120, 2, 'Dr B Deevena Raju', 'Section K', 5, 'Sem-I, 2026-27');
 
-ALTER TABLE public.faculty OWNER TO postgres;
+SELECT setval(pg_get_serial_sequence('course_offerings', 'offering_id'), coalesce(max(offering_id), 1)) FROM course_offerings;
 
---
--- TOC entry 231 (class 1259 OID 24964)
--- Name: faculty_faculty_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
---
-
-CREATE SEQUENCE public.faculty_faculty_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
-ALTER SEQUENCE public.faculty_faculty_id_seq OWNER TO postgres;
-
---
--- TOC entry 5227 (class 0 OID 0)
--- Dependencies: 231
--- Name: faculty_faculty_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
---
-
-ALTER SEQUENCE public.faculty_faculty_id_seq OWNED BY public.faculty.faculty_id;
-
-
---
--- TOC entry 242 (class 1259 OID 25077)
--- Name: feedback; Type: TABLE; Schema: public; Owner: postgres
---
-
-CREATE TABLE public.feedback (
-    feedback_id bigint NOT NULL,
-    student_id integer NOT NULL,
-    offering_id integer NOT NULL,
-    feedback_text text NOT NULL,
-    submitted_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
-    status character varying(20) DEFAULT 'PENDING'::character varying,
-    is_anonymous boolean DEFAULT true,
-    CONSTRAINT feedback_status_check CHECK (((status)::text = ANY ((ARRAY['PENDING'::character varying, 'ANALYZED'::character varying, 'FAILED'::character varying])::text[])))
+-- Table structure for student_enrollments
+DROP TABLE IF EXISTS student_enrollments CASCADE;
+CREATE TABLE student_enrollments (
+    enrollment_id SERIAL PRIMARY KEY,
+    student_id INTEGER NOT NULL,
+    course_id INTEGER NOT NULL,
+    semester INTEGER NOT NULL,
+    enrollment_type VARCHAR(50) DEFAULT 'Core',
+    status VARCHAR(50) DEFAULT 'ENROLLED',
+    enrolled_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Seed data for student_enrollments (12 records)
+INSERT INTO student_enrollments (enrollment_id, student_id, course_id, semester, enrollment_type, status, enrolled_at) VALUES
+    (6, 9999, 7, 5, 'Core', 'ENROLLED', '2026-11-03 19:32:13'),
+    (7, 1, 7, 5, 'Core', 'ENROLLED', '2026-11-08 14:10:41'),
+    (8, 1, 8, 5, 'Core', 'ENROLLED', '2026-11-08 14:10:41'),
+    (9, 1, 9, 5, 'Core', 'ENROLLED', '2026-11-08 14:10:41'),
+    (10, 1, 10, 5, 'Core', 'ENROLLED', '2026-11-08 14:10:41'),
+    (11, 2, 7, 5, 'Core', 'ENROLLED', '2026-11-08 14:10:41'),
+    (12, 2, 8, 5, 'Core', 'ENROLLED', '2026-11-08 14:10:41'),
+    (13, 3, 4, 3, 'Core', 'ENROLLED', '2026-11-08 14:10:41'),
+    (14, 3, 5, 3, 'Core', 'ENROLLED', '2026-11-08 14:10:41'),
+    (15, 3, 6, 3, 'Core', 'ENROLLED', '2026-11-08 14:10:41'),
+    (16, 4, 7, 5, 'Core', 'ENROLLED', '2026-11-08 14:10:41'),
+    (17, 4, 8, 5, 'Core', 'ENROLLED', '2026-11-08 14:10:41');
 
-ALTER TABLE public.feedback OWNER TO postgres;
+SELECT setval(pg_get_serial_sequence('student_enrollments', 'enrollment_id'), coalesce(max(enrollment_id), 1)) FROM student_enrollments;
 
---
--- TOC entry 248 (class 1259 OID 25146)
--- Name: feedback_aspects; Type: TABLE; Schema: public; Owner: postgres
---
-
-CREATE TABLE public.feedback_aspects (
-    aspect_id bigint NOT NULL,
-    feedback_id bigint NOT NULL,
-    aspect character varying(100) NOT NULL,
-    aspect_sentiment character varying(20),
-    confidence numeric(5,4),
-    CONSTRAINT feedback_aspects_aspect_sentiment_check CHECK (((aspect_sentiment)::text = ANY ((ARRAY['POSITIVE'::character varying, 'NEUTRAL'::character varying, 'NEGATIVE'::character varying])::text[]))),
-    CONSTRAINT feedback_aspects_confidence_check CHECK (((confidence IS NULL) OR ((confidence >= (0)::numeric) AND (confidence <= (1)::numeric))))
+-- Table structure for lectures
+DROP TABLE IF EXISTS lectures CASCADE;
+CREATE TABLE lectures (
+    lecture_id SERIAL PRIMARY KEY,
+    offering_id INTEGER,
+    course_id INTEGER,
+    course_code VARCHAR(30) NOT NULL,
+    course_name VARCHAR(150) NOT NULL,
+    faculty_name VARCHAR(100) NOT NULL,
+    class_section VARCHAR(50) NOT NULL,
+    semester INTEGER NOT NULL,
+    day_of_week VARCHAR(20) NOT NULL,
+    start_time VARCHAR(20) NOT NULL,
+    end_time VARCHAR(20) NOT NULL,
+    room_number VARCHAR(50) DEFAULT 'Hall 301',
+    topic VARCHAR(200) NOT NULL,
+    lecture_type VARCHAR(50) DEFAULT 'Theory',
+    status VARCHAR(50) DEFAULT 'SCHEDULED',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Seed data for lectures (15 records)
+INSERT INTO lectures (lecture_id, offering_id, course_id, course_code, course_name, faculty_name, class_section, semester, day_of_week, start_time, end_time, room_number, topic, lecture_type, status, created_at) VALUES
+    (1, NULL, NULL, 'AI501', 'Natural Language Processing', 'Dr. A. Sharma', 'Class 3A', 5, 'Monday', '09:30 AM', '10:30 AM', 'Hall 301', 'Attention Mechanisms & Multi-Head Projections', 'Theory', 'SCHEDULED', '2026-11-01 17:21:30'),
+    (2, NULL, NULL, 'AI502', 'Machine Learning', 'Prof. R. Menon', 'Class 3A', 5, 'Monday', '10:45 AM', '11:45 AM', 'Hall 301', 'Gradient Boosting & XGBoost Hyperparameters', 'Theory', 'SCHEDULED', '2026-11-01 17:21:30'),
+    (3, NULL, NULL, 'AI501', 'Natural Language Processing Lab', 'Dr. A. Sharma', 'Class 3A', 5, 'Monday', '02:00 PM', '04:00 PM', 'AI Lab 4', 'PyTorch HuggingFace Tokenizers & Attention Matrices', 'Lab', 'SCHEDULED', '2026-11-01 17:21:30'),
+    (4, NULL, NULL, 'CS501', 'Computer Networks', 'Dr. S. Nair', 'Class 3A', 5, 'Tuesday', '09:30 AM', '10:30 AM', 'Hall 301', 'TCP Congestion Control & Window Flow Mechanisms', 'Theory', 'SCHEDULED', '2026-11-01 17:21:30'),
+    (5, NULL, NULL, 'CS502', 'Database Management Systems', 'Dr. K. Iyer', 'Class 3A', 5, 'Tuesday', '11:00 AM', '12:00 PM', 'Hall 301', 'ACID Transactions & Two-Phase Locking Protocol', 'Theory', 'SCHEDULED', '2026-11-01 17:21:30'),
+    (6, NULL, NULL, 'AI504', 'Deep Learning Architectures', 'Dr. A. Sharma', 'Class 3A', 5, 'Tuesday', '02:00 PM', '03:00 PM', 'Hall 302', 'Transformer Attention vs Recurrent Memory Blocks', 'Theory', 'SCHEDULED', '2026-11-01 17:21:30'),
+    (7, NULL, NULL, 'AI501', 'Natural Language Processing', 'Dr. A. Sharma', 'Class 3A', 5, 'Wednesday', '09:30 AM', '10:30 AM', 'Hall 301', 'Cross-Attention & Masked Language Modeling', 'Theory', 'SCHEDULED', '2026-11-01 17:21:30'),
+    (8, NULL, NULL, 'AI502', 'Machine Learning', 'Prof. R. Menon', 'Class 3A', 5, 'Wednesday', '10:45 AM', '11:45 AM', 'Hall 301', 'Support Vector Machines & Kernel Tricks', 'Theory', 'SCHEDULED', '2026-11-01 17:21:30'),
+    (9, NULL, NULL, 'DS302', 'Statistical Machine Learning', 'Dr. M. Sen', 'Class 3A', 5, 'Wednesday', '01:30 PM', '02:30 PM', 'Hall 204', 'Hypothesis Testing & p-Value Statistical Significance', 'Theory', 'SCHEDULED', '2026-11-01 17:21:30'),
+    (10, NULL, NULL, 'CS501', 'Computer Networks', 'Dr. S. Nair', 'Class 3A', 5, 'Thursday', '10:00 AM', '11:00 AM', 'Hall 301', 'Border Gateway Protocol (BGP) & Autonomous Systems', 'Theory', 'SCHEDULED', '2026-11-01 17:21:30'),
+    (11, NULL, NULL, 'CS502', 'Database Management Systems', 'Dr. K. Iyer', 'Class 3A', 5, 'Thursday', '11:15 AM', '12:15 PM', 'Hall 301', 'B+ Tree Indexing & Query Cost Optimization', 'Theory', 'SCHEDULED', '2026-11-01 17:21:30'),
+    (12, NULL, NULL, 'AI502', 'ML Evaluation & Benchmarking Lab', 'Prof. R. Menon', 'Class 3A', 5, 'Thursday', '02:00 PM', '04:00 PM', 'Lab 2', 'Scikit-learn ROC-AUC & Confusion Matrix Curves', 'Lab', 'SCHEDULED', '2026-11-01 17:21:30'),
+    (13, NULL, NULL, 'AI501', 'Natural Language Processing', 'Dr. A. Sharma', 'Class 3A', 5, 'Friday', '09:30 AM', '10:30 AM', 'Hall 301', 'Positional Encodings & Rotary RoPE Embeddings', 'Theory', 'SCHEDULED', '2026-11-01 17:21:30'),
+    (14, NULL, NULL, 'AI504', 'Deep Learning Architectures', 'Dr. A. Sharma', 'Class 3A', 5, 'Friday', '10:45 AM', '11:45 AM', 'Hall 302', 'Backpropagation Through Time Matrix Chain Rule', 'Theory', 'SCHEDULED', '2026-11-01 17:21:30'),
+    (15, NULL, NULL, 'AI505', 'AI Industry Seminar & Case Studies', 'Dean Academics', 'Class 3A', 5, 'Friday', '02:00 PM', '03:30 PM', 'Auditorium', 'Production LLM Serving: KV Cache & Latency', 'Seminar', 'SCHEDULED', '2026-11-01 17:21:30');
 
-ALTER TABLE public.feedback_aspects OWNER TO postgres;
+SELECT setval(pg_get_serial_sequence('lectures', 'lecture_id'), coalesce(max(lecture_id), 1)) FROM lectures;
 
---
--- TOC entry 247 (class 1259 OID 25145)
--- Name: feedback_aspects_aspect_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
---
-
-CREATE SEQUENCE public.feedback_aspects_aspect_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
-ALTER SEQUENCE public.feedback_aspects_aspect_id_seq OWNER TO postgres;
-
---
--- TOC entry 5228 (class 0 OID 0)
--- Dependencies: 247
--- Name: feedback_aspects_aspect_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
---
-
-ALTER SEQUENCE public.feedback_aspects_aspect_id_seq OWNED BY public.feedback_aspects.aspect_id;
-
-
---
--- TOC entry 241 (class 1259 OID 25076)
--- Name: feedback_feedback_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
---
-
-CREATE SEQUENCE public.feedback_feedback_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
-ALTER SEQUENCE public.feedback_feedback_id_seq OWNER TO postgres;
-
---
--- TOC entry 5229 (class 0 OID 0)
--- Dependencies: 241
--- Name: feedback_feedback_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
---
-
-ALTER SEQUENCE public.feedback_feedback_id_seq OWNED BY public.feedback.feedback_id;
-
-
---
--- TOC entry 244 (class 1259 OID 25104)
--- Name: model_versions; Type: TABLE; Schema: public; Owner: postgres
---
-
-CREATE TABLE public.model_versions (
-    model_version_id integer NOT NULL,
-    model_name character varying(100) NOT NULL,
-    version character varying(50) NOT NULL,
-    task character varying(50) NOT NULL,
-    model_description text,
-    is_active boolean DEFAULT false,
-    created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT model_versions_task_check CHECK (((task)::text = ANY ((ARRAY['SENTIMENT'::character varying, 'EMOTION'::character varying, 'BOTH'::character varying])::text[])))
+-- Table structure for model_versions
+DROP TABLE IF EXISTS model_versions CASCADE;
+CREATE TABLE model_versions (
+    model_version_id SERIAL PRIMARY KEY,
+    model_name VARCHAR(100) NOT NULL,
+    model_type VARCHAR(50),
+    version_tag VARCHAR(50),
+    metrics TEXT,
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Seed data for model_versions (1 records)
+INSERT INTO model_versions (model_version_id, model_name, model_type, version_tag, metrics, is_active, created_at) VALUES
+    (1, 'TF-IDF Sentiment & Emotion Suite', 'LogisticRegression', 'v1.0.0', NULL, 1, '2026-11-01 17:21:30');
 
-ALTER TABLE public.model_versions OWNER TO postgres;
+SELECT setval(pg_get_serial_sequence('model_versions', 'model_version_id'), coalesce(max(model_version_id), 1)) FROM model_versions;
 
---
--- TOC entry 243 (class 1259 OID 25103)
--- Name: model_versions_model_version_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
---
-
-CREATE SEQUENCE public.model_versions_model_version_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
-ALTER SEQUENCE public.model_versions_model_version_id_seq OWNER TO postgres;
-
---
--- TOC entry 5230 (class 0 OID 0)
--- Dependencies: 243
--- Name: model_versions_model_version_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
---
-
-ALTER SEQUENCE public.model_versions_model_version_id_seq OWNED BY public.model_versions.model_version_id;
-
-
---
--- TOC entry 246 (class 1259 OID 25122)
--- Name: predictions; Type: TABLE; Schema: public; Owner: postgres
---
-
-CREATE TABLE public.predictions (
-    prediction_id bigint NOT NULL,
-    feedback_id bigint NOT NULL,
-    model_version_id integer NOT NULL,
-    sentiment character varying(20),
-    sentiment_confidence numeric(5,4),
-    emotion character varying(50),
-    emotion_confidence numeric(5,4),
-    predicted_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT predictions_emotion_confidence_check CHECK (((emotion_confidence IS NULL) OR ((emotion_confidence >= (0)::numeric) AND (emotion_confidence <= (1)::numeric)))),
-    CONSTRAINT predictions_sentiment_check CHECK (((sentiment)::text = ANY ((ARRAY['POSITIVE'::character varying, 'NEUTRAL'::character varying, 'NEGATIVE'::character varying])::text[]))),
-    CONSTRAINT predictions_sentiment_confidence_check CHECK (((sentiment_confidence IS NULL) OR ((sentiment_confidence >= (0)::numeric) AND (sentiment_confidence <= (1)::numeric))))
+-- Table structure for feedback
+DROP TABLE IF EXISTS feedback CASCADE;
+CREATE TABLE feedback (
+    feedback_id SERIAL PRIMARY KEY,
+    student_id INTEGER DEFAULT 1,
+    offering_id INTEGER DEFAULT 1,
+    feedback_text TEXT NOT NULL,
+    submitted_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    status VARCHAR(20) DEFAULT 'PENDING',
+    is_anonymous BOOLEAN DEFAULT TRUE,
+    semester INTEGER DEFAULT 5,
+    class_section VARCHAR(50) DEFAULT 'Class 3A',
+    course_code VARCHAR(30) DEFAULT 'AI501',
+    course_name VARCHAR(150) DEFAULT 'Natural Language Processing',
+    upvotes INTEGER DEFAULT 0,
+    acoustic_prosody TEXT,
+    slide_image_url TEXT,
+    slide_analysis TEXT,
+    facial_emotion VARCHAR(30),
+    multilingual_lang VARCHAR(20) DEFAULT 'en',
+    created_at TIMESTAMP WITH TIME ZONE,
+    text_hash VARCHAR(64),
+    is_urgent BOOLEAN DEFAULT FALSE,
+    urgency_reason VARCHAR(255),
+    helpfulness_score INTEGER DEFAULT 75,
+    requires_human_review BOOLEAN DEFAULT FALSE
 );
 
+-- Seed data for feedback (31 records)
+INSERT INTO feedback (feedback_id, student_id, offering_id, feedback_text, submitted_at, status, is_anonymous, semester, class_section, course_code, course_name, upvotes, acoustic_prosody, slide_image_url, slide_analysis, facial_emotion, multilingual_lang, created_at, text_hash, is_urgent, urgency_reason, helpfulness_score, requires_human_review) VALUES
+    (1, 1, 1, 'The professor explains attention mechanisms and transformer projections very clearly with diagrams, but the assignment deadline is very tight.', '2026-11-08 14:10:41', 'ANALYZED', 1, 5, 'Section D', 'AI501', 'Natural Language Processing', 7, NULL, NULL, NULL, NULL, 'en', NULL, NULL, 0, NULL, 75, 0),
+    (2, 1, 2, 'Machine learning loss curve visualization labs and XGBoost parameter walkthroughs helped solidify gradient descent concepts.', '2026-11-08 14:10:41', 'ANALYZED', 1, 5, 'Section D', 'AI502', 'Machine Learning', 4, NULL, NULL, NULL, NULL, 'en', NULL, NULL, 0, NULL, 75, 0),
+    (3, 4, 5, 'Natural language processing tokenization slides and BPE algorithm steps were comprehensive and easy to follow during lectures.', '2026-11-08 14:10:41', 'ANALYZED', 1, 5, 'Section E', 'AI501', 'Natural Language Processing', 3, NULL, NULL, NULL, NULL, 'en', NULL, NULL, 0, NULL, 75, 0),
+    (4, 1, 3, 'Packet tracing in Wireshark for TCP flow control and window size was difficult to follow on lab workstations with outdated drivers.', '2026-11-08 14:10:41', 'ANALYZED', 1, 5, 'Section D', 'CS501', 'Computer Networks', 5, NULL, NULL, NULL, NULL, 'en', NULL, NULL, 0, NULL, 75, 0),
+    (5, 2, 9, 'The graph algorithm explanations and visualization slides made difficult concepts much simpler to grasp.', '2026-11-01 17:15:10', 'ANALYZED', 1, 3, 'Section B', 'CS201', 'Data Structures & Algorithms', 12, NULL, NULL, NULL, NULL, 'en', NULL, NULL, 0, NULL, 75, 0),
+    (6, 1, 1, 'The natural language processing demonstrations and tokenization notebooks were extremely helpful.', '2026-11-01 17:27:53', 'ANALYZED', 1, 5, 'Section D', 'AI501', 'Natural Language Processing', 0, NULL, NULL, NULL, NULL, 'English', NULL, NULL, 0, NULL, 75, 0),
+    (8, 5, 1, 'Programming labs are well structured and interactive debugging exercises help build solid foundations.', '2026-11-03 14:00:41', 'ANALYZED', 1, 1, 'Section A', 'CS101', 'Intro to Programming & Problem Solving', 0, NULL, NULL, NULL, NULL, 'en', NULL, NULL, 0, NULL, 75, 0),
+    (9, 12, 14, 'The advanced generative AI lectures and latency optimization workshops are deeply practical for capstone projects.', '2026-11-03 14:00:41', 'ANALYZED', 1, 7, 'Section F', 'AI701', 'Generative AI & LLMs', 0, NULL, NULL, NULL, NULL, 'en', NULL, NULL, 0, NULL, 75, 0),
+    (16, 1, 1, 'The transformer multi-head self-attention walkthrough and hands-on HuggingFace notebook kept me highly engaged.', '2026-11-02 01:49:33', 'ANALYZED', 1, 5, 'Section D', 'AI501', 'Natural Language Processing', 0, NULL, NULL, NULL, NULL, 'en', NULL, NULL, 0, NULL, 75, 0),
+    (17, 4, 1, 'The tokenization and BPE algorithm slides were well structured; clear homework guidelines provided.', '2026-10-27 01:49:33', 'ANALYZED', 1, 5, 'Section D', 'AI501', 'Natural Language Processing', 0, NULL, NULL, NULL, NULL, 'en', NULL, NULL, 0, NULL, 75, 0),
+    (18, 7, 1, 'The mathematical derivation of beam search decoding went quite fast; could we recap the pruning threshold step?', '2026-10-20 01:49:33', 'ANALYZED', 1, 5, 'Section B', 'AI501', 'Natural Language Processing', 0, NULL, NULL, NULL, NULL, 'en', NULL, NULL, 0, NULL, 75, 0),
+    (19, 10, 1, 'CUDA out of memory issues repeatedly aborted the fine-tuning lab notebook on the university server.', '2026-10-13 01:49:33', 'ANALYZED', 1, 5, 'Section D', 'AI501', 'Natural Language Processing', 0, NULL, NULL, NULL, NULL, 'en', NULL, NULL, 0, NULL, 75, 0),
+    (20, 14, 1, 'Today covered standard Word2Vec skip-gram theory per the syllabus without extra live coding.', '2026-10-07 01:49:33', 'ANALYZED', 1, 5, 'Section A', 'AI501', 'Natural Language Processing', 0, NULL, NULL, NULL, NULL, 'en', NULL, NULL, 0, NULL, 75, 0),
+    (21, 3, 1, 'Dijkstra and A* pathfinding animations made dynamic graph algorithms intuitive and exciting to implement.', '2026-11-01 01:49:33', 'ANALYZED', 1, 3, 'Section B', 'CS201', 'Data Structures & Algorithms', 0, NULL, NULL, NULL, NULL, 'en', NULL, NULL, 0, NULL, 75, 0),
+    (22, 8, 1, 'AVL tree rotations were clearly explained with good balance factor diagrams.', '2026-10-25 01:49:33', 'ANALYZED', 1, 3, 'Section C', 'CS201', 'Data Structures & Algorithms', 0, NULL, NULL, NULL, NULL, 'en', NULL, NULL, 0, NULL, 75, 0),
+    (23, 9, 1, 'Red-Black tree recoloring cases got tangled during the lecture; need a step-by-step summary sheet.', '2026-10-18 01:49:33', 'ANALYZED', 1, 3, 'Section C', 'CS201', 'Data Structures & Algorithms', 0, NULL, NULL, NULL, NULL, 'en', NULL, NULL, 0, NULL, 75, 0),
+    (24, 18, 1, 'The online compiler timed out during the weekly timed coding challenge causing lost progress.', '2026-10-11 01:49:33', 'ANALYZED', 1, 3, 'Section H', 'CS201', 'Data Structures & Algorithms', 0, NULL, NULL, NULL, NULL, 'en', NULL, NULL, 0, NULL, 75, 0),
+    (25, 12, 1, 'Diffusion model latent space sampling and LoRA rank-stabilization experiments were exceptional.', '2026-10-31 01:49:33', 'ANALYZED', 1, 7, 'Section F', 'AI701', 'Generative AI & LLMs', 0, NULL, NULL, NULL, NULL, 'en', NULL, NULL, 0, NULL, 75, 0),
+    (26, 13, 1, 'Direct Preference Optimization (DPO) comparisons with PPO were clearly laid out.', '2026-10-24 01:49:33', 'ANALYZED', 1, 7, 'Section E', 'AI701', 'Generative AI & LLMs', 0, NULL, NULL, NULL, NULL, 'en', NULL, NULL, 0, NULL, 75, 0),
+    (27, 22, 1, 'Quantization scaling factors in 4-bit AWQ need further intuition; mathematical proofs were rushed.', '2026-10-17 01:49:33', 'ANALYZED', 1, 7, 'Section J', 'AI701', 'Generative AI & LLMs', 0, NULL, NULL, NULL, NULL, 'en', NULL, NULL, 0, NULL, 75, 0),
+    (28, 5, 1, 'Live interactive debugging on recursion trees clarified stack frames completely.', '2026-10-30 01:49:33', 'ANALYZED', 1, 1, 'Section A', 'CS101', 'Intro to Programming & Problem Solving', 0, NULL, NULL, NULL, NULL, 'en', NULL, NULL, 0, NULL, 75, 0),
+    (29, 26, 1, 'Pointer arithmetic in C and memory diagrams were explained with great patience.', '2026-10-23 01:49:33', 'ANALYZED', 1, 1, 'Section A', 'CS101', 'Intro to Programming & Problem Solving', 0, NULL, NULL, NULL, NULL, 'en', NULL, NULL, 0, NULL, 75, 0),
+    (30, 27, 1, 'Standard lecture on loops and conditionals; covered exercises from the syllabus textbook.', '2026-10-16 01:49:33', 'ANALYZED', 1, 1, 'Section B', 'CS101', 'Intro to Programming & Problem Solving', 0, NULL, NULL, NULL, NULL, 'en', NULL, NULL, 0, NULL, 75, 0),
+    (31, 16, 1, 'Gradient boosting and XGBoost hyperparameter tuning lab was thoroughly practical and insightful.', '2026-10-29 01:49:33', 'ANALYZED', 1, 5, 'Section G', 'AI301', 'Predictive Analytics', 0, NULL, NULL, NULL, NULL, 'en', NULL, NULL, 0, NULL, 75, 0),
+    (32, 17, 1, 'Confusion matrix and ROC-AUC curve interpretations are now very clear.', '2026-10-22 01:49:33', 'ANALYZED', 1, 5, 'Section G', 'AI301', 'Predictive Analytics', 0, NULL, NULL, NULL, NULL, 'en', NULL, NULL, 0, NULL, 75, 0),
+    (33, 24, 1, 'Mathematical formulation of SVM Lagrange multipliers was too dense without enough geometric intuition.', '2026-10-15 01:49:33', 'ANALYZED', 1, 5, 'Section K', 'AI301', 'Predictive Analytics', 0, NULL, NULL, NULL, NULL, 'en', NULL, NULL, 0, NULL, 75, 0),
+    (34, 25, 1, 'Lab server environment missing scikit-learn dependency caused delays during the clustering lab.', '2026-10-08 01:49:33', 'ANALYZED', 1, 5, 'Section K', 'AI301', 'Predictive Analytics', 0, NULL, NULL, NULL, NULL, 'en', NULL, NULL, 0, NULL, 75, 0),
+    (35, 28, 1, 'Lecture followed standard linear regression assumptions from the syllabus slides.', '2026-10-05 01:49:33', 'ANALYZED', 1, 5, 'Section C', 'AI301', 'Predictive Analytics', 0, NULL, NULL, NULL, NULL, 'en', NULL, NULL, 0, NULL, 75, 0),
+    (36, 1, 1, 'My phone is [PHONE_MASKED] and roll is [ROLL_MASKED]. The lecture on Transformer attention was very clear.', '2026-11-08 06:54:35', 'ANALYZED', 1, 5, 'Section D', 'AI501', 'Natural Language Processing', 0, NULL, NULL, NULL, NULL, 'en', NULL, 'f3b799018306f836052ebb0fe35c576a1f3e6f883a288d0641630b04be60808d', 0, NULL, 65, 1),
+    (37, 1, 1, 'My phone is [PHONE_MASKED] and roll is [ROLL_MASKED]. The lecture on Transformer attention was very clear.', '2026-11-08 06:54:35', 'ANALYZED', 1, 5, 'Section D', 'AI501', 'Natural Language Processing', 0, NULL, NULL, NULL, NULL, 'en', NULL, 'f3b799018306f836052ebb0fe35c576a1f3e6f883a288d0641630b04be60808d', 0, NULL, 65, 0),
+    (38, 1, 1, 'A student was harassed and threatened by seniors after class in the lab.', '2026-11-08 06:54:35', 'ANALYZED', 1, 5, 'Section D', 'AI501', 'Natural Language Processing', 0, NULL, NULL, NULL, NULL, 'en', NULL, '62e9edd60bc0dd27584e3fbb8ac8781839a04ce79b4ddc7168aaea28d6a7a66b', 1, 'HARASSMENT_OR_SAFETY', 50, 1);
 
-ALTER TABLE public.predictions OWNER TO postgres;
+SELECT setval(pg_get_serial_sequence('feedback', 'feedback_id'), coalesce(max(feedback_id), 1)) FROM feedback;
 
---
--- TOC entry 245 (class 1259 OID 25121)
--- Name: predictions_prediction_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
---
-
-CREATE SEQUENCE public.predictions_prediction_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
-ALTER SEQUENCE public.predictions_prediction_id_seq OWNER TO postgres;
-
---
--- TOC entry 5231 (class 0 OID 0)
--- Dependencies: 245
--- Name: predictions_prediction_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
---
-
-ALTER SEQUENCE public.predictions_prediction_id_seq OWNED BY public.predictions.prediction_id;
-
-
---
--- TOC entry 222 (class 1259 OID 24848)
--- Name: programs; Type: TABLE; Schema: public; Owner: postgres
---
-
-CREATE TABLE public.programs (
-    program_id integer NOT NULL,
-    department_id integer NOT NULL,
-    program_name character varying(100) NOT NULL,
-    degree character varying(50) NOT NULL,
-    duration_years integer NOT NULL,
-    CONSTRAINT programs_duration_years_check CHECK ((duration_years > 0))
+-- Table structure for predictions
+DROP TABLE IF EXISTS predictions CASCADE;
+CREATE TABLE predictions (
+    prediction_id SERIAL PRIMARY KEY,
+    feedback_id INTEGER,
+    model_version_id INTEGER DEFAULT 1,
+    sentiment VARCHAR(20),
+    sentiment_confidence DOUBLE PRECISION,
+    emotion VARCHAR(20),
+    emotion_confidence DOUBLE PRECISION,
+    predicted_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Seed data for predictions (31 records)
+INSERT INTO predictions (prediction_id, feedback_id, model_version_id, sentiment, sentiment_confidence, emotion, emotion_confidence, predicted_at) VALUES
+    (1, 1, 1, 'MIXED', 0.88, 'clarity', 0.85, '2026-11-08 14:10:41'),
+    (2, 2, 1, 'POSITIVE', 0.94, 'joy', 0.91, '2026-11-08 14:10:41'),
+    (3, 3, 1, 'POSITIVE', 0.91, 'clarity', 0.9, '2026-11-08 14:10:41'),
+    (4, 4, 1, 'NEGATIVE', 0.87, 'confusion', 0.88, '2026-11-08 14:10:41'),
+    (5, 5, 1, 'POSITIVE', 0.95, 'satisfaction', 0.92, '2026-11-01 17:15:10'),
+    (6, 6, 1, 'POSITIVE', 0.9, 'satisfaction', 0.92, '2026-11-01 17:27:53'),
+    (8, 8, 1, 'POSITIVE', 0.94, 'clarity', 0.91, '2026-11-03 14:00:41'),
+    (9, 9, 1, 'POSITIVE', 0.96, 'enthusiasm', 0.93, '2026-11-03 14:00:41'),
+    (16, 16, 1, 'POSITIVE', 0.94, 'engaged', 0.92, '2026-11-02 01:49:33'),
+    (17, 17, 1, 'POSITIVE', 0.91, 'satisfied', 0.89, '2026-10-27 01:49:33'),
+    (18, 18, 1, 'NEGATIVE', 0.83, 'confused', 0.86, '2026-10-20 01:49:33'),
+    (19, 19, 1, 'NEGATIVE', 0.88, 'frustrated', 0.91, '2026-10-13 01:49:33'),
+    (20, 20, 1, 'NEUTRAL', 0.78, 'neutral', 0.79, '2026-10-07 01:49:33'),
+    (21, 21, 1, 'POSITIVE', 0.95, 'engaged', 0.94, '2026-11-01 01:49:33'),
+    (22, 22, 1, 'POSITIVE', 0.89, 'satisfied', 0.88, '2026-10-25 01:49:33'),
+    (23, 23, 1, 'NEGATIVE', 0.85, 'confused', 0.87, '2026-10-18 01:49:33'),
+    (24, 24, 1, 'NEGATIVE', 0.92, 'frustrated', 0.93, '2026-10-11 01:49:33'),
+    (25, 25, 1, 'POSITIVE', 0.97, 'engaged', 0.96, '2026-10-31 01:49:33'),
+    (26, 26, 1, 'POSITIVE', 0.92, 'satisfied', 0.9, '2026-10-24 01:49:33'),
+    (27, 27, 1, 'NEGATIVE', 0.81, 'confused', 0.84, '2026-10-17 01:49:33'),
+    (28, 28, 1, 'POSITIVE', 0.93, 'engaged', 0.91, '2026-10-30 01:49:33'),
+    (29, 29, 1, 'POSITIVE', 0.9, 'satisfied', 0.89, '2026-10-23 01:49:33'),
+    (30, 30, 1, 'NEUTRAL', 0.79, 'neutral', 0.77, '2026-10-16 01:49:33'),
+    (31, 31, 1, 'POSITIVE', 0.96, 'engaged', 0.95, '2026-10-29 01:49:33'),
+    (32, 32, 1, 'POSITIVE', 0.91, 'satisfied', 0.9, '2026-10-22 01:49:33'),
+    (33, 33, 1, 'NEGATIVE', 0.84, 'confused', 0.86, '2026-10-15 01:49:33'),
+    (34, 34, 1, 'NEGATIVE', 0.89, 'frustrated', 0.92, '2026-10-08 01:49:33'),
+    (35, 35, 1, 'NEUTRAL', 0.8, 'neutral', 0.81, '2026-10-05 01:49:33'),
+    (36, 36, 1, 'POSITIVE', 0.88, 'engaged', 0.92, '2026-11-08 06:54:35'),
+    (37, 37, 1, 'POSITIVE', 0.88, 'engaged', 0.92, '2026-11-08 06:54:35'),
+    (38, 38, 1, 'NEGATIVE', 0.506, 'frustrated', 0.905, '2026-11-08 06:54:35');
 
-ALTER TABLE public.programs OWNER TO postgres;
+SELECT setval(pg_get_serial_sequence('predictions', 'prediction_id'), coalesce(max(prediction_id), 1)) FROM predictions;
 
---
--- TOC entry 221 (class 1259 OID 24847)
--- Name: programs_program_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
---
-
-CREATE SEQUENCE public.programs_program_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
-ALTER SEQUENCE public.programs_program_id_seq OWNER TO postgres;
-
---
--- TOC entry 5232 (class 0 OID 0)
--- Dependencies: 221
--- Name: programs_program_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
---
-
-ALTER SEQUENCE public.programs_program_id_seq OWNED BY public.programs.program_id;
-
-
---
--- TOC entry 226 (class 1259 OID 24884)
--- Name: sections; Type: TABLE; Schema: public; Owner: postgres
---
-
-CREATE TABLE public.sections (
-    section_id integer NOT NULL,
-    batch_id integer NOT NULL,
-    section_name character varying(20) NOT NULL
+-- Table structure for feedback_aspects
+DROP TABLE IF EXISTS feedback_aspects CASCADE;
+CREATE TABLE feedback_aspects (
+    aspect_id SERIAL PRIMARY KEY,
+    feedback_id INTEGER,
+    aspect VARCHAR(50),
+    aspect_sentiment VARCHAR(20),
+    confidence DOUBLE PRECISION
 );
 
+-- Seed data for feedback_aspects (35 records)
+INSERT INTO feedback_aspects (aspect_id, feedback_id, aspect, aspect_sentiment, confidence) VALUES
+    (1, 5, 'Teaching', 'POSITIVE', 0.95),
+    (2, 5, 'Materials', 'POSITIVE', 0.91),
+    (3, 8, 'Teaching', 'POSITIVE', 0.94),
+    (4, 9, 'Course Content', 'POSITIVE', 0.96),
+    (5, 16, 'Teaching', 'POSITIVE', 0.94),
+    (6, 17, 'Materials', 'POSITIVE', 0.91),
+    (7, 18, 'Pacing & Speed', 'NEGATIVE', 0.83),
+    (8, 19, 'Lab Infrastructure', 'NEGATIVE', 0.88),
+    (9, 20, 'Course Content', 'NEUTRAL', 0.78),
+    (10, 21, 'Teaching', 'POSITIVE', 0.95),
+    (11, 22, 'Concept Clarity', 'POSITIVE', 0.89),
+    (12, 23, 'Learning Materials', 'NEGATIVE', 0.85),
+    (13, 24, 'Evaluation', 'NEGATIVE', 0.92),
+    (14, 25, 'Course Content', 'POSITIVE', 0.97),
+    (15, 26, 'Teaching', 'POSITIVE', 0.92),
+    (16, 27, 'Pacing & Speed', 'NEGATIVE', 0.81),
+    (17, 28, 'Teaching', 'POSITIVE', 0.93),
+    (18, 29, 'Doubt Resolution', 'POSITIVE', 0.9),
+    (19, 30, 'Course Content', 'NEUTRAL', 0.79),
+    (20, 31, 'Learning Materials', 'POSITIVE', 0.96),
+    (21, 32, 'Concept Clarity', 'POSITIVE', 0.91),
+    (22, 33, 'Pacing & Speed', 'NEGATIVE', 0.84),
+    (23, 34, 'Lab Infrastructure', 'NEGATIVE', 0.89),
+    (24, 35, 'Course Content', 'NEUTRAL', 0.8),
+    (25, 36, 'teaching', 'POSITIVE', 0.7136),
+    (26, 37, 'teaching', 'POSITIVE', 0.7136),
+    (27, 38, 'laboratories', 'NEGATIVE', 0.5623),
+    (28, 1, 'Teaching', 'POSITIVE', 0.92),
+    (29, 1, 'Assignments', 'NEGATIVE', 0.89),
+    (30, 2, 'Teaching', 'POSITIVE', 0.95),
+    (31, 2, 'Materials', 'POSITIVE', 0.92),
+    (32, 3, 'Teaching', 'POSITIVE', 0.92),
+    (33, 3, 'Content', 'POSITIVE', 0.89),
+    (34, 4, 'Lab Infrastructure', 'NEGATIVE', 0.91),
+    (35, 4, 'Teaching', 'NEUTRAL', 0.7);
 
-ALTER TABLE public.sections OWNER TO postgres;
+SELECT setval(pg_get_serial_sequence('feedback_aspects', 'aspect_id'), coalesce(max(aspect_id), 1)) FROM feedback_aspects;
 
---
--- TOC entry 225 (class 1259 OID 24883)
--- Name: sections_section_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
---
-
-CREATE SEQUENCE public.sections_section_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
-ALTER SEQUENCE public.sections_section_id_seq OWNER TO postgres;
-
---
--- TOC entry 5233 (class 0 OID 0)
--- Dependencies: 225
--- Name: sections_section_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
---
-
-ALTER SEQUENCE public.sections_section_id_seq OWNED BY public.sections.section_id;
-
-
---
--- TOC entry 230 (class 1259 OID 24920)
--- Name: students; Type: TABLE; Schema: public; Owner: postgres
---
-
-CREATE TABLE public.students (
-    student_id integer NOT NULL,
-    user_id integer NOT NULL,
-    roll_number character varying(50) NOT NULL,
-    department_id integer NOT NULL,
-    program_id integer NOT NULL,
-    batch_id integer NOT NULL,
-    section_id integer NOT NULL,
-    current_year integer NOT NULL,
-    CONSTRAINT students_current_year_check CHECK ((current_year > 0))
+-- Table structure for feedback_responses
+DROP TABLE IF EXISTS feedback_responses CASCADE;
+CREATE TABLE feedback_responses (
+    response_id SERIAL PRIMARY KEY,
+    feedback_id INTEGER NOT NULL,
+    responder_name VARCHAR(100) NOT NULL,
+    response_text TEXT NOT NULL,
+    status VARCHAR(30) DEFAULT 'ACTION_TAKEN',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Seed data for feedback_responses (2 records)
+INSERT INTO feedback_responses (response_id, feedback_id, responder_name, response_text, status, created_at) VALUES
+    (1, 1, 'Dr. A. Sharma', 'Thank you for the constructive feedback! We have shifted the NLP Assignment 2 deadline by 72 hours to prevent collision with your lab exams.', 'ACTION_TAKEN', '2026-11-08 14:10:41'),
+    (2, 4, 'Dr. S. Nair', 'Lab technician has updated the network driver stack and Wireshark capture permissions across all Section D workstations.', 'RESOLVED', '2026-11-08 14:10:41');
 
-ALTER TABLE public.students OWNER TO postgres;
+SELECT setval(pg_get_serial_sequence('feedback_responses', 'response_id'), coalesce(max(response_id), 1)) FROM feedback_responses;
 
---
--- TOC entry 229 (class 1259 OID 24919)
--- Name: students_student_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
---
-
-CREATE SEQUENCE public.students_student_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
-ALTER SEQUENCE public.students_student_id_seq OWNER TO postgres;
-
---
--- TOC entry 5234 (class 0 OID 0)
--- Dependencies: 229
--- Name: students_student_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
---
-
-ALTER SEQUENCE public.students_student_id_seq OWNED BY public.students.student_id;
-
-
---
--- TOC entry 228 (class 1259 OID 24901)
--- Name: users; Type: TABLE; Schema: public; Owner: postgres
---
-
-CREATE TABLE public.users (
-    user_id integer NOT NULL,
-    name character varying(100) NOT NULL,
-    email character varying(150) NOT NULL,
-    password_hash text NOT NULL,
-    role character varying(20) NOT NULL,
-    is_active boolean DEFAULT true,
-    created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT users_role_check CHECK (((role)::text = ANY ((ARRAY['STUDENT'::character varying, 'FACULTY'::character varying, 'ADMIN'::character varying])::text[])))
+-- Table structure for complaints
+DROP TABLE IF EXISTS complaints CASCADE;
+CREATE TABLE complaints (
+    complaint_id SERIAL PRIMARY KEY,
+    student_name VARCHAR(100),
+    student_roll VARCHAR(50),
+    course_code VARCHAR(30),
+    course_name VARCHAR(150),
+    faculty_name VARCHAR(100),
+    class_section VARCHAR(50),
+    category VARCHAR(50),
+    severity VARCHAR(20),
+    title VARCHAR(200),
+    description TEXT,
+    status VARCHAR(20) DEFAULT 'PENDING',
+    action_taken TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    resolved_at TIMESTAMP WITH TIME ZONE,
+    priority VARCHAR(20) DEFAULT 'MEDIUM',
+    student_id INTEGER,
+    section VARCHAR(50),
+    subject VARCHAR(200),
+    is_anonymous BOOLEAN DEFAULT TRUE
 );
 
-
-ALTER TABLE public.users OWNER TO postgres;
-
---
--- TOC entry 227 (class 1259 OID 24900)
--- Name: users_user_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
---
-
-CREATE SEQUENCE public.users_user_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
-ALTER SEQUENCE public.users_user_id_seq OWNER TO postgres;
-
---
--- TOC entry 5235 (class 0 OID 0)
--- Dependencies: 227
--- Name: users_user_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
---
-
-ALTER SEQUENCE public.users_user_id_seq OWNED BY public.users.user_id;
-
-
---
--- TOC entry 4936 (class 2604 OID 24993)
--- Name: academic_terms term_id; Type: DEFAULT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.academic_terms ALTER COLUMN term_id SET DEFAULT nextval('public.academic_terms_term_id_seq'::regclass);
-
-
---
--- TOC entry 4929 (class 2604 OID 24869)
--- Name: batches batch_id; Type: DEFAULT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.batches ALTER COLUMN batch_id SET DEFAULT nextval('public.batches_batch_id_seq'::regclass);
-
-
---
--- TOC entry 4938 (class 2604 OID 25026)
--- Name: course_offerings offering_id; Type: DEFAULT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.course_offerings ALTER COLUMN offering_id SET DEFAULT nextval('public.course_offerings_offering_id_seq'::regclass);
-
-
---
--- TOC entry 4937 (class 2604 OID 25007)
--- Name: courses course_id; Type: DEFAULT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.courses ALTER COLUMN course_id SET DEFAULT nextval('public.courses_course_id_seq'::regclass);
-
-
---
--- TOC entry 4926 (class 2604 OID 24838)
--- Name: departments department_id; Type: DEFAULT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.departments ALTER COLUMN department_id SET DEFAULT nextval('public.departments_department_id_seq'::regclass);
-
-
---
--- TOC entry 4939 (class 2604 OID 25057)
--- Name: enrollments enrollment_id; Type: DEFAULT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.enrollments ALTER COLUMN enrollment_id SET DEFAULT nextval('public.enrollments_enrollment_id_seq'::regclass);
-
-
---
--- TOC entry 4935 (class 2604 OID 24968)
--- Name: faculty faculty_id; Type: DEFAULT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.faculty ALTER COLUMN faculty_id SET DEFAULT nextval('public.faculty_faculty_id_seq'::regclass);
-
-
---
--- TOC entry 4941 (class 2604 OID 25080)
--- Name: feedback feedback_id; Type: DEFAULT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.feedback ALTER COLUMN feedback_id SET DEFAULT nextval('public.feedback_feedback_id_seq'::regclass);
-
-
---
--- TOC entry 4950 (class 2604 OID 25149)
--- Name: feedback_aspects aspect_id; Type: DEFAULT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.feedback_aspects ALTER COLUMN aspect_id SET DEFAULT nextval('public.feedback_aspects_aspect_id_seq'::regclass);
-
-
---
--- TOC entry 4945 (class 2604 OID 25107)
--- Name: model_versions model_version_id; Type: DEFAULT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.model_versions ALTER COLUMN model_version_id SET DEFAULT nextval('public.model_versions_model_version_id_seq'::regclass);
-
-
---
--- TOC entry 4948 (class 2604 OID 25125)
--- Name: predictions prediction_id; Type: DEFAULT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.predictions ALTER COLUMN prediction_id SET DEFAULT nextval('public.predictions_prediction_id_seq'::regclass);
-
-
---
--- TOC entry 4928 (class 2604 OID 24851)
--- Name: programs program_id; Type: DEFAULT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.programs ALTER COLUMN program_id SET DEFAULT nextval('public.programs_program_id_seq'::regclass);
-
-
---
--- TOC entry 4930 (class 2604 OID 24887)
--- Name: sections section_id; Type: DEFAULT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.sections ALTER COLUMN section_id SET DEFAULT nextval('public.sections_section_id_seq'::regclass);
-
-
---
--- TOC entry 4934 (class 2604 OID 24923)
--- Name: students student_id; Type: DEFAULT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.students ALTER COLUMN student_id SET DEFAULT nextval('public.students_student_id_seq'::regclass);
-
-
---
--- TOC entry 4931 (class 2604 OID 24904)
--- Name: users user_id; Type: DEFAULT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.users ALTER COLUMN user_id SET DEFAULT nextval('public.users_user_id_seq'::regclass);
-
-
---
--- TOC entry 5201 (class 0 OID 24990)
--- Dependencies: 234
--- Data for Name: academic_terms; Type: TABLE DATA; Schema: public; Owner: postgres
---
-
-COPY public.academic_terms (term_id, academic_year, semester, start_date, end_date) FROM stdin;
-1	2026-27	5	2026-07-01	2026-12-31
-\.
-
-
---
--- TOC entry 5191 (class 0 OID 24866)
--- Dependencies: 224
--- Data for Name: batches; Type: TABLE DATA; Schema: public; Owner: postgres
---
-
-COPY public.batches (batch_id, program_id, batch_name, start_year, end_year) FROM stdin;
-1	1	2024-2028	2024	2028
-2	2	2024-2028	2024	2028
-3	3	2024-2028	2024	2028
-\.
-
-
---
--- TOC entry 5205 (class 0 OID 25023)
--- Dependencies: 238
--- Data for Name: course_offerings; Type: TABLE DATA; Schema: public; Owner: postgres
---
-
-COPY public.course_offerings (offering_id, course_id, faculty_id, term_id, section_id) FROM stdin;
-1	1	1	1	1
-2	2	1	1	1
-3	3	1	1	1
-\.
-
-
---
--- TOC entry 5203 (class 0 OID 25004)
--- Dependencies: 236
--- Data for Name: courses; Type: TABLE DATA; Schema: public; Owner: postgres
---
-
-COPY public.courses (course_id, course_code, course_name, credits, department_id) FROM stdin;
-1	AI501	Natural Language Processing	4	1
-2	AI502	Machine Learning	4	1
-3	CS501	Computer Networks	4	1
-\.
-
-
---
--- TOC entry 5187 (class 0 OID 24835)
--- Dependencies: 220
--- Data for Name: departments; Type: TABLE DATA; Schema: public; Owner: postgres
---
-
-COPY public.departments (department_id, department_code, department_name, created_at) FROM stdin;
-1	AIDS	Artificial Intelligence and Data Science	2026-09-15 10:02:24.693081
-2	CSE	Computer Science and Engineering	2026-09-15 10:02:24.693081
-3	ECE	Electronics and Communication Engineering	2026-09-15 10:02:24.693081
-\.
-
-
---
--- TOC entry 5207 (class 0 OID 25054)
--- Dependencies: 240
--- Data for Name: enrollments; Type: TABLE DATA; Schema: public; Owner: postgres
---
-
-COPY public.enrollments (enrollment_id, student_id, offering_id, enrolled_at) FROM stdin;
-1	1	1	2026-09-15 10:02:24.693081
-2	1	2	2026-09-15 10:02:24.693081
-3	1	3	2026-09-15 10:02:24.693081
-\.
-
-
---
--- TOC entry 5199 (class 0 OID 24965)
--- Dependencies: 232
--- Data for Name: faculty; Type: TABLE DATA; Schema: public; Owner: postgres
---
-
-COPY public.faculty (faculty_id, user_id, employee_id, department_id, designation) FROM stdin;
-1	2	TEST-FAC-001	1	Assistant Professor
-\.
-
-
---
--- TOC entry 5209 (class 0 OID 25077)
--- Dependencies: 242
--- Data for Name: feedback; Type: TABLE DATA; Schema: public; Owner: postgres
---
-
-COPY public.feedback (feedback_id, student_id, offering_id, feedback_text, submitted_at, status, is_anonymous) FROM stdin;
-\.
-
-
---
--- TOC entry 5215 (class 0 OID 25146)
--- Dependencies: 248
--- Data for Name: feedback_aspects; Type: TABLE DATA; Schema: public; Owner: postgres
---
-
-COPY public.feedback_aspects (aspect_id, feedback_id, aspect, aspect_sentiment, confidence) FROM stdin;
-\.
-
-
---
--- TOC entry 5211 (class 0 OID 25104)
--- Dependencies: 244
--- Data for Name: model_versions; Type: TABLE DATA; Schema: public; Owner: postgres
---
-
-COPY public.model_versions (model_version_id, model_name, version, task, model_description, is_active, created_at) FROM stdin;
-1	DistilBERT	v1	BOTH	Transformer-based model for sentiment and emotion classification	t	2026-09-15 10:02:24.693081
-\.
-
-
---
--- TOC entry 5213 (class 0 OID 25122)
--- Dependencies: 246
--- Data for Name: predictions; Type: TABLE DATA; Schema: public; Owner: postgres
---
-
-COPY public.predictions (prediction_id, feedback_id, model_version_id, sentiment, sentiment_confidence, emotion, emotion_confidence, predicted_at) FROM stdin;
-\.
-
-
---
--- TOC entry 5189 (class 0 OID 24848)
--- Dependencies: 222
--- Data for Name: programs; Type: TABLE DATA; Schema: public; Owner: postgres
---
-
-COPY public.programs (program_id, department_id, program_name, degree, duration_years) FROM stdin;
-1	1	Artificial Intelligence and Data Science	B.Tech	4
-2	2	Computer Science and Engineering	B.Tech	4
-3	3	Electronics and Communication Engineering	B.Tech	4
-\.
-
-
---
--- TOC entry 5193 (class 0 OID 24884)
--- Dependencies: 226
--- Data for Name: sections; Type: TABLE DATA; Schema: public; Owner: postgres
---
-
-COPY public.sections (section_id, batch_id, section_name) FROM stdin;
-1	1	A
-2	1	B
-3	2	A
-4	2	B
-5	3	A
-\.
-
-
---
--- TOC entry 5197 (class 0 OID 24920)
--- Dependencies: 230
--- Data for Name: students; Type: TABLE DATA; Schema: public; Owner: postgres
---
-
-COPY public.students (student_id, user_id, roll_number, department_id, program_id, batch_id, section_id, current_year) FROM stdin;
-1	1	TEST-AIDS-001	1	1	1	1	3
-\.
-
-
---
--- TOC entry 5195 (class 0 OID 24901)
--- Dependencies: 228
--- Data for Name: users; Type: TABLE DATA; Schema: public; Owner: postgres
---
-
-COPY public.users (user_id, name, email, password_hash, role, is_active, created_at) FROM stdin;
-1	Test Student	student@test.com	TEST_HASH_STUDENT	STUDENT	t	2026-09-15 10:02:24.693081
-2	Test Faculty	faculty@test.com	TEST_HASH_FACULTY	FACULTY	t	2026-09-15 10:02:24.693081
-3	Test Admin	admin@test.com	TEST_HASH_ADMIN	ADMIN	t	2026-09-15 10:02:24.693081
-\.
-
-
---
--- TOC entry 5236 (class 0 OID 0)
--- Dependencies: 233
--- Name: academic_terms_term_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
---
-
-SELECT pg_catalog.setval('public.academic_terms_term_id_seq', 1, true);
-
-
---
--- TOC entry 5237 (class 0 OID 0)
--- Dependencies: 223
--- Name: batches_batch_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
---
-
-SELECT pg_catalog.setval('public.batches_batch_id_seq', 3, true);
-
-
---
--- TOC entry 5238 (class 0 OID 0)
--- Dependencies: 237
--- Name: course_offerings_offering_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
---
-
-SELECT pg_catalog.setval('public.course_offerings_offering_id_seq', 3, true);
-
-
---
--- TOC entry 5239 (class 0 OID 0)
--- Dependencies: 235
--- Name: courses_course_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
---
-
-SELECT pg_catalog.setval('public.courses_course_id_seq', 3, true);
-
-
---
--- TOC entry 5240 (class 0 OID 0)
--- Dependencies: 219
--- Name: departments_department_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
---
-
-SELECT pg_catalog.setval('public.departments_department_id_seq', 3, true);
-
-
---
--- TOC entry 5241 (class 0 OID 0)
--- Dependencies: 239
--- Name: enrollments_enrollment_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
---
-
-SELECT pg_catalog.setval('public.enrollments_enrollment_id_seq', 3, true);
-
-
---
--- TOC entry 5242 (class 0 OID 0)
--- Dependencies: 231
--- Name: faculty_faculty_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
---
-
-SELECT pg_catalog.setval('public.faculty_faculty_id_seq', 1, true);
-
-
---
--- TOC entry 5243 (class 0 OID 0)
--- Dependencies: 247
--- Name: feedback_aspects_aspect_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
---
-
-SELECT pg_catalog.setval('public.feedback_aspects_aspect_id_seq', 1, false);
-
-
---
--- TOC entry 5244 (class 0 OID 0)
--- Dependencies: 241
--- Name: feedback_feedback_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
---
-
-SELECT pg_catalog.setval('public.feedback_feedback_id_seq', 1, false);
-
-
---
--- TOC entry 5245 (class 0 OID 0)
--- Dependencies: 243
--- Name: model_versions_model_version_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
---
-
-SELECT pg_catalog.setval('public.model_versions_model_version_id_seq', 1, true);
-
-
---
--- TOC entry 5246 (class 0 OID 0)
--- Dependencies: 245
--- Name: predictions_prediction_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
---
-
-SELECT pg_catalog.setval('public.predictions_prediction_id_seq', 1, false);
-
-
---
--- TOC entry 5247 (class 0 OID 0)
--- Dependencies: 221
--- Name: programs_program_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
---
-
-SELECT pg_catalog.setval('public.programs_program_id_seq', 3, true);
-
-
---
--- TOC entry 5248 (class 0 OID 0)
--- Dependencies: 225
--- Name: sections_section_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
---
-
-SELECT pg_catalog.setval('public.sections_section_id_seq', 5, true);
-
-
---
--- TOC entry 5249 (class 0 OID 0)
--- Dependencies: 229
--- Name: students_student_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
---
-
-SELECT pg_catalog.setval('public.students_student_id_seq', 1, true);
-
-
---
--- TOC entry 5250 (class 0 OID 0)
--- Dependencies: 227
--- Name: users_user_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
---
-
-SELECT pg_catalog.setval('public.users_user_id_seq', 3, true);
-
-
---
--- TOC entry 4994 (class 2606 OID 25002)
--- Name: academic_terms academic_terms_academic_year_semester_key; Type: CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.academic_terms
-    ADD CONSTRAINT academic_terms_academic_year_semester_key UNIQUE (academic_year, semester);
-
-
---
--- TOC entry 4996 (class 2606 OID 25000)
--- Name: academic_terms academic_terms_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.academic_terms
-    ADD CONSTRAINT academic_terms_pkey PRIMARY KEY (term_id);
-
-
---
--- TOC entry 4972 (class 2606 OID 24877)
--- Name: batches batches_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.batches
-    ADD CONSTRAINT batches_pkey PRIMARY KEY (batch_id);
-
-
---
--- TOC entry 5002 (class 2606 OID 25032)
--- Name: course_offerings course_offerings_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.course_offerings
-    ADD CONSTRAINT course_offerings_pkey PRIMARY KEY (offering_id);
-
-
---
--- TOC entry 4998 (class 2606 OID 25016)
--- Name: courses courses_course_code_key; Type: CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.courses
-    ADD CONSTRAINT courses_course_code_key UNIQUE (course_code);
-
-
---
--- TOC entry 5000 (class 2606 OID 25014)
--- Name: courses courses_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.courses
-    ADD CONSTRAINT courses_pkey PRIMARY KEY (course_id);
-
-
---
--- TOC entry 4966 (class 2606 OID 24846)
--- Name: departments departments_department_code_key; Type: CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.departments
-    ADD CONSTRAINT departments_department_code_key UNIQUE (department_code);
-
-
---
--- TOC entry 4968 (class 2606 OID 24844)
--- Name: departments departments_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.departments
-    ADD CONSTRAINT departments_pkey PRIMARY KEY (department_id);
-
-
---
--- TOC entry 5004 (class 2606 OID 25063)
--- Name: enrollments enrollments_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.enrollments
-    ADD CONSTRAINT enrollments_pkey PRIMARY KEY (enrollment_id);
-
-
---
--- TOC entry 5006 (class 2606 OID 25065)
--- Name: enrollments enrollments_student_id_offering_id_key; Type: CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.enrollments
-    ADD CONSTRAINT enrollments_student_id_offering_id_key UNIQUE (student_id, offering_id);
-
-
---
--- TOC entry 4988 (class 2606 OID 24978)
--- Name: faculty faculty_employee_id_key; Type: CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.faculty
-    ADD CONSTRAINT faculty_employee_id_key UNIQUE (employee_id);
-
-
---
--- TOC entry 4990 (class 2606 OID 24974)
--- Name: faculty faculty_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.faculty
-    ADD CONSTRAINT faculty_pkey PRIMARY KEY (faculty_id);
-
-
---
--- TOC entry 4992 (class 2606 OID 24976)
--- Name: faculty faculty_user_id_key; Type: CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.faculty
-    ADD CONSTRAINT faculty_user_id_key UNIQUE (user_id);
-
-
---
--- TOC entry 5016 (class 2606 OID 25156)
--- Name: feedback_aspects feedback_aspects_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.feedback_aspects
-    ADD CONSTRAINT feedback_aspects_pkey PRIMARY KEY (aspect_id);
-
-
---
--- TOC entry 5008 (class 2606 OID 25092)
--- Name: feedback feedback_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.feedback
-    ADD CONSTRAINT feedback_pkey PRIMARY KEY (feedback_id);
-
-
---
--- TOC entry 5010 (class 2606 OID 25120)
--- Name: model_versions model_versions_model_name_version_task_key; Type: CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.model_versions
-    ADD CONSTRAINT model_versions_model_name_version_task_key UNIQUE (model_name, version, task);
-
-
---
--- TOC entry 5012 (class 2606 OID 25118)
--- Name: model_versions model_versions_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.model_versions
-    ADD CONSTRAINT model_versions_pkey PRIMARY KEY (model_version_id);
-
-
---
--- TOC entry 5014 (class 2606 OID 25134)
--- Name: predictions predictions_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.predictions
-    ADD CONSTRAINT predictions_pkey PRIMARY KEY (prediction_id);
-
-
---
--- TOC entry 4970 (class 2606 OID 24859)
--- Name: programs programs_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.programs
-    ADD CONSTRAINT programs_pkey PRIMARY KEY (program_id);
-
-
---
--- TOC entry 4974 (class 2606 OID 24892)
--- Name: sections sections_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.sections
-    ADD CONSTRAINT sections_pkey PRIMARY KEY (section_id);
-
-
---
--- TOC entry 4982 (class 2606 OID 24934)
--- Name: students students_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.students
-    ADD CONSTRAINT students_pkey PRIMARY KEY (student_id);
-
-
---
--- TOC entry 4984 (class 2606 OID 24938)
--- Name: students students_roll_number_key; Type: CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.students
-    ADD CONSTRAINT students_roll_number_key UNIQUE (roll_number);
-
-
---
--- TOC entry 4986 (class 2606 OID 24936)
--- Name: students students_user_id_key; Type: CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.students
-    ADD CONSTRAINT students_user_id_key UNIQUE (user_id);
-
-
---
--- TOC entry 4976 (class 2606 OID 24894)
--- Name: sections unique_batch_section; Type: CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.sections
-    ADD CONSTRAINT unique_batch_section UNIQUE (batch_id, section_name);
-
-
---
--- TOC entry 4978 (class 2606 OID 24918)
--- Name: users users_email_key; Type: CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.users
-    ADD CONSTRAINT users_email_key UNIQUE (email);
-
-
---
--- TOC entry 4980 (class 2606 OID 24916)
--- Name: users users_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.users
-    ADD CONSTRAINT users_pkey PRIMARY KEY (user_id);
-
-
---
--- TOC entry 5038 (class 2606 OID 25157)
--- Name: feedback_aspects fk_aspect_feedback; Type: FK CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.feedback_aspects
-    ADD CONSTRAINT fk_aspect_feedback FOREIGN KEY (feedback_id) REFERENCES public.feedback(feedback_id) ON DELETE CASCADE;
-
-
---
--- TOC entry 5018 (class 2606 OID 24878)
--- Name: batches fk_batch_program; Type: FK CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.batches
-    ADD CONSTRAINT fk_batch_program FOREIGN KEY (program_id) REFERENCES public.programs(program_id) ON DELETE RESTRICT;
-
-
---
--- TOC entry 5027 (class 2606 OID 25017)
--- Name: courses fk_course_department; Type: FK CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.courses
-    ADD CONSTRAINT fk_course_department FOREIGN KEY (department_id) REFERENCES public.departments(department_id) ON DELETE RESTRICT;
-
-
---
--- TOC entry 5032 (class 2606 OID 25071)
--- Name: enrollments fk_enrollment_offering; Type: FK CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.enrollments
-    ADD CONSTRAINT fk_enrollment_offering FOREIGN KEY (offering_id) REFERENCES public.course_offerings(offering_id) ON DELETE CASCADE;
-
-
---
--- TOC entry 5033 (class 2606 OID 25066)
--- Name: enrollments fk_enrollment_student; Type: FK CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.enrollments
-    ADD CONSTRAINT fk_enrollment_student FOREIGN KEY (student_id) REFERENCES public.students(student_id) ON DELETE CASCADE;
-
-
---
--- TOC entry 5025 (class 2606 OID 24984)
--- Name: faculty fk_faculty_department; Type: FK CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.faculty
-    ADD CONSTRAINT fk_faculty_department FOREIGN KEY (department_id) REFERENCES public.departments(department_id) ON DELETE RESTRICT;
-
-
---
--- TOC entry 5026 (class 2606 OID 24979)
--- Name: faculty fk_faculty_user; Type: FK CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.faculty
-    ADD CONSTRAINT fk_faculty_user FOREIGN KEY (user_id) REFERENCES public.users(user_id) ON DELETE CASCADE;
-
-
---
--- TOC entry 5034 (class 2606 OID 25098)
--- Name: feedback fk_feedback_offering; Type: FK CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.feedback
-    ADD CONSTRAINT fk_feedback_offering FOREIGN KEY (offering_id) REFERENCES public.course_offerings(offering_id) ON DELETE CASCADE;
-
-
---
--- TOC entry 5035 (class 2606 OID 25093)
--- Name: feedback fk_feedback_student; Type: FK CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.feedback
-    ADD CONSTRAINT fk_feedback_student FOREIGN KEY (student_id) REFERENCES public.students(student_id) ON DELETE CASCADE;
-
-
---
--- TOC entry 5028 (class 2606 OID 25033)
--- Name: course_offerings fk_offering_course; Type: FK CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.course_offerings
-    ADD CONSTRAINT fk_offering_course FOREIGN KEY (course_id) REFERENCES public.courses(course_id) ON DELETE RESTRICT;
-
-
---
--- TOC entry 5029 (class 2606 OID 25038)
--- Name: course_offerings fk_offering_faculty; Type: FK CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.course_offerings
-    ADD CONSTRAINT fk_offering_faculty FOREIGN KEY (faculty_id) REFERENCES public.faculty(faculty_id) ON DELETE RESTRICT;
-
-
---
--- TOC entry 5030 (class 2606 OID 25048)
--- Name: course_offerings fk_offering_section; Type: FK CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.course_offerings
-    ADD CONSTRAINT fk_offering_section FOREIGN KEY (section_id) REFERENCES public.sections(section_id) ON DELETE RESTRICT;
-
-
---
--- TOC entry 5031 (class 2606 OID 25043)
--- Name: course_offerings fk_offering_term; Type: FK CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.course_offerings
-    ADD CONSTRAINT fk_offering_term FOREIGN KEY (term_id) REFERENCES public.academic_terms(term_id) ON DELETE RESTRICT;
-
-
---
--- TOC entry 5036 (class 2606 OID 25135)
--- Name: predictions fk_prediction_feedback; Type: FK CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.predictions
-    ADD CONSTRAINT fk_prediction_feedback FOREIGN KEY (feedback_id) REFERENCES public.feedback(feedback_id) ON DELETE CASCADE;
-
-
---
--- TOC entry 5037 (class 2606 OID 25140)
--- Name: predictions fk_prediction_model; Type: FK CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.predictions
-    ADD CONSTRAINT fk_prediction_model FOREIGN KEY (model_version_id) REFERENCES public.model_versions(model_version_id) ON DELETE RESTRICT;
-
-
---
--- TOC entry 5017 (class 2606 OID 24860)
--- Name: programs fk_program_department; Type: FK CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.programs
-    ADD CONSTRAINT fk_program_department FOREIGN KEY (department_id) REFERENCES public.departments(department_id) ON DELETE RESTRICT;
-
-
---
--- TOC entry 5019 (class 2606 OID 24895)
--- Name: sections fk_section_batch; Type: FK CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.sections
-    ADD CONSTRAINT fk_section_batch FOREIGN KEY (batch_id) REFERENCES public.batches(batch_id) ON DELETE CASCADE;
-
-
---
--- TOC entry 5020 (class 2606 OID 24954)
--- Name: students fk_student_batch; Type: FK CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.students
-    ADD CONSTRAINT fk_student_batch FOREIGN KEY (batch_id) REFERENCES public.batches(batch_id) ON DELETE RESTRICT;
-
-
---
--- TOC entry 5021 (class 2606 OID 24944)
--- Name: students fk_student_department; Type: FK CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.students
-    ADD CONSTRAINT fk_student_department FOREIGN KEY (department_id) REFERENCES public.departments(department_id) ON DELETE RESTRICT;
-
-
---
--- TOC entry 5022 (class 2606 OID 24949)
--- Name: students fk_student_program; Type: FK CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.students
-    ADD CONSTRAINT fk_student_program FOREIGN KEY (program_id) REFERENCES public.programs(program_id) ON DELETE RESTRICT;
-
-
---
--- TOC entry 5023 (class 2606 OID 24959)
--- Name: students fk_student_section; Type: FK CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.students
-    ADD CONSTRAINT fk_student_section FOREIGN KEY (section_id) REFERENCES public.sections(section_id) ON DELETE RESTRICT;
-
-
---
--- TOC entry 5024 (class 2606 OID 24939)
--- Name: students fk_student_user; Type: FK CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.students
-    ADD CONSTRAINT fk_student_user FOREIGN KEY (user_id) REFERENCES public.users(user_id) ON DELETE CASCADE;
-
-
--- Completed on 2026-09-15 10:08:04
-
---
--- PostgreSQL database dump complete
---
-
-\unrestrict bNc2yHQIJ0bq4SSXeVQnSLGlAhtMsf1gcfaXva5N4UkITuJtVEYGM1VI7PyOfgl
-
+-- Seed data for complaints (3 records)
+INSERT INTO complaints (complaint_id, student_name, student_roll, course_code, course_name, faculty_name, class_section, category, severity, title, description, status, action_taken, created_at, resolved_at, priority, student_id, section, subject, is_anonymous) VALUES
+    (1, 'Arunn Reddy', '2024-AI-042', 'AI501', 'Natural Language Processing', 'Dr. A. Sharma', 'Class 3A', 'Assignments', 'HIGH', 'Assignment 2 Deadline Clashing with Mid-Term Exam', 'The NLP assignment deadline is on the same afternoon as the Mid-Term exam. Requesting a 3-day extension.', 'IN_REVIEW', 'Faculty notified to evaluate extension schedule.', '2026-10-30 17:21:30', NULL, 'MEDIUM', NULL, NULL, NULL, 1),
+    (2, 'Priya Patel', '2025-CS-018', 'CS201', 'Data Structures & Algorithms', 'Dr. A. Sharma', 'Class 2A', 'Lab Infrastructure', 'MEDIUM', 'Lab Machine #14 PyTorch GPU Driver Mismatch', 'CUDA runtime fails on workstation 14 during practical sessions.', 'RESOLVED', 'Lab technician updated NVIDIA driver and CUDA toolkit.', '2026-10-28 17:21:30', NULL, 'MEDIUM', NULL, NULL, NULL, 1),
+    (3, NULL, NULL, NULL, NULL, NULL, 'Section D', 'SAFETY_AND_HARASSMENT', 'HIGH', 'Automated Urgency Escalation: HARASSMENT_OR_SAFETY', 'Automated Grievance Desk Escalation: Critical distress/safety language detected in course feedback (AI501). Text: A student was harassed and threatened by seniors after class in the lab.', 'UNDER_REVIEW', NULL, '2026-11-08 06:54:35', NULL, 'HIGH', 1, 'Section D', 'Automated Urgency Escalation: HARASSMENT_OR_SAFETY', 1);
+
+SELECT setval(pg_get_serial_sequence('complaints', 'complaint_id'), coalesce(max(complaint_id), 1)) FROM complaints;
+
+-- Table structure for feedback_requests
+DROP TABLE IF EXISTS feedback_requests CASCADE;
+CREATE TABLE feedback_requests (
+    request_id SERIAL PRIMARY KEY,
+    faculty_id INTEGER DEFAULT 1,
+    faculty_name VARCHAR(100) NOT NULL,
+    course_code VARCHAR(50) NOT NULL,
+    course_name VARCHAR(150) NOT NULL,
+    target_section VARCHAR(50) NOT NULL DEFAULT 'ALL',
+    allow_text BOOLEAN DEFAULT TRUE,
+    allow_rating BOOLEAN DEFAULT TRUE,
+    queries_json TEXT DEFAULT '[]',
+    status VARCHAR(20) DEFAULT 'ACTIVE',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Seed data for feedback_requests (1 records)
+INSERT INTO feedback_requests (request_id, faculty_id, faculty_name, course_code, course_name, target_section, allow_text, allow_rating, queries_json, status, created_at) VALUES
+    (1, 1, 'Dr. A. Sharma', 'AI501', 'Natural Language Processing', 'ALL', 1, 1, '["How was the pace of today''s lecture on Transformer Attention Mechanisms?", "Too fast (Need recap)", "Comfortable & clear", "Too slow", "Need more practical PyTorch code examples"]', 'ACTIVE', '2026-11-01 16:21:30');
+
+SELECT setval(pg_get_serial_sequence('feedback_requests', 'request_id'), coalesce(max(request_id), 1)) FROM feedback_requests;
+
+-- Table structure for poll_votes
+DROP TABLE IF EXISTS poll_votes CASCADE;
+CREATE TABLE poll_votes (
+    vote_id SERIAL PRIMARY KEY,
+    request_id INTEGER NOT NULL,
+    option_index INTEGER NOT NULL,
+    option_text VARCHAR(150),
+    student_id INTEGER DEFAULT 1,
+    voted_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Seed data for poll_votes (3 records)
+INSERT INTO poll_votes (vote_id, request_id, option_index, option_text, student_id, voted_at) VALUES
+    (1, 1, 1, 'Comfortable & clear', 1, '2026-11-01 17:21:30'),
+    (2, 1, 1, 'Comfortable & clear', 2, '2026-11-01 17:21:30'),
+    (3, 1, 3, 'Need more practical PyTorch code examples', 3, '2026-11-01 17:21:30');
+
+SELECT setval(pg_get_serial_sequence('poll_votes', 'vote_id'), coalesce(max(vote_id), 1)) FROM poll_votes;
+
+-- Table structure for announcements
+DROP TABLE IF EXISTS announcements CASCADE;
+CREATE TABLE announcements (
+    announcement_id SERIAL PRIMARY KEY,
+    title VARCHAR(180) NOT NULL,
+    message TEXT NOT NULL,
+    target_section VARCHAR(50) DEFAULT 'ALL',
+    author_name VARCHAR(100) NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Seed data for announcements (2 records)
+INSERT INTO announcements (announcement_id, title, message, target_section, author_name, created_at) VALUES
+    (1, 'Mid-Term Feedback Window Open', 'The institutional academic review and feedback window is now active across all departments. Please submit your lecture clarity feedback and course insights directly via your dashboard.', 'ALL', 'Dean Academics', '2026-11-08 14:10:41'),
+    (2, 'Special Lecture & Code Walkthrough: Attention Models', 'Dr. A. Sharma will hold an optional 45-minute Colab walkthrough on Friday at 3:00 PM for Section D and E to review Rotary Positional Embeddings and KV-caching.', 'Section D', 'Dr. A. Sharma', '2026-11-08 14:10:41');
+
+SELECT setval(pg_get_serial_sequence('announcements', 'announcement_id'), coalesce(max(announcement_id), 1)) FROM announcements;
+
+-- Table structure for otps
+DROP TABLE IF EXISTS otps CASCADE;
+CREATE TABLE otps (
+    otp_id SERIAL PRIMARY KEY,
+    email VARCHAR(150) NOT NULL,
+    otp_code VARCHAR(10) NOT NULL,
+    purpose VARCHAR(30) DEFAULT 'REGISTER',
+    expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
+    is_used BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Seed data for otps (61 records)
+INSERT INTO otps (otp_id, email, otp_code, purpose, expires_at, is_used, created_at) VALUES
+    (1, 'newstudent_923442@univ.edu', '854916', 'REGISTER', '2026-11-01 17:37:53', 0, '2026-11-01 17:27:53'),
+    (2, 'student_9f42a5@univ.edu', '352522', 'REGISTER', '2026-11-01 17:37:53', 1, '2026-11-01 17:27:53'),
+    (3, 'admin_2b9439@univ.edu', '517128', 'REGISTER', '2026-11-01 17:37:55', 1, '2026-11-01 17:27:55'),
+    (4, 'reset_ba432e@univ.edu', '844964', 'REGISTER', '2026-11-01 17:37:55', 1, '2026-11-01 17:27:55'),
+    (5, 'reset_ba432e@univ.edu', '280575', 'RESET_PASSWORD', '2026-11-01 17:37:55', 1, '2026-11-01 17:27:55'),
+    (6, 'user_f61bd5@univ.edu', '551311', 'REGISTER', '2026-11-01 17:37:56', 1, '2026-11-01 17:27:56'),
+    (7, 'newstudent_ca9f98@univ.edu', '642352', 'REGISTER', '2026-11-02 12:42:30', 0, '2026-11-02 12:32:30'),
+    (8, 'student_7f788c@univ.edu', '773555', 'REGISTER', '2026-11-02 12:42:30', 1, '2026-11-02 12:32:30'),
+    (9, 'admin_7d6670@univ.edu', '415755', 'REGISTER', '2026-11-02 12:42:32', 1, '2026-11-02 12:32:32'),
+    (10, 'reset_817b3a@univ.edu', '299383', 'REGISTER', '2026-11-02 12:42:33', 1, '2026-11-02 12:32:33'),
+    (11, 'reset_817b3a@univ.edu', '776560', 'RESET_PASSWORD', '2026-11-02 12:42:33', 1, '2026-11-02 12:32:33'),
+    (12, 'user_197189@univ.edu', '321251', 'REGISTER', '2026-11-02 12:42:35', 1, '2026-11-02 12:32:35'),
+    (13, 'newstudent_64485d@univ.edu', '555047', 'REGISTER', '2026-11-03 15:56:10', 0, '2026-11-03 15:46:10'),
+    (14, 'student_4d9833@univ.edu', '595795', 'REGISTER', '2026-11-03 15:56:10', 1, '2026-11-03 15:46:10'),
+    (15, 'admin_bbd5dd@univ.edu', '975450', 'REGISTER', '2026-11-03 15:56:12', 1, '2026-11-03 15:46:12'),
+    (16, 'reset_77a5df@univ.edu', '462931', 'REGISTER', '2026-11-03 15:56:12', 1, '2026-11-03 15:46:12'),
+    (17, 'reset_77a5df@univ.edu', '429315', 'RESET_PASSWORD', '2026-11-03 15:56:13', 1, '2026-11-03 15:46:13'),
+    (18, 'user_812e9f@univ.edu', '903581', 'REGISTER', '2026-11-03 15:56:15', 1, '2026-11-03 15:46:15'),
+    (19, 'newstudent_8e0b5f@univ.edu', '217502', 'REGISTER', '2026-11-03 16:12:40', 0, '2026-11-03 16:02:40'),
+    (20, 'student_d9dd79@univ.edu', '811199', 'REGISTER', '2026-11-03 16:12:40', 1, '2026-11-03 16:02:40'),
+    (21, 'admin_d8681f@univ.edu', '803702', 'REGISTER', '2026-11-03 16:12:42', 1, '2026-11-03 16:02:42'),
+    (22, 'reset_0b1840@univ.edu', '555845', 'REGISTER', '2026-11-03 16:12:43', 1, '2026-11-03 16:02:43'),
+    (23, 'reset_0b1840@univ.edu', '723526', 'RESET_PASSWORD', '2026-11-03 16:12:43', 1, '2026-11-03 16:02:43'),
+    (24, 'user_5ebe3d@univ.edu', '550610', 'REGISTER', '2026-11-03 16:12:45', 1, '2026-11-03 16:02:45'),
+    (25, 'newstudent_a4cbe6@univ.edu', '819535', 'REGISTER', '2026-11-03 17:06:05', 0, '2026-11-03 16:56:05'),
+    (26, 'student_e409ee@univ.edu', '280702', 'REGISTER', '2026-11-03 17:06:05', 1, '2026-11-03 16:56:05'),
+    (27, 'admin_95bed5@univ.edu', '140107', 'REGISTER', '2026-11-03 17:06:06', 1, '2026-11-03 16:56:06'),
+    (28, 'reset_9d3410@univ.edu', '819336', 'REGISTER', '2026-11-03 17:06:06', 1, '2026-11-03 16:56:06'),
+    (29, 'reset_9d3410@univ.edu', '410257', 'RESET_PASSWORD', '2026-11-03 17:06:07', 1, '2026-11-03 16:56:07'),
+    (30, 'user_645a98@univ.edu', '488303', 'REGISTER', '2026-11-03 17:06:08', 1, '2026-11-03 16:56:08'),
+    (31, 'newstudent_f810e5@univ.edu', '616984', 'REGISTER', '2026-11-03 19:41:08', 0, '2026-11-03 19:31:08'),
+    (32, 'student_8f48fd@univ.edu', '228111', 'REGISTER', '2026-11-03 19:41:08', 1, '2026-11-03 19:31:08'),
+    (33, 'admin_b73e82@univ.edu', '249373', 'REGISTER', '2026-11-03 19:41:09', 1, '2026-11-03 19:31:09'),
+    (34, 'reset_a8ff30@univ.edu', '585270', 'REGISTER', '2026-11-03 19:41:10', 1, '2026-11-03 19:31:10'),
+    (35, 'reset_a8ff30@univ.edu', '604807', 'RESET_PASSWORD', '2026-11-03 19:41:10', 1, '2026-11-03 19:31:10'),
+    (36, 'user_0ca43a@univ.edu', '161966', 'REGISTER', '2026-11-03 19:41:12', 1, '2026-11-03 19:31:12'),
+    (37, 'newstudent_1184bb@univ.edu', '661376', 'REGISTER', '2026-11-03 19:44:30', 0, '2026-11-03 19:34:30'),
+    (38, 'student_28bc00@univ.edu', '729220', 'REGISTER', '2026-11-03 19:44:30', 1, '2026-11-03 19:34:30'),
+    (39, 'admin_5aefbb@univ.edu', '373154', 'REGISTER', '2026-11-03 19:44:31', 1, '2026-11-03 19:34:31'),
+    (40, 'reset_ac7bd8@univ.edu', '790132', 'REGISTER', '2026-11-03 19:44:31', 1, '2026-11-03 19:34:31'),
+    (41, 'reset_ac7bd8@univ.edu', '114283', 'RESET_PASSWORD', '2026-11-03 19:44:32', 1, '2026-11-03 19:34:32'),
+    (42, 'user_89d6eb@univ.edu', '704132', 'REGISTER', '2026-11-03 19:44:33', 1, '2026-11-03 19:34:33'),
+    (43, 'newstudent_6cb6bf@univ.edu', '647702', 'REGISTER', '2026-11-03 19:50:40', 0, '2026-11-03 19:40:40'),
+    (44, 'student_f46c9b@univ.edu', '682051', 'REGISTER', '2026-11-03 19:50:40', 1, '2026-11-03 19:40:40'),
+    (45, 'admin_fa123f@univ.edu', '532582', 'REGISTER', '2026-11-03 19:50:41', 1, '2026-11-03 19:40:41'),
+    (46, 'reset_a11353@univ.edu', '213982', 'REGISTER', '2026-11-03 19:50:42', 1, '2026-11-03 19:40:42'),
+    (47, 'reset_a11353@univ.edu', '407323', 'RESET_PASSWORD', '2026-11-03 19:50:42', 1, '2026-11-03 19:40:42'),
+    (48, 'user_81d747@univ.edu', '814410', 'REGISTER', '2026-11-03 19:50:43', 1, '2026-11-03 19:40:43'),
+    (49, 'chejetivenkatarunnreddy24@ifheindia.org', '977025', 'REGISTER', '2026-11-03 19:54:31', 1, '2026-11-03 19:44:31'),
+    (50, 'newstudent_3ccf16@univ.edu', '859235', 'REGISTER', '2026-11-03 20:04:25', 0, '2026-11-03 19:54:25');
+INSERT INTO otps (otp_id, email, otp_code, purpose, expires_at, is_used, created_at) VALUES
+    (51, 'student_ed61a1@univ.edu', '988454', 'REGISTER', '2026-11-03 20:04:25', 1, '2026-11-03 19:54:25'),
+    (52, 'admin_ce3fb5@univ.edu', '859927', 'REGISTER', '2026-11-03 20:04:25', 1, '2026-11-03 19:54:25'),
+    (53, 'reset_f1af1d@univ.edu', '747016', 'REGISTER', '2026-11-03 20:04:26', 1, '2026-11-03 19:54:26'),
+    (54, 'reset_f1af1d@univ.edu', '375571', 'RESET_PASSWORD', '2026-11-03 20:04:26', 1, '2026-11-03 19:54:26'),
+    (55, 'user_dd7097@univ.edu', '598767', 'REGISTER', '2026-11-03 20:04:28', 1, '2026-11-03 19:54:28'),
+    (56, 'chejetivenkatarunnreddy24@ifheindia.org', '422251', 'REGISTER', '2026-11-03 20:05:05', 1, '2026-11-03 19:55:05'),
+    (57, 'chejetivenkatarunnreddy24@ifheindia.org', '472253', 'REGISTER', '2026-11-03 20:08:05', 1, '2026-11-03 19:58:05'),
+    (58, 'arunn@gmail.com', '511305', 'REGISTER', '2026-11-03 20:09:59', 1, '2026-11-03 19:59:59'),
+    (59, 'a@gmail.com', '331248', 'REGISTER', '2026-11-03 20:11:37', 1, '2026-11-03 20:01:37'),
+    (60, 'lockout_test@univ.edu', '339641', 'REGISTER', '2026-11-08 07:04:33', 1, '2026-11-08 06:54:33'),
+    (61, 'refresh_test@univ.edu', '315356', 'REGISTER', '2026-11-08 07:04:35', 1, '2026-11-08 06:54:35');
+
+SELECT setval(pg_get_serial_sequence('otps', 'otp_id'), coalesce(max(otp_id), 1)) FROM otps;
+
+-- Table structure for system_settings
+DROP TABLE IF EXISTS system_settings CASCADE;
+CREATE TABLE system_settings (
+    setting_key SERIAL PRIMARY KEY,
+    setting_value TEXT NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Seed data for system_settings (5 records)
+INSERT INTO system_settings (setting_key, setting_value, updated_at) VALUES
+    ('gemini_model', 'gemini-2.5-flash', '2026-11-08 14:10:41'),
+    ('feedback_anonymity_threshold', '5', '2026-11-08 14:10:41'),
+    ('portal_name', 'Sentio Academic Sentiment Portal', '2026-11-08 14:10:41'),
+    ('allow_student_slide_uploads', 'true', '2026-11-08 14:10:41'),
+    ('enable_voice_prosody', 'true', '2026-11-08 14:10:41');
+
+SELECT setval(pg_get_serial_sequence('system_settings', 'setting_key'), coalesce(max(setting_key), 1)) FROM system_settings;
+
+-- Table structure for community_posts
+DROP TABLE IF EXISTS community_posts CASCADE;
+CREATE TABLE community_posts (
+    post_id SERIAL PRIMARY KEY,
+    author_name VARCHAR(100) DEFAULT 'Anonymous Student',
+    author_role VARCHAR(20) DEFAULT 'STUDENT',
+    class_section VARCHAR(50) DEFAULT 'Class 3A',
+    category VARCHAR(50) DEFAULT 'CAMPUS_LIFE',
+    title VARCHAR(200) NOT NULL,
+    content TEXT NOT NULL,
+    upvotes INTEGER DEFAULT 1,
+    status VARCHAR(30) DEFAULT 'OPEN',
+    official_response TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Seed data for community_posts (10 records)
+INSERT INTO community_posts (post_id, author_name, author_role, class_section, category, title, content, upvotes, status, official_response, created_at) VALUES
+    (1, 'Anonymous Student', 'STUDENT', 'Class 3A', 'ACADEMIC_WORKLOAD', 'Overlap between NLP Assignment 2 and Computer Vision Lab Midterm', 'Both major deliverables are scheduled for Thursday 11:59 PM. Can the lab submission be extended to Sunday to give us breathing room?', 24, 'UNDER_REVIEW', 'Dean Academics: We have notified the department chair to stagger the deadlines by 72 hours.', '2026-11-01 17:21:30'),
+    (2, 'Anonymous Student', 'STUDENT', 'Class 3A', 'FACILITY', 'GPU Server Memory Constraints during Deep Learning Practicals', 'Several of us got CUDA Out of Memory errors during Tuesday lab session because shared allocated memory was capped at 4GB per container.', 18, 'ACTION_TAKEN', 'Systems Admin: Memory quotas increased to 12GB per student session.', '2026-11-01 17:21:30'),
+    (3, 'Anonymous Student', 'STUDENT', 'Class 2A', 'PEDAGOGY', 'Request for recorded PyTorch code walkthroughs for Attention Mechanisms', 'The theoretical derivations in lecture were great, but we would really benefit from a step-by-step notebook review.', 15, 'RESOLVED', 'Dr. Sharma has posted a 15-minute supplementary Colab walkthrough in the course materials.', '2026-11-01 17:21:30'),
+    (4, 'Anonymous Student', 'STUDENT', 'Class 3A', 'Lab & Resources', 'GPU Quota Limit for Lab 4', 'Several students have exhausted CUDA memory before completing batch training.', 2, 'OPEN', NULL, '2026-11-01 17:27:52'),
+    (5, 'Anonymous Student', 'STUDENT', 'Class 3A', 'Lab & Resources', 'GPU Quota Limit for Lab 4', 'Several students have exhausted CUDA memory before completing batch training.', 2, 'OPEN', NULL, '2026-11-02 12:32:29'),
+    (6, 'Anonymous Student', 'STUDENT', 'Class 3A', 'Lab & Resources', 'GPU Quota Limit for Lab 4', 'Several students have exhausted CUDA memory before completing batch training.', 2, 'OPEN', NULL, '2026-11-03 15:44:32'),
+    (7, 'Anonymous Student', 'STUDENT', 'Class 3A', 'Lab & Resources', 'GPU Quota Limit for Lab 4', 'Several students have exhausted CUDA memory before completing batch training.', 2, 'OPEN', NULL, '2026-11-03 15:46:07'),
+    (8, 'Anonymous Student', 'STUDENT', 'Class 3A', 'Lab & Resources', 'GPU Quota Limit for Lab 4', 'Several students have exhausted CUDA memory before completing batch training.', 2, 'OPEN', NULL, '2026-11-03 16:02:39'),
+    (9, 'Anonymous Student', 'STUDENT', 'Class 3A', 'Lab & Resources', 'GPU Quota Limit for Lab 4', 'Several students have exhausted CUDA memory before completing batch training.', 2, 'OPEN', NULL, '2026-11-03 16:56:03'),
+    (10, 'Anonymous Student', 'STUDENT', 'Class 3A', 'Lab & Resources', 'GPU Quota Limit for Lab 4', 'Several students have exhausted CUDA memory before completing batch training.', 2, 'OPEN', NULL, '2026-11-03 19:31:06');
+
+SELECT setval(pg_get_serial_sequence('community_posts', 'post_id'), coalesce(max(post_id), 1)) FROM community_posts;
+
+-- Table structure for community_upvotes
+DROP TABLE IF EXISTS community_upvotes CASCADE;
+CREATE TABLE community_upvotes (
+    upvote_id SERIAL PRIMARY KEY,
+    post_id INTEGER NOT NULL,
+    user_identifier VARCHAR(100) NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Table structure for remedial_lesson_plans
+DROP TABLE IF EXISTS remedial_lesson_plans CASCADE;
+CREATE TABLE remedial_lesson_plans (
+    plan_id SERIAL PRIMARY KEY,
+    course_code VARCHAR(30) NOT NULL,
+    course_name VARCHAR(150) NOT NULL,
+    topic VARCHAR(100) NOT NULL,
+    confusion_rate DOUBLE PRECISION DEFAULT '0.45',
+    lesson_title VARCHAR(200),
+    recap_plan TEXT NOT NULL,
+    practice_questions TEXT,
+    curated_resources TEXT,
+    generated_by VARCHAR(50) DEFAULT 'Gemini 1.5 Flash',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Seed data for remedial_lesson_plans (7 records)
+INSERT INTO remedial_lesson_plans (plan_id, course_code, course_name, topic, confusion_rate, lesson_title, recap_plan, practice_questions, curated_resources, generated_by, created_at) VALUES
+    (1, 'AI501', 'Natural Language Processing', 'Backpropagation in Deep Networks', 45.0, '10-Minute Rapid Remedial: Demystifying Backpropagation in Deep Networks', '1. Minute 0-2 (Intuition): Revisit why Backpropagation in Deep Networks exists by contrasting it with naive baseline methods.
+2. Minute 2-6 (Core Mechanism): Break down the mathematical components step-by-step on a 2x2 toy example.
+3. Minute 6-8 (Common Pitfalls): Highlight the exact edge-case where students get confused.
+4. Minute 8-10 (Interactive Check): Solve one rapid check-for-understanding question together as a class.', '["Why does standard gradient descent struggle on Backpropagation in Deep Networks without normalization?", "What happens to the output dimension if we double the attention projection size?", "How does this formulation reduce computational complexity from O(N^2) to linear scale?"]', '["Stanford CS224N Course Notes on Backpropagation in Deep Networks (Interactive Visualizer)", "Distill.pub Visual Explanation of Modern Deep Architectures & Backpropagation in Deep Networks", "PyTorch Documentation & Implementation Walkthrough for AI501"]', 'Gemini 1.5 Flash', '2026-11-01 17:27:52'),
+    (2, 'AI501', 'Natural Language Processing', 'Backpropagation in Deep Networks', 45.0, '10-Minute Rapid Remedial: Demystifying Backpropagation in Deep Networks', '1. Minute 0-2 (Intuition): Revisit why Backpropagation in Deep Networks exists by contrasting it with naive baseline methods.
+2. Minute 2-6 (Core Mechanism): Break down the mathematical components step-by-step on a 2x2 toy example.
+3. Minute 6-8 (Common Pitfalls): Highlight the exact edge-case where students get confused.
+4. Minute 8-10 (Interactive Check): Solve one rapid check-for-understanding question together as a class.', '["Why does standard gradient descent struggle on Backpropagation in Deep Networks without normalization?", "What happens to the output dimension if we double the attention projection size?", "How does this formulation reduce computational complexity from O(N^2) to linear scale?"]', '["Stanford CS224N Course Notes on Backpropagation in Deep Networks (Interactive Visualizer)", "Distill.pub Visual Explanation of Modern Deep Architectures & Backpropagation in Deep Networks", "PyTorch Documentation & Implementation Walkthrough for AI501"]', 'Gemini 1.5 Flash', '2026-11-02 12:32:29'),
+    (3, 'AI501', 'Natural Language Processing', 'Backpropagation in Deep Networks', 45.0, '10-Minute Rapid Remedial: Demystifying Backpropagation in Deep Networks', '1. Minute 0-2 (Intuition): Revisit why Backpropagation in Deep Networks exists by contrasting it with naive baseline methods.
+2. Minute 2-6 (Core Mechanism): Break down the mathematical components step-by-step on a 2x2 toy example.
+3. Minute 6-8 (Common Pitfalls): Highlight the exact edge-case where students get confused.
+4. Minute 8-10 (Interactive Check): Solve one rapid check-for-understanding question together as a class.', '["Why does standard gradient descent struggle on Backpropagation in Deep Networks without normalization?", "What happens to the output dimension if we double the attention projection size?", "How does this formulation reduce computational complexity from O(N^2) to linear scale?"]', '["Stanford CS224N Course Notes on Backpropagation in Deep Networks (Interactive Visualizer)", "Distill.pub Visual Explanation of Modern Deep Architectures & Backpropagation in Deep Networks", "PyTorch Documentation & Implementation Walkthrough for AI501"]', 'Gemini 1.5 Flash', '2026-11-03 15:44:32'),
+    (4, 'AI501', 'Natural Language Processing', 'Backpropagation in Deep Networks', 45.0, '10-Minute Rapid Remedial: Demystifying Backpropagation in Deep Networks', '1. Minute 0-2 (Intuition): Revisit why Backpropagation in Deep Networks exists by contrasting it with naive baseline methods.
+2. Minute 2-6 (Core Mechanism): Break down the mathematical components step-by-step on a 2x2 toy example.
+3. Minute 6-8 (Common Pitfalls): Highlight the exact edge-case where students get confused.
+4. Minute 8-10 (Interactive Check): Solve one rapid check-for-understanding question together as a class.', '["Why does standard gradient descent struggle on Backpropagation in Deep Networks without normalization?", "What happens to the output dimension if we double the attention projection size?", "How does this formulation reduce computational complexity from O(N^2) to linear scale?"]', '["Stanford CS224N Course Notes on Backpropagation in Deep Networks (Interactive Visualizer)", "Distill.pub Visual Explanation of Modern Deep Architectures & Backpropagation in Deep Networks", "PyTorch Documentation & Implementation Walkthrough for AI501"]', 'Gemini 1.5 Flash', '2026-11-03 15:46:07'),
+    (5, 'AI501', 'Natural Language Processing', 'Backpropagation in Deep Networks', 45.0, '10-Minute Rapid Remedial: Demystifying Backpropagation in Deep Networks', '1. Minute 0-2 (Intuition): Revisit why Backpropagation in Deep Networks exists by contrasting it with naive baseline methods.
+2. Minute 2-6 (Core Mechanism): Break down the mathematical components step-by-step on a 2x2 toy example.
+3. Minute 6-8 (Common Pitfalls): Highlight the exact edge-case where students get confused.
+4. Minute 8-10 (Interactive Check): Solve one rapid check-for-understanding question together as a class.', '["Why does standard gradient descent struggle on Backpropagation in Deep Networks without normalization?", "What happens to the output dimension if we double the attention projection size?", "How does this formulation reduce computational complexity from O(N^2) to linear scale?"]', '["Stanford CS224N Course Notes on Backpropagation in Deep Networks (Interactive Visualizer)", "Distill.pub Visual Explanation of Modern Deep Architectures & Backpropagation in Deep Networks", "PyTorch Documentation & Implementation Walkthrough for AI501"]', 'Gemini 1.5 Flash', '2026-11-03 16:02:39'),
+    (6, 'AI501', 'Natural Language Processing', 'Backpropagation in Deep Networks', 45.0, '10-Minute Rapid Remedial: Demystifying Backpropagation in Deep Networks', '1. Minute 0-2 (Intuition): Revisit why Backpropagation in Deep Networks exists by contrasting it with naive baseline methods.
+2. Minute 2-6 (Core Mechanism): Break down the mathematical components step-by-step on a 2x2 toy example.
+3. Minute 6-8 (Common Pitfalls): Highlight the exact edge-case where students get confused.
+4. Minute 8-10 (Interactive Check): Solve one rapid check-for-understanding question together as a class.', '["Why does standard gradient descent struggle on Backpropagation in Deep Networks without normalization?", "What happens to the output dimension if we double the attention projection size?", "How does this formulation reduce computational complexity from O(N^2) to linear scale?"]', '["Stanford CS224N Course Notes on Backpropagation in Deep Networks (Interactive Visualizer)", "Distill.pub Visual Explanation of Modern Deep Architectures & Backpropagation in Deep Networks", "PyTorch Documentation & Implementation Walkthrough for AI501"]', 'Gemini 1.5 Flash', '2026-11-03 16:56:03'),
+    (7, 'AI501', 'Natural Language Processing', 'Backpropagation in Deep Networks', 45.0, '10-Minute Rapid Remedial: Demystifying Backpropagation in Deep Networks', '1. Minute 0-2 (Intuition): Revisit why Backpropagation in Deep Networks exists by contrasting it with naive baseline methods.
+2. Minute 2-6 (Core Mechanism): Break down the mathematical components step-by-step on a 2x2 toy example.
+3. Minute 6-8 (Common Pitfalls): Highlight the exact edge-case where students get confused.
+4. Minute 8-10 (Interactive Check): Solve one rapid check-for-understanding question together as a class.', '["Why does standard gradient descent struggle on Backpropagation in Deep Networks without normalization?", "What happens to the output dimension if we double the attention projection size?", "How does this formulation reduce computational complexity from O(N^2) to linear scale?"]', '["Stanford CS224N Course Notes on Backpropagation in Deep Networks (Interactive Visualizer)", "Distill.pub Visual Explanation of Modern Deep Architectures & Backpropagation in Deep Networks", "PyTorch Documentation & Implementation Walkthrough for AI501"]', 'Gemini 1.5 Flash', '2026-11-03 19:31:06');
+
+SELECT setval(pg_get_serial_sequence('remedial_lesson_plans', 'plan_id'), coalesce(max(plan_id), 1)) FROM remedial_lesson_plans;
+
+-- Table structure for clarification_broadcasts
+DROP TABLE IF EXISTS clarification_broadcasts CASCADE;
+CREATE TABLE clarification_broadcasts (
+    broadcast_id SERIAL PRIMARY KEY,
+    course_code VARCHAR(30) NOT NULL,
+    course_name VARCHAR(150) NOT NULL,
+    topic VARCHAR(100) NOT NULL,
+    faculty_name VARCHAR(100) NOT NULL,
+    title VARCHAR(200) NOT NULL,
+    message TEXT NOT NULL,
+    remedial_links TEXT,
+    target_section VARCHAR(50) DEFAULT 'ALL',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Seed data for clarification_broadcasts (9 records)
+INSERT INTO clarification_broadcasts (broadcast_id, course_code, course_name, topic, faculty_name, title, message, remedial_links, target_section, created_at) VALUES
+    (1, 'AI501', 'Natural Language Processing', 'Self-Attention Scaling Factor (1/sqrt(d_k))', 'Dr. A. Sharma', 'Why We Scale by sqrt(d_k) in Transformer Attention', 'Several students expressed confusion regarding why dot products grow large for large dimensions d_k, pushing softmax into near-zero gradient regions. Attached is a quick 3-slide derivation and an interactive Colab snippet visualizing softmax temperature.', 'https://colab.research.google.com/drive/transformer-attention-math', 'ALL', '2026-11-01 17:21:30'),
+    (2, 'DS306', 'Deep Learning', 'Vanishing Gradients in Deep RNNs vs LSTMs', 'Dr. Srinivasa Rao Kongara', 'Remedial Note: Additive Cell State in LSTMs', 'Following yesterday''s feedback, here is an intuitive 1-page visual cheat sheet showing how LSTM forget/input gates preserve gradient highways compared to vanilla recurrent loops.', 'https://deeplearning.edu/lstm-gradient-notes', 'ALL', '2026-11-01 17:21:30'),
+    (3, 'AI501', 'Natural Language Processing', 'Backpropagation Proof', 'Dr. A. Sharma', 'Backpropagation Proof', 'Here is the matrix chain rule explanation with step-by-step tensor shapes.', 'https://colab.research.google.com/drive/nlp-backprop', 'ALL', '2026-11-01 17:27:52'),
+    (4, 'AI501', 'Natural Language Processing', 'Backpropagation Proof', 'Dr. A. Sharma', 'Backpropagation Proof', 'Here is the matrix chain rule explanation with step-by-step tensor shapes.', 'https://colab.research.google.com/drive/nlp-backprop', 'ALL', '2026-11-02 12:32:29'),
+    (5, 'AI501', 'Natural Language Processing', 'Backpropagation Proof', 'Dr. A. Sharma', 'Backpropagation Proof', 'Here is the matrix chain rule explanation with step-by-step tensor shapes.', 'https://colab.research.google.com/drive/nlp-backprop', 'ALL', '2026-11-03 15:44:32'),
+    (6, 'AI501', 'Natural Language Processing', 'Backpropagation Proof', 'Dr. A. Sharma', 'Backpropagation Proof', 'Here is the matrix chain rule explanation with step-by-step tensor shapes.', 'https://colab.research.google.com/drive/nlp-backprop', 'ALL', '2026-11-03 15:46:07'),
+    (7, 'AI501', 'Natural Language Processing', 'Backpropagation Proof', 'Dr. A. Sharma', 'Backpropagation Proof', 'Here is the matrix chain rule explanation with step-by-step tensor shapes.', 'https://colab.research.google.com/drive/nlp-backprop', 'ALL', '2026-11-03 16:02:39'),
+    (8, 'AI501', 'Natural Language Processing', 'Backpropagation Proof', 'Dr. A. Sharma', 'Backpropagation Proof', 'Here is the matrix chain rule explanation with step-by-step tensor shapes.', 'https://colab.research.google.com/drive/nlp-backprop', 'ALL', '2026-11-03 16:56:03'),
+    (9, 'AI501', 'Natural Language Processing', 'Backpropagation Proof', 'Dr. A. Sharma', 'Backpropagation Proof', 'Here is the matrix chain rule explanation with step-by-step tensor shapes.', 'https://colab.research.google.com/drive/nlp-backprop', 'ALL', '2026-11-03 19:31:06');
+
+SELECT setval(pg_get_serial_sequence('clarification_broadcasts', 'broadcast_id'), coalesce(max(broadcast_id), 1)) FROM clarification_broadcasts;
+
+-- Table structure for study_pods
+DROP TABLE IF EXISTS study_pods CASCADE;
+CREATE TABLE study_pods (
+    pod_id SERIAL PRIMARY KEY,
+    course_code VARCHAR(30) NOT NULL,
+    topic VARCHAR(100) NOT NULL,
+    pod_name VARCHAR(150) NOT NULL,
+    description TEXT,
+    max_members INTEGER DEFAULT 5,
+    current_members INTEGER DEFAULT 1,
+    guidance_prompt TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Seed data for study_pods (9 records)
+INSERT INTO study_pods (pod_id, course_code, topic, pod_name, description, max_members, current_members, guidance_prompt, created_at) VALUES
+    (1, 'AI501', 'Attention & Transformers', 'NLP Transformers Peer Mastery Pod #1', 'Connecting students who scored high clarity on Scaled Dot-Product Attention with peers wanting interactive review.', 5, 3, 'Review: 1) What is Q, K, V intuitive meaning? 2) Why is causal masking needed in decoder? 3) Code a 1-head self-attention module in PyTorch.', '2026-11-01 17:21:30'),
+    (2, 'AI304', 'Optimization & Gradient Descent', 'Backpropagation & Chain Rule Study Circle', 'Peer problem solving on multivariate chain rule calculus and computational graphs.', 5, 4, 'Walk through an explicit 2-layer MLP backward pass step-by-step on whiteboard.', '2026-11-01 17:21:30'),
+    (3, 'AI501', 'Attention Query-Key-Value Multiplications', 'AI501 Attention Query-Key-Value Multiplications Circle', 'https://meet.google.com/test-pod', 4, 2, 'Review core derivations and solve 2 interactive whiteboard exercises together.', '2026-11-01 17:27:52'),
+    (4, 'AI501', 'Attention Query-Key-Value Multiplications', 'AI501 Attention Query-Key-Value Multiplications Circle', 'https://meet.google.com/test-pod', 4, 2, 'Review core derivations and solve 2 interactive whiteboard exercises together.', '2026-11-02 12:32:29'),
+    (5, 'AI501', 'Attention Query-Key-Value Multiplications', 'AI501 Attention Query-Key-Value Multiplications Circle', 'https://meet.google.com/test-pod', 4, 2, 'Review core derivations and solve 2 interactive whiteboard exercises together.', '2026-11-03 15:44:32'),
+    (6, 'AI501', 'Attention Query-Key-Value Multiplications', 'AI501 Attention Query-Key-Value Multiplications Circle', 'https://meet.google.com/test-pod', 4, 2, 'Review core derivations and solve 2 interactive whiteboard exercises together.', '2026-11-03 15:46:07'),
+    (7, 'AI501', 'Attention Query-Key-Value Multiplications', 'AI501 Attention Query-Key-Value Multiplications Circle', 'https://meet.google.com/test-pod', 4, 2, 'Review core derivations and solve 2 interactive whiteboard exercises together.', '2026-11-03 16:02:39'),
+    (8, 'AI501', 'Attention Query-Key-Value Multiplications', 'AI501 Attention Query-Key-Value Multiplications Circle', 'https://meet.google.com/test-pod', 4, 2, 'Review core derivations and solve 2 interactive whiteboard exercises together.', '2026-11-03 16:56:03'),
+    (9, 'AI501', 'Attention Query-Key-Value Multiplications', 'AI501 Attention Query-Key-Value Multiplications Circle', 'https://meet.google.com/test-pod', 4, 2, 'Review core derivations and solve 2 interactive whiteboard exercises together.', '2026-11-03 19:31:06');
+
+SELECT setval(pg_get_serial_sequence('study_pods', 'pod_id'), coalesce(max(pod_id), 1)) FROM study_pods;
+
+-- Table structure for webhook_integrations
+DROP TABLE IF EXISTS webhook_integrations CASCADE;
+CREATE TABLE webhook_integrations (
+    integration_id SERIAL PRIMARY KEY,
+    platform VARCHAR(50) DEFAULT 'SLACK',
+    webhook_url TEXT NOT NULL,
+    is_enabled BOOLEAN DEFAULT TRUE,
+    notify_critical_distress BOOLEAN DEFAULT TRUE,
+    notify_weekly_digest BOOLEAN DEFAULT TRUE,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Seed data for webhook_integrations (8 records)
+INSERT INTO webhook_integrations (integration_id, platform, webhook_url, is_enabled, notify_critical_distress, notify_weekly_digest, updated_at) VALUES
+    (1, 'SLACK', 'https://example.com/webhooks/sentio/mock-campus-alerts', 1, 1, 1, '2026-11-01 17:21:30'),
+    (2, 'SLACK', 'https://example.com/services/webhook-test', 1, 1, 1, '2026-11-01 17:27:52'),
+    (3, 'SLACK', 'https://example.com/services/webhook-test', 1, 1, 1, '2026-11-02 12:32:29'),
+    (4, 'SLACK', 'https://example.com/services/webhook-test', 1, 1, 1, '2026-11-03 15:44:33'),
+    (5, 'SLACK', 'https://example.com/services/webhook-test', 1, 1, 1, '2026-11-03 15:46:07'),
+    (6, 'SLACK', 'https://example.com/services/webhook-test', 1, 1, 1, '2026-11-03 16:02:39'),
+    (7, 'SLACK', 'https://example.com/services/webhook-test', 1, 1, 1, '2026-11-03 16:56:03'),
+    (8, 'SLACK', 'https://example.com/services/webhook-test', 1, 1, 1, '2026-11-03 19:31:06');
+
+SELECT setval(pg_get_serial_sequence('webhook_integrations', 'integration_id'), coalesce(max(integration_id), 1)) FROM webhook_integrations;
+
+-- Table structure for audit_logs
+DROP TABLE IF EXISTS audit_logs CASCADE;
+CREATE TABLE audit_logs (
+    log_id SERIAL PRIMARY KEY,
+    user_id INTEGER,
+    user_email VARCHAR(150),
+    action VARCHAR(100) NOT NULL,
+    resource_type VARCHAR(50),
+    resource_id VARCHAR(50),
+    details TEXT,
+    ip_address VARCHAR(50),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Seed data for audit_logs (2 records)
+INSERT INTO audit_logs (log_id, user_id, user_email, action, resource_type, resource_id, details, ip_address, created_at) VALUES
+    (1, 47, 'refresh_test@univ.edu', 'USER_LOGIN', 'USER', '47', 'Successful login as STUDENT', NULL, '2026-11-08 06:54:35'),
+    (2, 2, 'faculty@univ.edu', 'USER_LOGIN', 'USER', '2', 'Successful login as FACULTY', NULL, '2026-11-08 11:02:59');
+
+SELECT setval(pg_get_serial_sequence('audit_logs', 'log_id'), coalesce(max(log_id), 1)) FROM audit_logs;
+
+-- Table structure for refresh_tokens
+DROP TABLE IF EXISTS refresh_tokens CASCADE;
+CREATE TABLE refresh_tokens (
+    token_id SERIAL PRIMARY KEY,
+    user_id INTEGER NOT NULL,
+    token_hash VARCHAR(255) NOT NULL,
+    expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
+    is_revoked BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Seed data for refresh_tokens (3 records)
+INSERT INTO refresh_tokens (token_id, user_id, token_hash, expires_at, is_revoked, created_at) VALUES
+    (1, 47, 'b50c4e9df7ac9034a7b96b1ee1c9f649e4b49229d644076c1a2cc48da7d5dd60', '2026-11-15 06:54:35', 1, '2026-11-08 06:54:35'),
+    (2, 47, 'f1d49011671de6e7aff887786c5b55050d996e85b00e8f87d3da1c69af910499', '2026-11-15 06:54:35', 0, '2026-11-08 06:54:35'),
+    (3, 2, '407a651a111c2c0fb108d8d17b2034bb4a1d234bfa39d70a799fd918a7ace5b7', '2026-11-15 11:02:59', 0, '2026-11-08 11:02:59');
+
+SELECT setval(pg_get_serial_sequence('refresh_tokens', 'token_id'), coalesce(max(token_id), 1)) FROM refresh_tokens;
+
+-- Table structure for analysis_cache
+DROP TABLE IF EXISTS analysis_cache CASCADE;
+CREATE TABLE analysis_cache (
+    cache_id SERIAL PRIMARY KEY,
+    text_hash VARCHAR(64) NOT NULL,
+    sentiment_label VARCHAR(30),
+    sentiment_confidence DOUBLE PRECISION,
+    emotion_label VARCHAR(30),
+    emotion_confidence DOUBLE PRECISION,
+    aspects TEXT,
+    topics TEXT,
+    is_urgent BOOLEAN DEFAULT FALSE,
+    urgency_reason VARCHAR(255),
+    helpfulness_score INTEGER DEFAULT 75,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Seed data for analysis_cache (2 records)
+INSERT INTO analysis_cache (cache_id, text_hash, sentiment_label, sentiment_confidence, emotion_label, emotion_confidence, aspects, topics, is_urgent, urgency_reason, helpfulness_score, created_at) VALUES
+    (1, 'f3b799018306f836052ebb0fe35c576a1f3e6f883a288d0641630b04be60808d', 'positive', 0.88, 'clarity', 0.92, '[{"topic": "teaching", "sentiment": "positive", "confidence": 0.7136, "segment": "the lecture on transformer attention was very clear"}]', '["teaching"]', 0, NULL, 65, '2026-11-08 06:54:35'),
+    (2, '62e9edd60bc0dd27584e3fbb8ac8781839a04ce79b4ddc7168aaea28d6a7a66b', 'negative', 0.506, 'fatigue', 0.905, '[{"topic": "laboratories", "sentiment": "negative", "confidence": 0.5623, "segment": "a student was harassed and threatened by seniors after class in the lab"}]', '["laboratories"]', 1, 'HARASSMENT_OR_SAFETY', 50, '2026-11-08 06:54:35');
+
+SELECT setval(pg_get_serial_sequence('analysis_cache', 'cache_id'), coalesce(max(cache_id), 1)) FROM analysis_cache;
+
+-- Table structure for faculty_actions
+DROP TABLE IF EXISTS faculty_actions CASCADE;
+CREATE TABLE faculty_actions (
+    action_id SERIAL PRIMARY KEY,
+    faculty_id INTEGER,
+    faculty_name VARCHAR(100),
+    course_code VARCHAR(50),
+    action_title VARCHAR(200) NOT NULL,
+    action_description TEXT,
+    action_type VARCHAR(50),
+    before_clarity_score DOUBLE PRECISION,
+    after_clarity_score DOUBLE PRECISION,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Seed data for faculty_actions (1 records)
+INSERT INTO faculty_actions (action_id, faculty_id, faculty_name, course_code, action_title, action_description, action_type, before_clarity_score, after_clarity_score, created_at) VALUES
+    (1, 2, 'Dr. A. Sharma', 'AI501', 'Extended Transformer Assignment Deadline by 72 Hours', 'Moved deadline to Sunday to give students breathing room.', 'DEADLINE_EXTENSION', 55.6, NULL, '2026-11-08 06:54:44');
+
+SELECT setval(pg_get_serial_sequence('faculty_actions', 'action_id'), coalesce(max(action_id), 1)) FROM faculty_actions;
+
+-- Performance & Anonymity Indexes
+CREATE INDEX IF NOT EXISTS idx_feedback_course_sec ON feedback (course_code, class_section);
+CREATE INDEX IF NOT EXISTS idx_feedback_created ON feedback (created_at);
+CREATE INDEX IF NOT EXISTS idx_feedback_hash ON feedback (text_hash);
+CREATE INDEX IF NOT EXISTS idx_audit_logs_user ON audit_logs (user_id, created_at);
+CREATE INDEX IF NOT EXISTS idx_analysis_cache_hash ON analysis_cache (text_hash);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_sections_class_sem ON sections (class_name, semester);

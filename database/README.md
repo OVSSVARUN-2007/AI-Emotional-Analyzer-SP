@@ -1,77 +1,105 @@
 # AI Emotional Analyzer Database Schema & Setup
 
-This directory contains the database SQL dump and setup documentation for the **AI Emotional Feedback Analyzer** system.
+This directory contains the database SQL dump, schema definition, and setup documentation for the **Sentio — AI-Powered Multimodal Emotional Sentiment Analyzer** platform.
 
 ---
 
 ## 📁 Directory Contents
 
-- **`student_feedback_ai.sql`**: PostgreSQL database dump containing the complete table structures, sequences, foreign key constraints, and seed data for the system.
+- **`student_feedback_ai.sql`**: Complete PostgreSQL database schema dump with all 31 tables, sequences, indexes, and full seed data.
+- **`student_feedback.db`**: Synchronized SQLite database instance for zero-config local operation.
 - **`README.md`**: Database schema documentation and setup instructions.
 
 ---
 
 ## 🗄️ Database Overview
 
-The system uses a **PostgreSQL** relational database designed to manage user roles, academic structures (departments, programs, batches, courses, offerings, enrollments), student feedback, and AI model predictions for sentiment & aspect-based emotion analysis.
+The system supports dual-database operation:
+1. **Local Development (Default)**: Embedded SQLite (`backend/database/student_feedback.db`), zero configuration required.
+2. **Enterprise Production**: PostgreSQL (via `student_feedback_ai.sql` or `DB_USER`/`DB_NAME` environment variables).
 
 ---
 
-## 📋 Entity & Table Descriptions
+## 📋 Entity & Table Descriptions (31 Tables)
 
-### 1. Core & User Management
-- **`departments`**: Academic departments (e.g., CSE, ECE, IT).
-- **`programs`**: Degree programs under departments (e.g., B.Tech, M.Tech).
-- **`batches`**: Academic student batches with start/end years (e.g., 2024-2028).
-- **`sections`**: Student class sections within batches (e.g., Section A, B).
-- **`users`**: System user accounts (Students, Faculty, Admins) with hashed passwords and role flags.
+### 1. Identity, Authentication & Security
+- **`users`**: System user accounts (Students, Faculty, Admins) with bcrypt-hashed passwords, role flags, session lockouts (`failed_login_attempts`, `locked_until`).
+- **`refresh_tokens`**: Cryptographically hashed rotating refresh tokens with expirations and revocation tracking.
+- **`otps`**: 6-digit email verification codes with 10-minute expiry for user registration and password resets.
+- **`audit_logs`**: Immutable security log recording user actions, IP address, resource accessed, and timestamps.
 
-### 2. Academic & Course Structure
-- **`students`**: Detailed student profile linking user records to department, program, batch, and section.
-- **`faculty`**: Detailed faculty profile linking user records to departments and designations.
-- **`academic_terms`**: Academic years and semesters (e.g., 2026-27, Semester 5).
-- **`courses`**: Subject catalog with course codes, names, credits, and department mapping.
-- **`course_offerings`**: Specific instances of courses assigned to faculty and academic terms.
-- **`enrollments`**: Student course registrations for specific offerings.
+### 2. Academic & Curriculum Structure
+- **`semesters`**: Academic terms (Semesters 1 through 8) with term names, active indicator, and date bounds.
+- **`courses`**: Master catalog of university subjects (`course_code`, `course_name`, `credits`, `department_name`, `program`, `semester`, `exam_slot`).
+- **`sections`**: Student class cohorts (Section A through Section K) across semesters with unique constraints.
+- **`faculty`**: Faculty directory with department mapping, designations, and contact emails.
+- **`students`**: Student profiles linked to user accounts with roll numbers, section allocations, and contact info.
+- **`course_offerings`**: Allocation of courses to faculty and sections for active academic terms.
+- **`student_enrollments`**: Student subject registrations (`Core` and `Elective`) with enrollment statuses.
+- **`lectures`**: Weekly course timetable schedule (day of week, start/end times, room number, lecture type, topic).
 
-### 3. Feedback & AI Analytics Engine
-- **`feedback`**: Student feedback entries submitted for course offerings, including timestamp, anonymity setting, and analysis status (`PENDING`, `ANALYZED`, `FAILED`).
-- **`model_versions`**: Registry of deployed AI models for sentiment, emotion, or combined analysis tasks.
-- **`predictions`**: AI-generated sentiment classification (Positive/Neutral/Negative) and emotion detection results with confidence scores.
-- **`feedback_aspects`**: Aspect-based sentiment analysis breaking down feedback into specific aspects (e.g., teaching style, course material) with fine-grained sentiments and confidence ratings.
+### 3. Feedback, ABSA & AI Engine
+- **`feedback`**: Student feedback entries with anonymization, upvotes, helpfulness scores, PII masking, urgency flags, and multimodal attachments (slide vision URL, acoustic prosody).
+- **`predictions`**: AI-generated sentiment classification (`POSITIVE`, `NEGATIVE`, `NEUTRAL`, `MIXED`) and 7-axis canonical emotion detections with calibrated confidence scores.
+- **`feedback_aspects`**: Aspect-based sentiment analysis (ABSA) breaking down feedback into pedagogical aspects (`Teaching`, `Assignments`, `Deadlines`, `Materials`, `Infrastructure`) with confidence ratings.
+- **`feedback_responses`**: Official administrative and instructor replies to feedback entries with action tracking.
+- **`feedback_requests`**: Instructor-created 60-second lecture pulse polls broadcast to classes.
+- **`poll_votes`**: Real-time student votes on lecture pulse options.
+- **`model_versions`**: Registry of deployed AI models (TF-IDF, DistilBERT, Gemini) with performance metrics.
+- **`analysis_cache`**: SHA-256 hash-indexed cache preventing redundant NLP/Gemini invocations on duplicate feedback.
+
+### 4. Pedagogical Interventions, Grievances & Community
+- **`complaints`**: Confidential student grievance desk with severity triage (`HIGH`, `MEDIUM`, `LOW`), categories, and resolution tracking.
+- **`announcements`**: Broadcast notices from Dean and faculty targeted to all or specific sections.
+- **`community_posts`**: Anonymous student campus pulse posts with "Me Too" upvotes and administrative action plans.
+- **`community_upvotes`**: Per-user tracking of community post upvotes.
+- **`remedial_lesson_plans`**: AI-drafted 10-minute recap lesson plans for difficult lecture topics.
+- **`clarification_broadcasts`**: Instructor explanatory notes, slides, and Colab links addressing student confusion.
+- **`study_pods`**: Collaborative anonymous peer study circles matching high-clarity students with peers.
+- **`faculty_actions`**: Logged pedagogical interventions with before/after clarity impact metrics.
+- **`webhook_integrations`**: Slack / Microsoft Teams webhook dispatchers for critical distress and weekly digests.
+- **`system_settings`**: Key-value system configuration (e.g. Gemini model selection, anonymity threshold).
 
 ---
 
 ## 🚀 Setup & Restoration Instructions
 
-### Prerequisites
-- PostgreSQL 14+ installed and running.
-- A created database instance (e.g., `student_feedback_ai`).
+### SQLite (Default)
+The database is auto-initialized on first run. To manually seed or reset:
 
-### Step 1: Create Database
-Connect to your local PostgreSQL server via `psql` or pgAdmin and create the target database:
+```bash
+# Seed or verify database
+python scripts/seed_database.py
 
+# Complete reset and reseed
+python scripts/seed_database.py --reset
+```
+
+### PostgreSQL Setup
+1. Create target database:
 ```sql
 CREATE DATABASE student_feedback_ai;
 ```
 
-### Step 2: Restore Schema & Data
-Import `student_feedback_ai.sql` into your database:
-
-Using command line (`psql`):
+2. Restore complete schema and seed data:
 ```bash
 psql -U postgres -d student_feedback_ai -f database/student_feedback_ai.sql
 ```
 
-Or using `pg_restore` (if exported in custom binary format):
-```bash
-pg_restore -U postgres -d student_feedback_ai database/student_feedback_ai.sql
+3. Configure environment in `.env`:
+```env
+DB_USER=postgres
+DB_PASSWORD=your_password
+DB_NAME=student_feedback_ai
+DB_HOST=localhost
+DB_PORT=5432
 ```
 
 ---
 
-## 🔗 Key Constraints & Validation Rules
-- **Role Enforcement**: `users.role` restricted to `'STUDENT'`, `'FACULTY'`, or `'ADMIN'`.
-- **Status Workflow**: `feedback.status` limited to `'PENDING'`, `'ANALYZED'`, or `'FAILED'`.
-- **Confidence Range**: `confidence` metrics in `predictions` and `feedback_aspects` bounded between `0.0000` and `1.0000`.
-- **Semester Bound**: `academic_terms.semester` validated between `1` and `8`.
+## 🔗 Key Performance Indexes
+- `idx_feedback_course_sec`: Fast filtering on `(course_code, class_section)`
+- `idx_feedback_created`: Time-series trend and semester timeline lookups
+- `idx_feedback_hash`: Sub-millisecond text deduplication against `analysis_cache`
+- `idx_audit_logs_user`: Fast security compliance lookups on `(user_id, created_at)`
+- `idx_sections_class_sem`: Unique constraint preventing duplicate section entries
