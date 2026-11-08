@@ -836,6 +836,415 @@ function FacultySubjectBreakdownCards({ subjects = [], systemMode = 'LIVE_EVAL' 
 }
 
 // ═══════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
+// GRIEVANCE DESK TAB COMPONENT (Admin only)
+// - Pending grievances at top
+// - "Resolved" collapsible section at bottom
+// ═══════════════════════════════════════════════════════
+function GrievanceDeskTab({ complaints, onResolve }) {
+  const [showResolved, setShowResolved] = useState(false);
+  const pending = (complaints || []).filter(c => c.status !== 'RESOLVED');
+  const resolved = (complaints || []).filter(c => c.status === 'RESOLVED');
+
+  return (
+    <div className="tab-pane">
+      <div className="pane-heading">
+        <h2>Student Grievance Resolution Desk</h2>
+        <p>Review and resolve student concerns with official resolution notes.</p>
+      </div>
+
+      {/* PENDING GRIEVANCES */}
+      <div style={{ marginBottom: '1.5rem' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+          <h3 style={{ margin: 0, color: '#0f172a', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#f59e0b', display: 'inline-block' }}></span>
+            Pending Grievances
+            <span style={{ fontSize: '0.78rem', fontWeight: 600, background: '#fef3c7', color: '#b45309', padding: '2px 8px', borderRadius: '999px', border: '1px solid #fcd34d' }}>
+              {pending.length}
+            </span>
+          </h3>
+        </div>
+
+        {pending.length === 0 ? (
+          <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '10px', padding: '2rem', textAlign: 'center', color: '#059669' }}>
+            <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>✅</div>
+            <strong>All grievances have been resolved!</strong>
+            <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.85rem' }}>No pending complaints at this time.</p>
+          </div>
+        ) : (
+          <div className="table-wrap">
+            <table className="simple-table">
+              <thead>
+                <tr>
+                  <th>Title & Category</th>
+                  <th>Section</th>
+                  <th>Description</th>
+                  <th>Status</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {pending.map((c) => (
+                  <tr key={c.complaint_id}>
+                    <td>
+                      <strong>{c.title}</strong>
+                      <span style={{ display: 'block', fontSize: '0.75rem', color: '#64748b' }}>{c.category}</span>
+                    </td>
+                    <td>{c.class_section}</td>
+                    <td style={{ maxWidth: '300px' }}>{c.description}</td>
+                    <td>
+                      <span className="sentiment-badge needs-clarity">{c.status || 'PENDING'}</span>
+                    </td>
+                    <td>
+                      <button
+                        type="button"
+                        className="btn-review-lecture"
+                        style={{ background: '#059669', color: '#fff', border: 'none', borderRadius: '6px', padding: '0.3rem 0.75rem', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600 }}
+                        onClick={() => {
+                          const action = window.prompt('Enter action taken to resolve this grievance:');
+                          if (action) onResolve(c.complaint_id, action);
+                        }}
+                      >
+                        Resolve
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      {/* RESOLVED GRIEVANCES (Collapsible) */}
+      <div>
+        <button
+          type="button"
+          onClick={() => setShowResolved(v => !v)}
+          style={{
+            display: 'flex', alignItems: 'center', gap: '0.5rem',
+            background: showResolved ? '#f0fdf4' : '#f8fafc',
+            border: `1px solid ${showResolved ? '#bbf7d0' : '#e2e8f0'}`,
+            borderRadius: '8px', padding: '0.6rem 1rem', cursor: 'pointer',
+            fontSize: '0.9rem', fontWeight: 600, color: showResolved ? '#059669' : '#0f172a',
+            width: '100%', marginBottom: showResolved ? '0.75rem' : 0,
+            transition: 'all 0.2s',
+          }}
+        >
+          <span style={{ fontSize: '1rem' }}>{showResolved ? '▼' : '▶'}</span>
+          <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#059669', display: 'inline-block' }}></span>
+          Resolved Grievances
+          <span style={{ fontSize: '0.78rem', fontWeight: 600, background: '#dcfce7', color: '#059669', padding: '2px 8px', borderRadius: '999px', border: '1px solid #bbf7d0', marginLeft: 'auto' }}>
+            {resolved.length} resolved
+          </span>
+        </button>
+
+        {showResolved && (
+          resolved.length === 0 ? (
+            <div style={{ padding: '1.5rem', textAlign: 'center', color: '#94a3b8', fontSize: '0.85rem' }}>
+              No resolved grievances yet.
+            </div>
+          ) : (
+            <div className="table-wrap">
+              <table className="simple-table">
+                <thead>
+                  <tr>
+                    <th>Title & Category</th>
+                    <th>Section</th>
+                    <th>Description</th>
+                    <th>Resolution Action</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {resolved.map((c) => (
+                    <tr key={c.complaint_id} style={{ opacity: 0.85 }}>
+                      <td>
+                        <strong>{c.title}</strong>
+                        <span style={{ display: 'block', fontSize: '0.75rem', color: '#64748b' }}>{c.category}</span>
+                      </td>
+                      <td>{c.class_section}</td>
+                      <td style={{ maxWidth: '220px', fontSize: '0.82rem' }}>{c.description}</td>
+                      <td style={{ maxWidth: '220px', fontSize: '0.82rem', color: '#059669' }}>
+                        {c.action_taken || '—'}
+                      </td>
+                      <td>
+                        <span className="sentiment-badge positive">✓ Resolved</span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════
+// SPECIAL PROJECTS ADMIN TAB COMPONENT
+// Admin can assign 2 faculty mentors to each student
+// ═══════════════════════════════════════════════════════
+function SpecialProjectsAdminTab({ addToast }) {
+  const [assignments, setAssignments] = useState([]);
+  const [students, setStudents] = useState([]);
+  const [faculty, setFaculty] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [showForm, setShowForm] = useState(false);
+  const [form, setForm] = useState({
+    student_id: '',
+    student_name: '',
+    mentor1_faculty_id: '',
+    mentor1_name: '',
+    mentor2_faculty_id: '',
+    mentor2_name: '',
+    project_title: '',
+    project_description: '',
+  });
+  const [saving, setSaving] = useState(false);
+
+  const loadData = async () => {
+    setLoading(true);
+    try {
+      const [aRes, sRes, fRes] = await Promise.all([
+        fetch(`${API}/feedback/special-projects/assignments`).then(r => r.json()).catch(() => ({assignments: []})),
+        fetch(`${API}/feedback/special-projects/all-students`).then(r => r.json()).catch(() => ({students: []})),
+        fetch(`${API}/feedback/special-projects/all-faculty`).then(r => r.json()).catch(() => ({faculty: []})),
+      ]);
+      setAssignments(aRes.assignments || []);
+      setStudents(sRes.students || []);
+      setFaculty(fRes.faculty || []);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => { loadData(); }, []);
+
+  const handleStudentChange = (e) => {
+    const sid = Number(e.target.value);
+    const stu = students.find(s => s.user_id === sid);
+    setForm(f => ({ ...f, student_id: sid, student_name: stu?.name || '' }));
+  };
+
+  const handleMentor1Change = (e) => {
+    const fid = Number(e.target.value);
+    const fac = faculty.find(f => f.faculty_id === fid);
+    setForm(f => ({ ...f, mentor1_faculty_id: fid, mentor1_name: fac?.name || '' }));
+  };
+
+  const handleMentor2Change = (e) => {
+    const fid = Number(e.target.value);
+    const fac = faculty.find(f => f.faculty_id === fid);
+    setForm(f => ({ ...f, mentor2_faculty_id: fid, mentor2_name: fac?.name || '' }));
+  };
+
+  const handleAssign = async (e) => {
+    e.preventDefault();
+    if (!form.student_id || !form.mentor1_faculty_id || !form.project_title.trim()) {
+      addToast?.({ title: 'Missing Fields', message: 'Student, Mentor 1, and Project Title are required.', type: 'error' });
+      return;
+    }
+    setSaving(true);
+    try {
+      const res = await fetch(`${API}/feedback/special-projects/assign`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(form),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.detail || 'Failed to assign');
+      addToast?.({ title: 'Mentors Assigned', message: data.message, type: 'success' });
+      setShowForm(false);
+      setForm({ student_id: '', student_name: '', mentor1_faculty_id: '', mentor1_name: '', mentor2_faculty_id: '', mentor2_name: '', project_title: '', project_description: '' });
+      loadData();
+    } catch (err) {
+      addToast?.({ title: 'Error', message: err.message, type: 'error' });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleRemove = async (assignmentId, studentName) => {
+    if (!window.confirm(`Remove special project assignment for ${studentName}?`)) return;
+    try {
+      const res = await fetch(`${API}/feedback/special-projects/assignments/${assignmentId}`, { method: 'DELETE' });
+      if (!res.ok) throw new Error('Failed to remove');
+      addToast?.({ title: 'Assignment Removed', message: `Assignment for ${studentName} removed.`, type: 'info' });
+      loadData();
+    } catch (err) {
+      addToast?.({ title: 'Error', message: err.message, type: 'error' });
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="tab-pane" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '200px' }}>
+        <div style={{ color: '#64748b' }}>Loading special project assignments...</div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="tab-pane">
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '0.75rem' }}>
+        <div>
+          <h2 style={{ margin: '0 0 0.25rem 0', color: '#0f172a' }}>Special Project Mentor Assignments</h2>
+          <p style={{ margin: 0, color: '#64748b', fontSize: '0.85rem' }}>
+            Assign up to 2 faculty mentors to a student for their special/capstone project. The student will then be able to send weekly progress feedback to both mentors simultaneously.
+          </p>
+        </div>
+        <button
+          type="button"
+          className="btn-header-action primary"
+          onClick={() => setShowForm(v => !v)}
+          style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', whiteSpace: 'nowrap' }}
+        >
+          <Plus size={14} /> {showForm ? 'Cancel' : 'Assign Mentors'}
+        </button>
+      </div>
+
+      {/* Assignment Form */}
+      {showForm && (
+        <div className="card" style={{ marginBottom: '1.5rem', borderLeft: '4px solid #2563eb' }}>
+          <h3 style={{ margin: '0 0 1rem 0', color: '#0f172a' }}>Assign Special Project Mentors</h3>
+          <form onSubmit={handleAssign} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            <div className="grid-2col">
+              <div className="form-group">
+                <label>Student *</label>
+                <select value={form.student_id} onChange={handleStudentChange} required>
+                  <option value="">— Select Student —</option>
+                  {students.map(s => (
+                    <option key={s.user_id} value={s.user_id}>
+                      {s.name} ({s.roll_no}) {s.class_section ? `· ${s.class_section}` : ''}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="form-group">
+                <label>Project Title *</label>
+                <input
+                  required
+                  placeholder="e.g. AI Sentiment Analysis Research"
+                  value={form.project_title}
+                  onChange={e => setForm(f => ({ ...f, project_title: e.target.value }))}
+                />
+              </div>
+            </div>
+
+            <div className="grid-2col">
+              <div className="form-group">
+                <label>Mentor 1 (Primary) *</label>
+                <select value={form.mentor1_faculty_id} onChange={handleMentor1Change} required>
+                  <option value="">— Select Mentor 1 —</option>
+                  {faculty.map(f => (
+                    <option key={f.faculty_id} value={f.faculty_id}>
+                      {f.name} {f.department ? `· ${f.department}` : ''}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="form-group">
+                <label>Mentor 2 (Co-Mentor, optional)</label>
+                <select value={form.mentor2_faculty_id} onChange={handleMentor2Change}>
+                  <option value="">— Select Mentor 2 —</option>
+                  {faculty.filter(f => f.faculty_id !== form.mentor1_faculty_id).map(f => (
+                    <option key={f.faculty_id} value={f.faculty_id}>
+                      {f.name} {f.department ? `· ${f.department}` : ''}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div className="form-group">
+              <label>Project Description</label>
+              <textarea
+                rows={3}
+                placeholder="Brief description of the project scope, objectives, and expected outcomes..."
+                value={form.project_description}
+                onChange={e => setForm(f => ({ ...f, project_description: e.target.value }))}
+                style={{ padding: '0.5rem 0.75rem', borderRadius: '8px', border: '1px solid #e2e8f0', fontFamily: 'inherit', resize: 'vertical' }}
+              />
+            </div>
+
+            <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end' }}>
+              <button type="button" className="btn-header-action" onClick={() => setShowForm(false)}>Cancel</button>
+              <button type="submit" className="btn-submit-primary" disabled={saving} style={{ width: 'auto', padding: '0.5rem 1.25rem' }}>
+                {saving ? 'Assigning...' : 'Assign Mentors to Student'}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {/* Assignments List */}
+      {assignments.length === 0 ? (
+        <div className="card" style={{ textAlign: 'center', padding: '3rem 2rem', color: '#94a3b8' }}>
+          <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>📋</div>
+          <h3 style={{ margin: '0 0 0.5rem 0', color: '#475569' }}>No Special Project Assignments Yet</h3>
+          <p style={{ margin: 0, fontSize: '0.9rem' }}>Click "Assign Mentors" to create the first assignment.</p>
+        </div>
+      ) : (
+        <div className="grid-2col">
+          {assignments.filter(a => a.is_active).map(a => (
+            <div key={a.assignment_id} className="card" style={{ borderLeft: '3px solid #2563eb' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem' }}>
+                <div>
+                  <h4 style={{ margin: '0 0 0.2rem 0', color: '#0f172a' }}>{a.student_name}</h4>
+                  <span style={{ fontSize: '0.78rem', fontWeight: 600, background: '#eff6ff', color: '#2563eb', padding: '2px 8px', borderRadius: '999px', border: '1px solid #bfdbfe' }}>
+                    {a.project_title}
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  className="btn-header-action"
+                  style={{ padding: '0.2rem 0.4rem', color: '#e11d48' }}
+                  onClick={() => handleRemove(a.assignment_id, a.student_name)}
+                  title="Remove assignment"
+                >
+                  <Trash2 size={13} />
+                </button>
+              </div>
+
+              {a.project_description && (
+                <p style={{ margin: '0 0 0.75rem 0', fontSize: '0.82rem', color: '#475569', lineHeight: 1.5 }}>{a.project_description}</p>
+              )}
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.82rem' }}>
+                  <span style={{ width: '20px', height: '20px', borderRadius: '50%', background: '#2563eb', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', fontWeight: 700, flexShrink: 0 }}>
+                    {a.mentor1_name?.charAt(0)}
+                  </span>
+                  <span style={{ color: '#0f172a', fontWeight: 600 }}>{a.mentor1_name}</span>
+                  <span style={{ color: '#94a3b8', fontSize: '0.72rem' }}>· Mentor 1</span>
+                </div>
+                {a.mentor2_name && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.82rem' }}>
+                    <span style={{ width: '20px', height: '20px', borderRadius: '50%', background: '#059669', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', fontWeight: 700, flexShrink: 0 }}>
+                      {a.mentor2_name?.charAt(0)}
+                    </span>
+                    <span style={{ color: '#0f172a', fontWeight: 600 }}>{a.mentor2_name}</span>
+                    <span style={{ color: '#94a3b8', fontSize: '0.72rem' }}>· Mentor 2</span>
+                  </div>
+                )}
+              </div>
+
+              <div style={{ marginTop: '0.75rem', paddingTop: '0.75rem', borderTop: '1px solid #e2e8f0', fontSize: '0.72rem', color: '#94a3b8' }}>
+                Assigned {a.assigned_at ? new Date(a.assigned_at).toLocaleDateString() : '—'}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ADMIN FACULTY PERFORMANCE & SUBJECT TEACHING ANALYTICS
 // ═══════════════════════════════════════════════════════
 function AdminFacultyWorkspace({
@@ -3697,12 +4106,21 @@ function ComplaintClustersModal({ isOpen, onClose, clusters = [], loading }) {
 }
 
 // ═══════════════════════════════════════════════════════
+// Helper: Get ISO Week Number
+function getISOWeek(date) {
+  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+  const dayNum = d.getUTCDay() || 7;
+  d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+  return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+}
+
 // STUDENT DASHBOARD
 // ═══════════════════════════════════════════════════════
 function StudentDashboard({ user, token, onLogout, onSwitchRole, addToast, onUserUpdated }) {
   const [profileModalOpen, setProfileModalOpen] = useState(false);
   const [systemMode, setSystemMode] = useState(() => localStorage.getItem('sentio_system_mode') || 'LIVE_EVAL');
-  const [activeTab, setActiveTab] = useState('submit'); // 'submit' | 'courses' | 'wellbeing' | 'community' | 'grievance'
+  const [activeTab, setActiveTab] = useState('submit'); // 'submit' | 'courses' | 'wellbeing' | 'community' | 'grievance' | 'special-project'
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // Data States
@@ -3723,6 +4141,11 @@ function StudentDashboard({ user, token, onLogout, onSwitchRole, addToast, onUse
   const [coursesViewTab, setCoursesViewTab] = useState('timetable'); // 'timetable' | 'catalog' | 'mentors'
   const [mentors, setMentors] = useState([]);
   const [complaints, setComplaints] = useState([]);
+  const [specialProjectAssignment, setSpecialProjectAssignment] = useState(null);
+  const [specialProjectFeedbacks, setSpecialProjectFeedbacks] = useState([]);
+  const [specialProjectText, setSpecialProjectText] = useState('');
+  const [specialProjectSubmitting, setSpecialProjectSubmitting] = useState(false);
+  const [specialProjectUpdated, setSpecialProjectUpdated] = useState(false);
   const [communityPosts, setCommunityPosts] = useState([]);
   const [studyPods, setStudyPods] = useState([]);
   const [pulseRequests, setPulseRequests] = useState([]);
@@ -3739,6 +4162,50 @@ function StudentDashboard({ user, token, onLogout, onSwitchRole, addToast, onUse
   // Reflection Journal State
   const [journalNote, setJournalNote] = useState('');
   const [savedJournal, setSavedJournal] = useState([]);
+
+  // Special Project Feedback Handler
+  const handleSubmitSpecialProjectFeedback = async (e) => {
+    if (e) e.preventDefault();
+    if (!specialProjectAssignment) return;
+    if (!specialProjectText.trim() || specialProjectText.trim().length < 10) {
+      addToast?.({ title: 'Too Short', message: 'Please write at least 10 characters of feedback.', type: 'error' });
+      return;
+    }
+    setSpecialProjectSubmitting(true);
+    try {
+      const res = await fetch(`${API}/feedback/special-projects/submit-feedback`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          assignment_id: specialProjectAssignment.assignment_id,
+          student_id: user.student_id || user.user_id || 1,
+          student_name: user.name,
+          mentor1_faculty_id: specialProjectAssignment.mentor1_faculty_id,
+          mentor1_name: specialProjectAssignment.mentor1_name,
+          mentor2_faculty_id: specialProjectAssignment.mentor2_faculty_id,
+          mentor2_name: specialProjectAssignment.mentor2_name,
+          feedback_text: specialProjectText.trim(),
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.detail || 'Failed to submit');
+      setSpecialProjectUpdated(true);
+      addToast?.({
+        title: data.action === 'updated' ? 'Feedback Updated' : 'Feedback Submitted',
+        message: data.message,
+        type: 'success',
+      });
+      // Reload weekly history
+      const sid = user.student_id || user.user_id || 1;
+      const spFeed = await fetch(`${API}/feedback/special-projects/my-feedback?student_id=${sid}`).then(r => r.json()).catch(() => ({weekly_feedbacks: []}));
+      if (spFeed?.weekly_feedbacks) setSpecialProjectFeedbacks(spFeed.weekly_feedbacks);
+      setTimeout(() => setSpecialProjectUpdated(false), 3000);
+    } catch (err) {
+      addToast?.({ title: 'Submission Error', message: err.message, type: 'error' });
+    } finally {
+      setSpecialProjectSubmitting(false);
+    }
+  };
 
   // Grievance Form State
   const [complaintForm, setComplaintForm] = useState({
@@ -3890,6 +4357,23 @@ function StudentDashboard({ user, token, onLogout, onSwitchRole, addToast, onUse
       if (lecRes?.lectures) setStudentLectures(lecRes.lectures);
       if (menRes) setMentors(menRes);
       if (compRes?.complaints) setComplaints(compRes.complaints);
+      // Load special project assignment
+      try {
+        const sid = user.student_id || user.user_id || 1;
+        const [spAssign, spFeed] = await Promise.all([
+          fetch(`${API}/feedback/special-projects/my-assignment?student_id=${sid}`).then(r => r.json()).catch(() => ({assignment: null})),
+          fetch(`${API}/feedback/special-projects/my-feedback?student_id=${sid}`).then(r => r.json()).catch(() => ({weekly_feedbacks: []})),
+        ]);
+        if (spAssign?.assignment) setSpecialProjectAssignment(spAssign.assignment);
+        if (spFeed?.weekly_feedbacks) {
+          setSpecialProjectFeedbacks(spFeed.weekly_feedbacks);
+          // Pre-fill with this week's feedback if exists
+          const now = new Date();
+          const weekNum = getISOWeek(now);
+          const thisWeek = spFeed.weekly_feedbacks.find(f => f.week_number === weekNum && f.week_year === now.getFullYear());
+          if (thisWeek) setSpecialProjectText(thisWeek.feedback_text);
+        }
+      } catch(_) {}
       if (postRes?.posts) setCommunityPosts(postRes.posts);
       if (podRes?.study_pods) setStudyPods(podRes.study_pods);
       if (reqRes?.requests) setPulseRequests(reqRes.requests);
@@ -4122,6 +4606,13 @@ function StudentDashboard({ user, token, onLogout, onSwitchRole, addToast, onUse
           >
             <ShieldAlert size={18} /> Grievance Box
           </button>
+          <button
+            type="button"
+            className={`nav-item ${activeTab === 'special-project' ? 'active' : ''}`}
+            onClick={() => { setActiveTab('special-project'); setMobileMenuOpen(false); }}
+          >
+            <Layers size={18} /> Special Project Feedback
+          </button>
         </nav>
 
         <div className="sidebar-user-footer">
@@ -4149,6 +4640,7 @@ function StudentDashboard({ user, token, onLogout, onSwitchRole, addToast, onUse
                   {activeTab === 'wellbeing' && 'Feedback Tone & Morale Indicator'}
                   {activeTab === 'community' && 'Campus Discussions & Study Groups'}
                   {activeTab === 'grievance' && 'Confidential Grievance Box'}
+                  {activeTab === 'special-project' && 'Special Project Feedback'}
                 </h1>
                 {activeTab === 'submit' && (
                   <button
@@ -4908,6 +5400,162 @@ function StudentDashboard({ user, token, onLogout, onSwitchRole, addToast, onUse
           </div>
         )}
 
+        {/* 5.5. TAB: SPECIAL PROJECT FEEDBACK */}
+        {activeTab === 'special-project' && (
+          <div className="tab-pane">
+            {!specialProjectAssignment ? (
+              <div className="card" style={{ textAlign: 'center', padding: '3rem 2rem' }}>
+                <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>📋</div>
+                <h3 style={{ margin: '0 0 0.5rem 0', color: '#0f172a' }}>No Special Project Assigned</h3>
+                <p style={{ color: '#64748b', fontSize: '0.9rem' }}>
+                  You have not been assigned a special project yet. Please contact your department admin to get assigned to a special project with mentors.
+                </p>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                {/* Project Info Card */}
+                <div className="card" style={{ borderLeft: '4px solid #2563eb' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '0.75rem' }}>
+                    <div>
+                      <h3 style={{ margin: '0 0 0.25rem 0', color: '#0f172a' }}>{specialProjectAssignment.project_title}</h3>
+                      <p style={{ margin: 0, fontSize: '0.85rem', color: '#64748b' }}>{specialProjectAssignment.project_description}</p>
+                    </div>
+                    <span style={{ fontSize: '0.72rem', fontWeight: 600, background: '#eff6ff', color: '#2563eb', padding: '3px 10px', borderRadius: '999px', border: '1px solid #bfdbfe', whiteSpace: 'nowrap' }}>
+                      Special Project
+                    </span>
+                  </div>
+                  <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem', flexWrap: 'wrap' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: '#f8fafc', padding: '0.5rem 0.75rem', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                      <span style={{ width: '32px', height: '32px', borderRadius: '50%', background: '#2563eb', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.85rem', fontWeight: 700 }}>
+                        {specialProjectAssignment.mentor1_name?.charAt(0)}
+                      </span>
+                      <div>
+                        <div style={{ fontSize: '0.8rem', fontWeight: 600, color: '#0f172a' }}>{specialProjectAssignment.mentor1_name}</div>
+                        <div style={{ fontSize: '0.72rem', color: '#64748b' }}>Mentor 1</div>
+                      </div>
+                    </div>
+                    {specialProjectAssignment.mentor2_name && (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: '#f8fafc', padding: '0.5rem 0.75rem', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                        <span style={{ width: '32px', height: '32px', borderRadius: '50%', background: '#059669', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.85rem', fontWeight: 700 }}>
+                          {specialProjectAssignment.mentor2_name?.charAt(0)}
+                        </span>
+                        <div>
+                          <div style={{ fontSize: '0.8rem', fontWeight: 600, color: '#0f172a' }}>{specialProjectAssignment.mentor2_name}</div>
+                          <div style={{ fontSize: '0.72rem', color: '#64748b' }}>Mentor 2</div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="grid-2col">
+                  {/* Weekly Feedback Submission */}
+                  <div className="card">
+                    <h3 style={{ margin: '0 0 0.5rem 0', color: '#0f172a', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <span>📝</span> This Week's Progress Feedback
+                    </h3>
+                    <p style={{ fontSize: '0.85rem', color: '#64748b', margin: '0 0 1rem 0' }}>
+                      Share your weekly progress, blockers, or questions. This goes to both mentors at once.
+                      {(() => {
+                        const now = new Date();
+                        const weekNum = getISOWeek(now);
+                        const existing = specialProjectFeedbacks.find(f => f.week_number === weekNum && f.week_year === now.getFullYear());
+                        return existing ? (
+                          <span style={{ display: 'block', marginTop: '0.4rem', fontSize: '0.78rem', color: '#059669', fontWeight: 600 }}>
+                            ✓ You've already submitted this week — you can update it below.
+                          </span>
+                        ) : null;
+                      })()}
+                    </p>
+
+                    {systemMode === 'MAINTENANCE' ? (
+                      <div style={{ background: '#fef2f2', border: '1px solid #fca5a5', borderRadius: '8px', padding: '1rem', color: '#dc2626', fontSize: '0.85rem' }}>
+                        🔒 Project feedback submissions are paused during Maintenance Mode.
+                      </div>
+                    ) : (
+                      <form onSubmit={handleSubmitSpecialProjectFeedback} style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                        <textarea
+                          rows={6}
+                          required
+                          placeholder={`Write your weekly update here...
+
+Example:
+- Completed data preprocessing pipeline
+- Achieved 85% accuracy on validation set
+- Blocker: Need help with tokenization for multi-lingual text
+- Plan for next week: Fine-tune BERT on domain-specific corpus`}
+                          value={specialProjectText}
+                          onChange={(e) => setSpecialProjectText(e.target.value)}
+                          style={{ resize: 'vertical', minHeight: '140px', padding: '0.75rem', borderRadius: '8px', border: '1px solid #e2e8f0', fontSize: '0.9rem', fontFamily: 'inherit', lineHeight: 1.6 }}
+                        />
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
+                          <span style={{ fontSize: '0.78rem', color: specialProjectText.length < 10 ? '#dc2626' : '#64748b' }}>
+                            {specialProjectText.length} characters {specialProjectText.length < 10 ? '(minimum 10)' : ''}
+                          </span>
+                          <button
+                            type="submit"
+                            className="btn-submit-primary"
+                            disabled={specialProjectSubmitting || specialProjectText.trim().length < 10}
+                            style={{ width: 'auto', padding: '0.5rem 1.25rem', fontSize: '0.9rem' }}
+                          >
+                            {specialProjectSubmitting ? 'Submitting…' : (
+                              (() => {
+                                const now = new Date();
+                                const weekNum = getISOWeek(now);
+                                const existing = specialProjectFeedbacks.find(f => f.week_number === weekNum && f.week_year === now.getFullYear());
+                                return existing ? "🔄 Update This Week's Feedback" : "📤 Submit to Both Mentors";
+                              })()
+                            )}
+                          </button>
+                        </div>
+                        {specialProjectUpdated && (
+                          <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '8px', padding: '0.75rem', color: '#059669', fontSize: '0.85rem', fontWeight: 600 }}>
+                            ✅ Feedback delivered to both {specialProjectAssignment.mentor1_name} and {specialProjectAssignment.mentor2_name}.
+                          </div>
+                        )}
+                      </form>
+                    )}
+                  </div>
+
+                  {/* Weekly Feedback History */}
+                  <div className="card">
+                    <h3 style={{ margin: '0 0 0.5rem 0', color: '#0f172a', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <span>📅</span> Weekly Feedback History
+                    </h3>
+                    <p style={{ fontSize: '0.85rem', color: '#64748b', margin: '0 0 1rem 0' }}>
+                      Your submitted feedback, week by week. Updates reflect immediately.
+                    </p>
+                    {specialProjectFeedbacks.length === 0 ? (
+                      <div style={{ textAlign: 'center', padding: '2rem', color: '#94a3b8', fontSize: '0.85rem' }}>
+                        No feedback submitted yet. Write your first weekly update!
+                      </div>
+                    ) : (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', maxHeight: '380px', overflowY: 'auto', paddingRight: '0.25rem' }}>
+                        {specialProjectFeedbacks.map((fb) => (
+                          <div key={fb.feedback_id} style={{ background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0', padding: '0.85rem' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                              <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#2563eb', background: '#eff6ff', padding: '2px 8px', borderRadius: '999px', border: '1px solid #bfdbfe' }}>
+                                {fb.week_label}
+                              </span>
+                              {fb.updated_at !== fb.submitted_at && (
+                                <span style={{ fontSize: '0.68rem', color: '#64748b' }}>Updated</span>
+                              )}
+                            </div>
+                            <p style={{ margin: 0, fontSize: '0.85rem', color: '#0f172a', lineHeight: 1.6, whiteSpace: 'pre-line' }}>{fb.feedback_text}</p>
+                            <div style={{ marginTop: '0.5rem', fontSize: '0.72rem', color: '#94a3b8' }}>
+                              Sent to: {fb.mentor1_name}{fb.mentor2_name ? ` & ${fb.mentor2_name}` : ''}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* 5. TAB: GRIEVANCE BOX */}
         {activeTab === 'grievance' && (
           <div className="tab-pane">
@@ -5020,7 +5668,7 @@ function AdminDashboard({ user, token, onLogout, onSwitchRole, addToast, onUserU
   const [profileModalOpen, setProfileModalOpen] = useState(false);
   const [systemMode, setSystemMode] = useState(() => localStorage.getItem('sentio_system_mode') || 'LIVE_EVAL');
   const [accreditationModalOpen, setAccreditationModalOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState('overview'); // 'overview' | 'feedback' | 'curriculum' | 'modules' | 'grievances' | 'settings'
+  const [activeTab, setActiveTab] = useState('overview'); // 'overview' | 'feedback' | 'curriculum' | 'modules' | 'grievances' | 'special-projects' | 'settings'
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [selectedSection, setSelectedSection] = useState('ALL');
 
@@ -5378,14 +6026,25 @@ function AdminDashboard({ user, token, onLogout, onSwitchRole, addToast, onUserU
           >
             <BookOpen size={18} /> Course Modules & Clarity
           </button>
-          <button
-            type="button"
-            className={`nav-item ${activeTab === 'grievances' ? 'active' : ''}`}
-            onClick={() => { setActiveTab('grievances'); setMobileMenuOpen(false); }}
-          >
-            <ShieldAlert size={18} /> Grievance Desk
-            {pendingGrievances > 0 && <span className="tab-pill alert">{pendingGrievances}</span>}
-          </button>
+          {isAdmin && (
+            <button
+              type="button"
+              className={`nav-item ${activeTab === 'grievances' ? 'active' : ''}`}
+              onClick={() => { setActiveTab('grievances'); setMobileMenuOpen(false); }}
+            >
+              <ShieldAlert size={18} /> Grievance Desk
+              {pendingGrievances > 0 && <span className="tab-pill alert">{pendingGrievances}</span>}
+            </button>
+          )}
+          {isAdmin && (
+            <button
+              type="button"
+              className={`nav-item ${activeTab === 'special-projects' ? 'active' : ''}`}
+              onClick={() => { setActiveTab('special-projects'); setMobileMenuOpen(false); }}
+            >
+              <Layers size={18} /> Special Projects
+            </button>
+          )}
           <button
             type="button"
             className={`nav-item ${activeTab === 'settings' ? 'active' : ''}`}
@@ -5420,6 +6079,7 @@ function AdminDashboard({ user, token, onLogout, onSwitchRole, addToast, onUserU
                 {activeTab === 'curriculum' && 'Curriculum, Subjects & Timetable'}
                 {activeTab === 'modules' && 'Course Modules & Topic Clarity'}
                 {activeTab === 'grievances' && 'Student Grievance Desk'}
+                {activeTab === 'special-projects' && 'Special Project Mentor Assignments'}
                 {activeTab === 'settings' && 'Platform Settings & Tools'}
               </h1>
             </div>
@@ -6247,68 +6907,16 @@ function AdminDashboard({ user, token, onLogout, onSwitchRole, addToast, onUserU
         )}
 
         {/* 5. TAB: GRIEVANCE DESK */}
-        {activeTab === 'grievances' && (
-          <div className="tab-pane">
-            <div className="pane-heading">
-              <h2>Student Grievance Resolution Desk</h2>
-              <p>Review and resolve student concerns with official resolution notes.</p>
-            </div>
+        {activeTab === 'grievances' && isAdmin && (
+          <GrievanceDeskTab
+            complaints={complaints}
+            onResolve={handleResolveComplaint}
+          />
+        )}
 
-            <div className="table-wrap">
-              <table className="simple-table">
-                <thead>
-                  <tr>
-                    <th>Title & Category</th>
-                    <th>Section</th>
-                    <th>Description</th>
-                    <th>Status</th>
-                    <th>Action</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {complaints.length === 0 ? (
-                    <tr>
-                      <td colSpan={5} style={{ textAlign: 'center', padding: '2rem', color: '#64748b' }}>
-                        No grievances logged.
-                      </td>
-                    </tr>
-                  ) : (
-                    complaints.map((c) => (
-                      <tr key={c.complaint_id}>
-                        <td>
-                          <strong>{c.title}</strong>
-                          <span style={{ display: 'block', fontSize: '0.75rem', color: '#64748b' }}>{c.category}</span>
-                        </td>
-                        <td>{c.class_section}</td>
-                        <td style={{ maxWidth: '300px' }}>{c.description}</td>
-                        <td>
-                          <span className={`sentiment-badge ${c.status === 'RESOLVED' ? 'positive' : 'needs-clarity'}`}>
-                            {c.status}
-                          </span>
-                        </td>
-                        <td>
-                          {c.status !== 'RESOLVED' ? (
-                            <button
-                              type="button"
-                              className="btn-review-lecture"
-                              onClick={() => {
-                                const action = window.prompt('Enter action taken to resolve this grievance:');
-                                if (action) handleResolveComplaint(c.complaint_id, action);
-                              }}
-                            >
-                              Resolve
-                            </button>
-                          ) : (
-                            <span style={{ fontSize: '0.75rem', color: '#059669' }}>✓ Resolved</span>
-                          )}
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
+        {/* 6.5 TAB: SPECIAL PROJECTS (Admin only) */}
+        {activeTab === 'special-projects' && isAdmin && (
+          <SpecialProjectsAdminTab addToast={addToast} />
         )}
 
         {/* 6. TAB: SETTINGS & TOOLS */}

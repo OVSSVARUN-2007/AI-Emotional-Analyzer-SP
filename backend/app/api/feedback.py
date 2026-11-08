@@ -3652,3 +3652,226 @@ def get_feedback_by_id(feedback_id: int):
 
 
 
+
+
+
+# ═══════════════════════════════════════════════════════
+# SPECIAL PROJECT FEEDBACK ENDPOINTS
+# ═══════════════════════════════════════════════════════
+
+@router.get("/special-projects/assignments", summary="Get all special project assignments (admin view)")
+def get_all_assignments():
+    """Admin: Get all student-mentor assignments."""
+    with engine.connect() as conn:
+        rows = conn.execute(text("""
+            SELECT assignment_id, student_id, student_name,
+                   mentor1_faculty_id, mentor1_name, mentor2_faculty_id, mentor2_name,
+                   project_title, project_description, assigned_at, is_active
+            FROM special_project_assignments
+            ORDER BY assignment_id DESC
+        """)).fetchall()
+        assignments = [dict(r._mapping) for r in rows]
+    return {"assignments": assignments}
+
+
+@router.get("/special-projects/my-assignment", summary="Get the special project assignment for the logged-in student")
+def get_student_assignment(student_id: int = Query(..., description="Student user_id")):
+    """Student: Get their mentor assignments."""
+    with engine.connect() as conn:
+        row = conn.execute(text("""
+            SELECT assignment_id, student_id, student_name,
+                   mentor1_faculty_id, mentor1_name, mentor2_faculty_id, mentor2_name,
+                   project_title, project_description, assigned_at
+            FROM special_project_assignments
+            WHERE student_id = :sid AND is_active = 1
+            ORDER BY assignment_id DESC
+            LIMIT 1
+        """), {"sid": student_id}).fetchone()
+        if not row:
+            return {"assignment": None}
+        return {"assignment": dict(row._mapping)}
+
+
+@router.post("/special-projects/assign", summary="Admin: Assign mentors to a student for special project")
+def create_assignment(payload: dict):
+    """Admin assigns two faculty mentors to a student."""
+    student_id = payload.get("student_id")
+    student_name = payload.get("student_name", "")
+    mentor1_faculty_id = payload.get("mentor1_faculty_id")
+    mentor1_name = payload.get("mentor1_name", "")
+    mentor2_faculty_id = payload.get("mentor2_faculty_id")
+    mentor2_name = payload.get("mentor2_name", "")
+    project_title = payload.get("project_title", "Special Project")
+    project_description = payload.get("project_description", "")
+    assigned_by = payload.get("assigned_by")
+
+    if not student_id or not mentor1_faculty_id or not mentor1_name:
+        raise HTTPException(status_code=400, detail="student_id, mentor1_faculty_id and mentor1_name are required.")
+
+    with engine.begin() as conn:
+        # Deactivate old assignments for this student
+        conn.execute(text("""
+            UPDATE special_project_assignments SET is_active = 0
+            WHERE student_id = :sid
+        """), {"sid": student_id})
+
+        # Insert new assignment
+        result = conn.execute(text("""
+            INSERT INTO special_project_assignments
+            (student_id, student_name, mentor1_faculty_id, mentor1_name,
+             mentor2_faculty_id, mentor2_name, project_title, project_description, assigned_by, is_active)
+            VALUES (:sid, :sname, :m1id, :m1name, :m2id, :m2name, :title, :desc, :aby, 1)
+        """), {
+            "sid": student_id, "sname": student_name,
+            "m1id": mentor1_faculty_id, "m1name": mentor1_name,
+            "m2id": mentor2_faculty_id, "m2name": mentor2_name,
+            "title": project_title, "desc": project_description,
+            "aby": assigned_by
+        })
+        new_id = result.lastrowid
+
+    return {"success": True, "assignment_id": new_id, "message": f"Mentors assigned to {student_name} successfully."}
+
+
+@router.delete("/special-projects/assignments/{assignment_id}", summary="Admin: Remove a special project assignment")
+def delete_assignment(assignment_id: int):
+    """Admin removes an assignment."""
+    with engine.begin() as conn:
+        conn.execute(text("""
+            UPDATE special_project_assignments SET is_active = 0
+            WHERE assignment_id = :aid
+        """), {"aid": assignment_id})
+    return {"success": True, "message": "Assignment removed successfully."}
+
+
+@router.get("/special-projects/my-feedback", summary="Get the weekly feedback history for a student")
+def get_student_weekly_feedback(student_id: int = Query(...)):
+    """Student: Get all weeks of project feedback they have submitted."""
+    with engine.connect() as conn:
+        rows = conn.execute(text("""
+            SELECT feedback_id, assignment_id, student_id, student_name,
+                   mentor1_faculty_id, mentor1_name, mentor2_faculty_id, mentor2_name,
+                   feedback_text, week_number, week_year, week_label,
+                   submitted_at, updated_at
+            FROM special_project_feedback
+            WHERE student_id = :sid
+            ORDER BY week_year DESC, week_number DESC
+        """), {"sid": student_id}).fetchall()
+        feedbacks = [dict(r._mapping) for r in rows]
+    return {"weekly_feedbacks": feedbacks}
+
+
+@router.get("/special-projects/mentor-feedback", summary="Faculty: Get all project feedbacks sent to them")
+def get_mentor_project_feedbacks(faculty_id: int = Query(...)):
+    """Faculty: Get all project feedback submissions where they are a mentor."""
+    with engine.connect() as conn:
+        rows = conn.execute(text("""
+            SELECT feedback_id, assignment_id, student_id, student_name,
+                   mentor1_faculty_id, mentor1_name, mentor2_faculty_id, mentor2_name,
+                   feedback_text, week_number, week_year, week_label,
+                   submitted_at, updated_at
+            FROM special_project_feedback
+            WHERE mentor1_faculty_id = :fid OR mentor2_faculty_id = :fid
+            ORDER BY week_year DESC, week_number DESC
+        """), {"fid": faculty_id}).fetchall()
+        feedbacks = [dict(r._mapping) for r in rows]
+    return {"mentor_feedbacks": feedbacks}
+
+
+@router.post("/special-projects/submit-feedback", summary="Student: Submit or update their weekly project feedback")
+def submit_project_feedback(payload: dict):
+    """
+    Student submits weekly feedback to both mentors.
+    - Only one submission allowed per week (ISO week number).
+    - If already submitted this week, it UPDATES the existing entry.
+    - Feedback goes to both mentors simultaneously (single entry references both).
+    """
+    import datetime
+
+    assignment_id = payload.get("assignment_id")
+    student_id = payload.get("student_id")
+    student_name = payload.get("student_name", "")
+    mentor1_faculty_id = payload.get("mentor1_faculty_id")
+    mentor1_name = payload.get("mentor1_name", "")
+    mentor2_faculty_id = payload.get("mentor2_faculty_id")
+    mentor2_name = payload.get("mentor2_name", "")
+    feedback_text = payload.get("feedback_text", "").strip()
+
+    if not assignment_id or not student_id or not feedback_text:
+        raise HTTPException(status_code=400, detail="assignment_id, student_id and feedback_text are required.")
+    if len(feedback_text) < 10:
+        raise HTTPException(status_code=400, detail="Feedback must be at least 10 characters.")
+
+    # Compute ISO week number
+    today = datetime.date.today()
+    iso_cal = today.isocalendar()
+    week_number = iso_cal[1]
+    week_year = iso_cal[0]
+    week_label = f"Week {week_number}, {week_year} (Nov {today.day})"
+
+    with engine.begin() as conn:
+        # Check if already exists for this week
+        existing = conn.execute(text("""
+            SELECT feedback_id FROM special_project_feedback
+            WHERE assignment_id = :aid AND week_number = :wn AND week_year = :wy
+        """), {"aid": assignment_id, "wn": week_number, "wy": week_year}).fetchone()
+
+        if existing:
+            # UPDATE existing
+            conn.execute(text("""
+                UPDATE special_project_feedback
+                SET feedback_text = :txt, updated_at = CURRENT_TIMESTAMP
+                WHERE feedback_id = :fid
+            """), {"txt": feedback_text, "fid": existing[0]})
+            return {
+                "success": True,
+                "action": "updated",
+                "week_label": week_label,
+                "message": f"Your feedback for {week_label} has been updated and sent to both mentors."
+            }
+        else:
+            # INSERT new
+            conn.execute(text("""
+                INSERT INTO special_project_feedback
+                (assignment_id, student_id, student_name, mentor1_faculty_id, mentor1_name,
+                 mentor2_faculty_id, mentor2_name, feedback_text, week_number, week_year, week_label)
+                VALUES (:aid, :sid, :sname, :m1id, :m1name, :m2id, :m2name, :txt, :wn, :wy, :wl)
+            """), {
+                "aid": assignment_id, "sid": student_id, "sname": student_name,
+                "m1id": mentor1_faculty_id, "m1name": mentor1_name,
+                "m2id": mentor2_faculty_id, "m2name": mentor2_name,
+                "txt": feedback_text, "wn": week_number, "wy": week_year, "wl": week_label
+            })
+            return {
+                "success": True,
+                "action": "submitted",
+                "week_label": week_label,
+                "message": f"Your feedback for {week_label} has been sent to both {mentor1_name} and {mentor2_name}."
+            }
+
+
+@router.get("/special-projects/all-students", summary="Admin: Get list of all students for assignment dropdown")
+def get_students_list():
+    """Admin: Get all students for assignment selection."""
+    with engine.connect() as conn:
+        rows = conn.execute(text("""
+            SELECT user_id, name, roll_no, email, class_section, semester
+            FROM users
+            WHERE role = 'STUDENT'
+            ORDER BY name
+        """)).fetchall()
+        students = [dict(r._mapping) for r in rows]
+    return {"students": students}
+
+
+@router.get("/special-projects/all-faculty", summary="Admin: Get list of all faculty for mentor dropdown")
+def get_faculty_list_for_project():
+    """Admin: Get all faculty for mentor selection."""
+    with engine.connect() as conn:
+        rows = conn.execute(text("""
+            SELECT faculty_id, name, department, email
+            FROM faculty
+            ORDER BY name
+        """)).fetchall()
+        faculty_list = [dict(r._mapping) for r in rows]
+    return {"faculty": faculty_list}
