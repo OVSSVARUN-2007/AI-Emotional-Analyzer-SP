@@ -342,6 +342,156 @@ def get_bixi_database_context(user_info: dict | None = None, user_msg: str = "")
         return ""
 
 
+def handle_bixi_agentic_actions(user_msg: str, user_info: dict | None) -> dict | None:
+    """Detect and execute operational action intents (e.g. send feedback form, broadcast announcement) for authorized faculty/admin."""
+    if not user_info:
+        return None
+
+    role = (user_info.get("role") or "STUDENT").upper()
+    msg_lower = user_msg.lower()
+    user_name = user_info.get("name", "Faculty In-Charge")
+
+    # 1. Action: Send Feedback Request / Form to Students
+    if any(k in msg_lower for k in [
+        "send feedback form", "send a feedback form", "send feedback request",
+        "create feedback form", "request feedback", "ask students for feedback",
+        "broadcast a feedback form", "give feedback form", "create a feedback request"
+    ]):
+        if role not in ("FACULTY", "ADMIN"):
+            return {
+                "reply": "🔒 **Permission Restricted**: Creating and broadcasting student feedback forms requires a **FACULTY** or **ADMIN** account. As a student, you can submit your own feedback through the **Submit Feedback** tab!",
+                "action": "ACCESS_DENIED",
+            }
+
+        course_code = "AI501"
+        course_name = "Natural Language Processing"
+        target_section = "Section D"
+
+        with engine.begin() as conn:
+            courses = conn.execute(text("SELECT course_code, course_name FROM courses")).fetchall()
+            for c_code, c_name in courses:
+                if c_code.lower() in msg_lower:
+                    course_code = c_code
+                    course_name = c_name
+                    break
+
+            if "section e" in msg_lower:
+                target_section = "Section E"
+            elif "section b" in msg_lower:
+                target_section = "Section B"
+            elif "section a" in msg_lower:
+                target_section = "Section A"
+            elif "all" in msg_lower:
+                target_section = "All Sections"
+
+            queries = [
+                {"id": 1, "text": f"How clear was today's {course_name} lecture?", "type": "rating"},
+                {"id": 2, "text": "What topics or derivations felt confusing?", "type": "text"},
+                {"id": 3, "text": "Was the lecture pacing optimal for you?", "type": "choice", "options": ["Too Fast", "Optimal", "Too Slow"]},
+            ]
+
+            q = text("""
+                INSERT INTO feedback_requests (
+                    faculty_name, course_code, course_name, target_section,
+                    allow_text, allow_rating, queries_json, status, created_at
+                ) VALUES (
+                    :fac, :code, :name, :sec, 1, 1, :queries, 'ACTIVE', CURRENT_TIMESTAMP
+                )
+            """)
+            conn.execute(q, {
+                "fac": user_name,
+                "code": course_code,
+                "name": course_name,
+                "sec": target_section,
+                "queries": json.dumps(queries),
+            })
+
+        realtime_events.publish("feedback_request.created", {
+            "course_code": course_code,
+            "course_name": course_name,
+            "target_section": target_section,
+            "faculty_name": user_name,
+        })
+
+        reply = (
+            f"✅ **Feedback Form Broadcasted Successfully!**\n\n"
+            f"I have created and dispatched an active student feedback request for **{course_code} - {course_name}** ({target_section}).\n"
+            f"- **Target Audience**: Enrolled students in {target_section}\n"
+            f"- **Questions Included**: 1-5 Concept clarity rating, open-ended confusion feedback, and lecture pacing pulse\n"
+            f"- **Status**: Active & visible on student dashboards. Responses will appear in real time under your 'Student Feedback' tab."
+        )
+        return {"reply": reply, "action": "CREATE_FEEDBACK_REQUEST", "course": course_code}
+
+    # 2. Action: Post Announcement or Assign Task
+    if any(k in msg_lower for k in ["post announcement", "publish announcement", "post an announcement", "announce that", "give task", "assign task", "create task", "give a task"]):
+        if role not in ("FACULTY", "ADMIN"):
+            return {
+                "reply": "🔒 **Permission Restricted**: Publishing campus announcements and tasks requires a **FACULTY** or **ADMIN** account.",
+                "action": "ACCESS_DENIED",
+            }
+
+        title = "Class Update & Task"
+        message_body = user_msg
+        for prefix in ["post announcement:", "publish announcement:", "announce that", "give task:", "assign task:", "give a task:"]:
+            if prefix in msg_lower:
+                message_body = user_msg[msg_lower.find(prefix) + len(prefix):].strip()
+                break
+
+        with engine.begin() as conn:
+            conn.execute(text("""
+                INSERT INTO announcements (title, message, target_section, author_name, created_at)
+                VALUES (:title, :msg, 'All Sections', :author, CURRENT_TIMESTAMP)
+            """), {
+                "title": title,
+                "msg": message_body,
+                "author": user_name,
+            })
+
+        realtime_events.publish("announcement.created", {
+            "title": title,
+            "author": user_name,
+        })
+
+        reply = (
+            f"📢 **Announcement & Task Broadcasted!**\n\n"
+            f"I have published your update to students:\n"
+            f'> *{message_body}*\n\n'
+            f"- **Author**: {user_name}\n"
+            f"- **Audience**: All Enrolled Sections\n"
+            f"- **Status**: Live on student portals."
+        )
+        return {"reply": reply, "action": "POST_ANNOUNCEMENT"}
+
+    # 3. Action: Broadcast Clarification Note
+    if any(k in msg_lower for k in ["broadcast clarification", "send clarification", "clarification note"]):
+        if role not in ("FACULTY", "ADMIN"):
+            return {
+                "reply": "🔒 **Permission Restricted**: Broadcasting lecture clarification notes requires a **FACULTY** account.",
+                "action": "ACCESS_DENIED",
+            }
+
+        with engine.begin() as conn:
+            conn.execute(text("""
+                INSERT INTO clarification_broadcasts (
+                    course_code, course_name, topic, faculty_name, title, message, target_section, created_at
+                ) VALUES (
+                    'AI501', 'Natural Language Processing', 'Lecture Recap', :fac,
+                    'Clarification from Faculty', :msg, 'Section D', CURRENT_TIMESTAMP
+                )
+            """), {
+                "fac": user_name,
+                "msg": user_msg,
+            })
+
+        reply = (
+            f"💡 **Clarification Broadcast Sent!**\n\n"
+            f"Your clarification note has been dispatched to students in Section D for AI501."
+        )
+        return {"reply": reply, "action": "BROADCAST_CLARIFICATION"}
+
+    return None
+
+
 async def query_local_llm(
     url: str,
     model: str,
@@ -471,6 +621,11 @@ async def bixi_chat_endpoint(req: BixiChatRequest):
     """Bixi AI Assistant chat endpoint with Local LLM (Ollama / LM Studio) and Google Gemini support."""
     import os
     from app.services.gemini_service import chat_with_bixi_gemini, get_gemini_api_key
+
+    # 0. Agentic Action Execution (e.g. send feedback form, broadcast announcement, post task)
+    action_res = handle_bixi_agentic_actions(req.message, req.user)
+    if action_res:
+        return {"reply": action_res["reply"], "source": "sentio_action_agent", "action": action_res.get("action")}
 
     local_llm_url = os.getenv("LOCAL_LLM_URL", "http://localhost:11434/api/generate")
     local_llm_model = os.getenv("LOCAL_LLM_MODEL", "llama3.2:1b")
