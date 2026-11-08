@@ -1457,6 +1457,51 @@ function FacultySectionTeachingWorkspace({ user, addToast }) {
       {/* 3. SECTION-WISE VIEW (Exact Match to User Sketch) */}
       {viewMode === 'section' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          {/* Quick Comparative Section Clarity Chart */}
+          {sections.length > 0 && (
+            <div className="card" style={{ padding: '1rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+                <h4 style={{ margin: 0, fontSize: '0.88rem', color: '#0f172a', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                  <span>📊</span> Comparative Clarity Across All Teaching Sections
+                </h4>
+                <span style={{ fontSize: '0.72rem', color: '#64748b' }}>
+                  Click any bar to expand section analysis
+                </span>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '0.65rem' }}>
+                {sections.map((sec) => {
+                  const barColor = sec.clarity_pct >= 70 ? '#10b981' : (sec.clarity_pct >= 50 ? '#f59e0b' : '#ef4444');
+                  const isCurExpanded = expandedSection === sec.section;
+                  return (
+                    <div
+                      key={'cmp_' + sec.section}
+                      onClick={() => setExpandedSection(sec.section)}
+                      style={{
+                        padding: '0.5rem 0.75rem',
+                        borderRadius: '8px',
+                        background: isCurExpanded ? '#eff6ff' : '#f8fafc',
+                        border: isCurExpanded ? '1px solid #93c5fd' : '1px solid #e2e8f0',
+                        cursor: 'pointer',
+                        transition: 'all 0.15s ease',
+                      }}
+                      title={`Inspect ${sec.section}`}
+                    >
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.35rem' }}>
+                        <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#1e293b' }}>{sec.section}</span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                          <strong style={{ fontSize: '0.82rem', color: barColor }}>{sec.clarity_pct}%</strong>
+                          <span style={{ fontSize: '0.7rem', color: '#64748b' }}>({sec.submissions_count} subs)</span>
+                        </div>
+                      </div>
+                      <div style={{ width: '100%', height: '6px', background: '#e2e8f0', borderRadius: '3px', overflow: 'hidden' }}>
+                        <div style={{ width: `${sec.clarity_pct}%`, height: '100%', background: barColor, borderRadius: '3px' }} />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
           {filteredSections.length === 0 ? (
             <div className="card" style={{ textAlign: 'center', padding: '2rem', color: '#94a3b8' }}>
               No sections match your search filter.
@@ -1514,8 +1559,28 @@ function FacultySectionTeachingWorkspace({ user, addToast }) {
                       {/* Sentiment & Emotion Breakdown (Annotations from sketch) */}
                       <div>
                         <h4 style={{ margin: '0 0 0.5rem 0', fontSize: '0.9rem', color: '#0f172a', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                          <span>📊</span> 5-Class Student Emotion Distribution ({sec.section})
+                          <span>📊</span> Student Emotion Spectrum & Distribution ({sec.section})
                         </h4>
+
+                        {/* Unified 100% Diverging Sentiment Stack */}
+                        <div style={{ background: '#f8fafc', padding: '0.65rem 0.85rem', borderRadius: '8px', border: '1px solid #e2e8f0', marginBottom: '0.75rem' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem', fontSize: '0.76rem', flexWrap: 'wrap', gap: '0.4rem' }}>
+                            <span style={{ fontWeight: 700, color: '#334155' }}>Classroom Reception Spectrum (100% Stacked)</span>
+                            <div style={{ display: 'flex', gap: '0.65rem', flexWrap: 'wrap' }}>
+                              <span style={{ color: '#059669', fontWeight: 600 }}>🟢 Positive {Math.round(((sec.emotions.engaged + sec.emotions.satisfied) / emTotal) * 100)}%</span>
+                              <span style={{ color: '#64748b', fontWeight: 600 }}>⚪ Neutral {Math.round((sec.emotions.neutral / emTotal) * 100)}%</span>
+                              <span style={{ color: '#dc2626', fontWeight: 600 }}>🔴 Confused/Frustrated {Math.round(((sec.emotions.confused + sec.emotions.frustrated) / emTotal) * 100)}%</span>
+                            </div>
+                          </div>
+
+                          <div style={{ display: 'flex', width: '100%', height: '10px', borderRadius: '5px', overflow: 'hidden', background: '#e2e8f0' }}>
+                            <div style={{ width: `${(sec.emotions.engaged / emTotal) * 100}%`, background: '#3b82f6' }} title={`Engaged: ${sec.emotions.engaged}`} />
+                            <div style={{ width: `${(sec.emotions.satisfied / emTotal) * 100}%`, background: '#10b981' }} title={`Satisfied: ${sec.emotions.satisfied}`} />
+                            <div style={{ width: `${(sec.emotions.neutral / emTotal) * 100}%`, background: '#94a3b8' }} title={`Neutral: ${sec.emotions.neutral}`} />
+                            <div style={{ width: `${(sec.emotions.confused / emTotal) * 100}%`, background: '#f59e0b' }} title={`Confused: ${sec.emotions.confused}`} />
+                            <div style={{ width: `${(sec.emotions.frustrated / emTotal) * 100}%`, background: '#ef4444' }} title={`Frustrated: ${sec.emotions.frustrated}`} />
+                          </div>
+                        </div>
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '0.5rem', marginBottom: '0.75rem' }}>
                           {/* Engaged */}
                           <div style={{ background: '#eff6ff', padding: '0.6rem', borderRadius: '8px', border: '1px solid #bfdbfe' }}>
@@ -1907,6 +1972,86 @@ function AdminFacultyWorkspace({
           <span className="metric-caption">Disciplines currently monitored</span>
         </div>
       </div>
+
+      {/* Executive Action Leaderboard: Top Performers & Outlier Interventions */}
+      {allFaculty.length > 0 && (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1rem' }}>
+          {/* Top 5 Role Models */}
+          <div className="card" style={{ padding: '1rem', borderLeft: '4px solid #10b981' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.65rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                <span style={{ fontSize: '1rem' }}>🌟</span>
+                <strong style={{ fontSize: '0.88rem', color: '#065f46' }}>Top 5 Faculty Role Models (Highest Student Clarity)</strong>
+              </div>
+              <span style={{ fontSize: '0.7rem', background: '#ecfdf5', color: '#047857', padding: '1px 7px', borderRadius: '999px', fontWeight: 600 }}>
+                Institutional Benchmark
+              </span>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
+              {[...allFaculty]
+                .sort((a, b) => (b.satisfaction_pct || 0) - (a.satisfaction_pct || 0))
+                .slice(0, 5)
+                .map((f, i) => (
+                  <div
+                    key={f.name + i}
+                    onClick={() => onSelectFaculty(f)}
+                    style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.35rem 0.5rem', borderRadius: '6px', background: '#f8fafc', cursor: 'pointer', transition: 'background 0.15s ease' }}
+                    title="Click to inspect this faculty's student reviews"
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#059669', width: '16px' }}>#{i + 1}</span>
+                      <div>
+                        <div style={{ fontSize: '0.82rem', fontWeight: 600, color: '#0f172a' }}>{f.name}</div>
+                        <div style={{ fontSize: '0.72rem', color: '#64748b' }}>{f.department} · {f.feedback_count || 1} reviews</div>
+                      </div>
+                    </div>
+                    <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#059669' }}>
+                      ★ {f.satisfaction_pct || 91}%
+                    </span>
+                  </div>
+                ))}
+            </div>
+          </div>
+
+          {/* Bottom 5 Needing Support */}
+          <div className="card" style={{ padding: '1rem', borderLeft: '4px solid #f59e0b' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.65rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                <span style={{ fontSize: '1rem' }}>⚠️</span>
+                <strong style={{ fontSize: '0.88rem', color: '#92400e' }}>Academic Interventions Required (Lowest 5 Clarity)</strong>
+              </div>
+              <span style={{ fontSize: '0.7rem', background: '#fffbeb', color: '#b45309', padding: '1px 7px', borderRadius: '999px', fontWeight: 600 }}>
+                HoD Action Recommended
+              </span>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
+              {[...allFaculty]
+                .filter(f => (f.feedback_count || 0) > 0)
+                .sort((a, b) => (a.satisfaction_pct || 0) - (b.satisfaction_pct || 0))
+                .slice(0, 5)
+                .map((f, i) => (
+                  <div
+                    key={f.name + i}
+                    onClick={() => onSelectFaculty(f)}
+                    style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.35rem 0.5rem', borderRadius: '6px', background: '#f8fafc', cursor: 'pointer', transition: 'background 0.15s ease' }}
+                    title="Click to inspect this faculty's student reviews and bottlenecks"
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#d97706', width: '16px' }}>!</span>
+                      <div>
+                        <div style={{ fontSize: '0.82rem', fontWeight: 600, color: '#0f172a' }}>{f.name}</div>
+                        <div style={{ fontSize: '0.72rem', color: '#64748b' }}>{f.department} · {f.feedback_count || 1} reviews</div>
+                      </div>
+                    </div>
+                    <span style={{ fontSize: '0.82rem', fontWeight: 700, color: (f.satisfaction_pct || 60) < 65 ? '#dc2626' : '#d97706' }}>
+                      {f.satisfaction_pct || 60}% Clarity
+                    </span>
+                  </div>
+                ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
         <div className="search-input-box" style={{ minWidth: '280px', flex: 1 }}>
