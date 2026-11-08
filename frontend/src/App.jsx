@@ -1245,6 +1245,535 @@ function SpecialProjectsAdminTab({ addToast }) {
   );
 }
 
+// ═══════════════════════════════════════════════════════
+// FACULTY SECTION-WISE TEACHING ANALYTICS WORKSPACE
+// Built according to user wireframe sketch:
+// - Overall faculty metrics
+// - [Section-Wise] and [Subject-Wise] view toggle
+// - Section cards with Submissions and Not-Submitted counts
+// - Detailed 5-class Sentiment & Emotion distribution per section
+// - Expandable student feedbacks with inline response option
+// ═══════════════════════════════════════════════════════
+function FacultySectionTeachingWorkspace({ user, addToast }) {
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [viewMode, setViewMode] = useState('section'); // 'section' | 'subject'
+  const [expandedSection, setExpandedSection] = useState('Section D');
+  const [showFeedbacksSection, setShowFeedbacksSection] = useState('Section D');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [replyText, setReplyText] = useState({});
+  const [replying, setReplying] = useState({});
+
+  const loadData = useCallback(async () => {
+    setLoading(true);
+    try {
+      const facName = encodeURIComponent(user?.name || 'Dr. A. Sharma');
+      const res = await fetch(`${API}/feedback/faculty-section-analytics?faculty_name=${facName}`);
+      if (res.ok) {
+        const json = await res.json();
+        setData(json);
+      }
+    } catch (e) {
+      console.error('Failed to load faculty section analytics:', e);
+    } finally {
+      setLoading(false);
+    }
+  }, [user?.name]);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
+
+  const handleReplySubmit = async (feedbackId) => {
+    const text = (replyText[feedbackId] || '').trim();
+    if (!text) return;
+    setReplying(prev => ({ ...prev, [feedbackId]: true }));
+    try {
+      const res = await fetch(`${API}/feedback/${feedbackId}/respond`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          response_text: text,
+          action_taken: text,
+          responder_name: user?.name || 'Dr. A. Sharma',
+          responder_role: 'Faculty',
+        }),
+      });
+      if (!res.ok) throw new Error('Failed to record reply');
+      addToast?.({ title: 'Clarification Saved', message: 'Your response was shared with the student and class.', type: 'success' });
+      setReplyText(prev => ({ ...prev, [feedbackId]: '' }));
+      loadData();
+    } catch (err) {
+      addToast?.({ title: 'Error', message: err.message, type: 'error' });
+    } finally {
+      setReplying(prev => ({ ...prev, [feedbackId]: false }));
+    }
+  };
+
+  if (loading && !data) {
+    return (
+      <div className="tab-pane" style={{ textAlign: 'center', padding: '3rem', color: '#64748b' }}>
+        Loading your section-wise analytics...
+      </div>
+    );
+  }
+
+  const summary = data?.summary || {
+    total_submissions: 55,
+    overall_clarity: 78,
+    total_sections: 8,
+    pacing_quality: 86,
+    assigned_subjects_count: 4,
+  };
+
+  const sections = data?.sections || [];
+  const subjects = data?.subjects || [];
+
+  const filteredSections = sections.filter(sec => {
+    const q = searchQuery.toLowerCase().trim();
+    if (!q) return true;
+    return sec.section.toLowerCase().includes(q) ||
+           sec.courses?.some(c => c.toLowerCase().includes(q)) ||
+           sec.course_title?.toLowerCase().includes(q);
+  });
+
+  const filteredSubjects = subjects.filter(sub => {
+    const q = searchQuery.toLowerCase().trim();
+    if (!q) return true;
+    return sub.course_code.toLowerCase().includes(q) ||
+           sub.course_name.toLowerCase().includes(q);
+  });
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+      {/* 1. Header & Overall Faculty Analytics */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '0.75rem' }}>
+        <div>
+          <h2 style={{ margin: '0 0 0.25rem 0', fontSize: '1.25rem', color: '#0f172a', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <span>My Teaching Analytics & Section Insights</span>
+            <span style={{ fontSize: '0.72rem', fontWeight: 600, background: '#eff6ff', color: '#2563eb', padding: '2px 8px', borderRadius: '999px', border: '1px solid #bfdbfe' }}>
+              {user?.name || 'Dr. A. Sharma'}
+            </span>
+          </h2>
+          <p style={{ margin: 0, fontSize: '0.85rem', color: '#64748b' }}>
+            Section-by-section breakdown of student reception, clarity index, and emotional pulse for your lectures.
+          </p>
+        </div>
+      </div>
+
+      {/* Overall Analytics KPI Cards (Top of Sketch) */}
+      <div className="metrics-row">
+        <div className="card metric-card" style={{ borderTop: '3px solid #2563eb' }}>
+          <span className="metric-label">Total Submissions</span>
+          <div className="metric-number">
+            <AnimatedCounter value={summary.total_submissions} />
+          </div>
+          <span className="metric-caption">Across all your teaching sections</span>
+        </div>
+
+        <div className="card metric-card" style={{ borderTop: '3px solid #10b981' }}>
+          <span className="metric-label">Overall Clarity Index</span>
+          <div className="metric-number emerald">
+            <AnimatedCounter value={summary.overall_clarity} suffix="%" />
+          </div>
+          <span className="metric-caption">Rated clear & engaging</span>
+        </div>
+
+        <div className="card metric-card" style={{ borderTop: '3px solid #8b5cf6' }}>
+          <span className="metric-label">Active Sections Taught</span>
+          <div className="metric-number">
+            <AnimatedCounter value={summary.total_sections} />
+          </div>
+          <span className="metric-caption">Classroom cohorts assigned</span>
+        </div>
+
+        <div className="card metric-card" style={{ borderTop: '3px solid #f59e0b' }}>
+          <span className="metric-label">Pacing Quality</span>
+          <div className="metric-number amber">
+            <AnimatedCounter value={summary.pacing_quality} suffix="%" />
+          </div>
+          <span className="metric-caption">Optimal lecture delivery pace</span>
+        </div>
+      </div>
+
+      {/* 2. Mode Selector: [ Section-Wise ] vs [ Subject-Wise ] */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem', background: '#f8fafc', padding: '0.65rem 1rem', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+            Analytics View:
+          </span>
+          <div style={{ display: 'inline-flex', background: '#e2e8f0', borderRadius: '8px', padding: '2px' }}>
+            <button
+              type="button"
+              onClick={() => setViewMode('section')}
+              style={{
+                background: viewMode === 'section' ? '#2563eb' : 'transparent',
+                color: viewMode === 'section' ? '#ffffff' : '#475569',
+                border: 'none',
+                borderRadius: '6px',
+                padding: '4px 12px',
+                fontSize: '0.82rem',
+                fontWeight: 600,
+                cursor: 'pointer',
+                transition: 'all 0.15s ease',
+              }}
+            >
+              Section-Wise
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewMode('subject')}
+              style={{
+                background: viewMode === 'subject' ? '#2563eb' : 'transparent',
+                color: viewMode === 'subject' ? '#ffffff' : '#475569',
+                border: 'none',
+                borderRadius: '6px',
+                padding: '4px 12px',
+                fontSize: '0.82rem',
+                fontWeight: 600,
+                cursor: 'pointer',
+                transition: 'all 0.15s ease',
+              }}
+            >
+              Subject-Wise
+            </button>
+          </div>
+        </div>
+
+        {/* Search input */}
+        <div className="search-input-box" style={{ maxWidth: '280px', margin: 0 }}>
+          <Search size={14} style={{ color: '#94a3b8' }} />
+          <input
+            type="text"
+            placeholder={viewMode === 'section' ? 'Filter by section (e.g. Section D)...' : 'Filter by subject (e.g. AI501)...'}
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+            style={{ fontSize: '0.82rem' }}
+          />
+        </div>
+      </div>
+
+      {/* 3. SECTION-WISE VIEW (Exact Match to User Sketch) */}
+      {viewMode === 'section' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          {filteredSections.length === 0 ? (
+            <div className="card" style={{ textAlign: 'center', padding: '2rem', color: '#94a3b8' }}>
+              No sections match your search filter.
+            </div>
+          ) : (
+            filteredSections.map((sec) => {
+              const isExpanded = expandedSection === sec.section;
+              const isShowingFeedbacks = showFeedbacksSection === sec.section;
+              const emTotal = (sec.emotions.engaged + sec.emotions.satisfied + sec.emotions.neutral + sec.emotions.confused + sec.emotions.frustrated) || 1;
+
+              return (
+                <div key={sec.section} className="card" style={{ padding: '1.25rem', borderLeft: `4px solid ${sec.clarity_pct >= 65 ? '#10b981' : '#f59e0b'}` }}>
+                  {/* Card Header (Matches sketch: Section name, submissions, not submitted) */}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem' }}>
+                    <div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+                        <h3 style={{ margin: 0, fontSize: '1.15rem', color: '#0f172a' }}>{sec.section}</h3>
+                        <span style={{ fontSize: '0.75rem', fontWeight: 600, background: '#f1f5f9', color: '#334155', padding: '2px 8px', borderRadius: '6px' }}>
+                          Sem {sec.semester} · {sec.courses?.join(', ')}
+                        </span>
+                        <span className={`sentiment-badge ${sec.clarity_pct >= 65 ? 'positive' : 'needs-clarity'}`} style={{ fontSize: '0.72rem' }}>
+                          {sec.clarity_pct}% Clarity
+                        </span>
+                      </div>
+                      <p style={{ margin: '0.35rem 0 0 0', fontSize: '0.82rem', color: '#64748b' }}>
+                        {sec.course_title}
+                      </p>
+                    </div>
+
+                    {/* Overall numbers as drawn in notebook: submissions and not submitted */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                      <div style={{ textAlign: 'right' }}>
+                        <div style={{ fontSize: '0.9rem', color: '#0f172a', fontWeight: 700 }}>
+                          {sec.submissions_count} <span style={{ fontSize: '0.75rem', fontWeight: 500, color: '#64748b' }}>submissions</span>
+                        </div>
+                        <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>
+                          {sec.not_submitted_count} not submitted · {sec.enrolled_count} enrolled
+                        </div>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => setExpandedSection(isExpanded ? null : sec.section)}
+                        className="btn-header-action"
+                        style={{ padding: '0.4rem 0.75rem', display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.82rem', fontWeight: 600 }}
+                      >
+                        {isExpanded ? '▲ Hide Analysis' : '▼ Section Analysis'}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Expanded Section Analysis (Sentiment, Emotions, Aspects & Feedbacks) */}
+                  {isExpanded && (
+                    <div style={{ marginTop: '1.25rem', paddingTop: '1.25rem', borderTop: '1px solid #e2e8f0', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                      {/* Sentiment & Emotion Breakdown (Annotations from sketch) */}
+                      <div>
+                        <h4 style={{ margin: '0 0 0.5rem 0', fontSize: '0.9rem', color: '#0f172a', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                          <span>📊</span> 5-Class Student Emotion Distribution ({sec.section})
+                        </h4>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '0.5rem', marginBottom: '0.75rem' }}>
+                          {/* Engaged */}
+                          <div style={{ background: '#eff6ff', padding: '0.6rem', borderRadius: '8px', border: '1px solid #bfdbfe' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: '#1d4ed8', fontWeight: 600 }}>
+                              <span>Engaged</span>
+                              <span>{Math.round((sec.emotions.engaged / emTotal) * 100)}%</span>
+                            </div>
+                            <div style={{ fontSize: '1.05rem', fontWeight: 700, color: '#1d4ed8', margin: '0.2rem 0' }}>{sec.emotions.engaged}</div>
+                            <div style={{ width: '100%', height: '4px', background: '#dbeafe', borderRadius: '2px', overflow: 'hidden' }}>
+                              <div style={{ width: `${(sec.emotions.engaged / emTotal) * 100}%`, height: '100%', background: '#3b82f6' }}></div>
+                            </div>
+                          </div>
+
+                          {/* Satisfied */}
+                          <div style={{ background: '#ecfdf5', padding: '0.6rem', borderRadius: '8px', border: '1px solid #a7f3d0' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: '#047857', fontWeight: 600 }}>
+                              <span>Satisfied</span>
+                              <span>{Math.round((sec.emotions.satisfied / emTotal) * 100)}%</span>
+                            </div>
+                            <div style={{ fontSize: '1.05rem', fontWeight: 700, color: '#047857', margin: '0.2rem 0' }}>{sec.emotions.satisfied}</div>
+                            <div style={{ width: '100%', height: '4px', background: '#d1fae5', borderRadius: '2px', overflow: 'hidden' }}>
+                              <div style={{ width: `${(sec.emotions.satisfied / emTotal) * 100}%`, height: '100%', background: '#10b981' }}></div>
+                            </div>
+                          </div>
+
+                          {/* Neutral */}
+                          <div style={{ background: '#f8fafc', padding: '0.6rem', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: '#475569', fontWeight: 600 }}>
+                              <span>Neutral</span>
+                              <span>{Math.round((sec.emotions.neutral / emTotal) * 100)}%</span>
+                            </div>
+                            <div style={{ fontSize: '1.05rem', fontWeight: 700, color: '#475569', margin: '0.2rem 0' }}>{sec.emotions.neutral}</div>
+                            <div style={{ width: '100%', height: '4px', background: '#e2e8f0', borderRadius: '2px', overflow: 'hidden' }}>
+                              <div style={{ width: `${(sec.emotions.neutral / emTotal) * 100}%`, height: '100%', background: '#64748b' }}></div>
+                            </div>
+                          </div>
+
+                          {/* Confused */}
+                          <div style={{ background: '#fffbeb', padding: '0.6rem', borderRadius: '8px', border: '1px solid #fde68a' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: '#b45309', fontWeight: 600 }}>
+                              <span>Confused</span>
+                              <span>{Math.round((sec.emotions.confused / emTotal) * 100)}%</span>
+                            </div>
+                            <div style={{ fontSize: '1.05rem', fontWeight: 700, color: '#b45309', margin: '0.2rem 0' }}>{sec.emotions.confused}</div>
+                            <div style={{ width: '100%', height: '4px', background: '#fef3c7', borderRadius: '2px', overflow: 'hidden' }}>
+                              <div style={{ width: `${(sec.emotions.confused / emTotal) * 100}%`, height: '100%', background: '#f59e0b' }}></div>
+                            </div>
+                          </div>
+
+                          {/* Frustrated */}
+                          <div style={{ background: '#fef2f2', padding: '0.6rem', borderRadius: '8px', border: '1px solid #fecaca' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: '#b91c1c', fontWeight: 600 }}>
+                              <span>Frustrated</span>
+                              <span>{Math.round((sec.emotions.frustrated / emTotal) * 100)}%</span>
+                            </div>
+                            <div style={{ fontSize: '1.05rem', fontWeight: 700, color: '#b91c1c', margin: '0.2rem 0' }}>{sec.emotions.frustrated}</div>
+                            <div style={{ width: '100%', height: '4px', background: '#fee2e2', borderRadius: '2px', overflow: 'hidden' }}>
+                              <div style={{ width: `${(sec.emotions.frustrated / emTotal) * 100}%`, height: '100%', background: '#ef4444' }}></div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Multimodal Aspect Meters */}
+                      <div style={{ background: '#f8fafc', padding: '0.85rem', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '0.75rem' }}>
+                          <div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', color: '#334155', fontWeight: 600, marginBottom: '0.25rem' }}>
+                              <span>Concept Clarity</span>
+                              <span style={{ color: '#059669' }}>{sec.aspects.concept_clarity}%</span>
+                            </div>
+                            <div style={{ width: '100%', height: '6px', background: '#e2e8f0', borderRadius: '3px', overflow: 'hidden' }}>
+                              <div style={{ width: `${sec.aspects.concept_clarity}%`, height: '100%', background: '#10b981' }}></div>
+                            </div>
+                          </div>
+
+                          <div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', color: '#334155', fontWeight: 600, marginBottom: '0.25rem' }}>
+                              <span>Pacing & Speed</span>
+                              <span style={{ color: '#2563eb' }}>{sec.aspects.pacing_speed}%</span>
+                            </div>
+                            <div style={{ width: '100%', height: '6px', background: '#e2e8f0', borderRadius: '3px', overflow: 'hidden' }}>
+                              <div style={{ width: `${sec.aspects.pacing_speed}%`, height: '100%', background: '#3b82f6' }}></div>
+                            </div>
+                          </div>
+
+                          <div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', color: '#334155', fontWeight: 600, marginBottom: '0.25rem' }}>
+                              <span>Learning Materials</span>
+                              <span style={{ color: '#8b5cf6' }}>{sec.aspects.learning_materials}%</span>
+                            </div>
+                            <div style={{ width: '100%', height: '6px', background: '#e2e8f0', borderRadius: '3px', overflow: 'hidden' }}>
+                              <div style={{ width: `${sec.aspects.learning_materials}%`, height: '100%', background: '#8b5cf6' }}></div>
+                            </div>
+                          </div>
+
+                          <div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', color: '#334155', fontWeight: 600, marginBottom: '0.25rem' }}>
+                              <span>Doubt Resolution</span>
+                              <span style={{ color: '#059669' }}>{sec.aspects.doubt_resolution}%</span>
+                            </div>
+                            <div style={{ width: '100%', height: '6px', background: '#e2e8f0', borderRadius: '3px', overflow: 'hidden' }}>
+                              <div style={{ width: `${sec.aspects.doubt_resolution}%`, height: '100%', background: '#10b981' }}></div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* View All Feedbacks Toggle Button (From sketch: "if possible show all the feedbacks by giv'g an option like view after click that section") */}
+                      <div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+                          <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#0f172a' }}>
+                            Student Submissions Stream ({sec.feedbacks?.length || 0})
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => setShowFeedbacksSection(isShowingFeedbacks ? null : sec.section)}
+                            style={{
+                              background: isShowingFeedbacks ? '#eff6ff' : '#ffffff',
+                              border: '1px solid #bfdbfe',
+                              color: '#2563eb',
+                              padding: '0.3rem 0.75rem',
+                              borderRadius: '6px',
+                              fontSize: '0.78rem',
+                              fontWeight: 600,
+                              cursor: 'pointer',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '0.3rem',
+                            }}
+                          >
+                            <MessageSquare size={13} />
+                            {isShowingFeedbacks ? 'Hide Section Feedbacks' : `View Section Feedbacks (${sec.feedbacks?.length || 0})`}
+                          </button>
+                        </div>
+
+                        {/* Feedbacks Stream List */}
+                        {isShowingFeedbacks && (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', maxHeight: '420px', overflowY: 'auto', paddingRight: '0.25rem' }}>
+                            {(!sec.feedbacks || sec.feedbacks.length === 0) ? (
+                              <div style={{ padding: '1rem', textAlign: 'center', color: '#94a3b8', fontSize: '0.82rem' }}>
+                                No feedbacks submitted for this section yet.
+                              </div>
+                            ) : (
+                              sec.feedbacks.map((fb) => (
+                                <div key={fb.feedback_id} style={{ background: '#f8fafc', padding: '0.85rem', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.35rem' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                      <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#2563eb', background: '#eff6ff', padding: '1px 6px', borderRadius: '4px' }}>
+                                        {fb.course_code}
+                                      </span>
+                                      <span style={{ fontSize: '0.78rem', color: '#64748b' }}>
+                                        {fb.student_name} · {fb.submitted_at}
+                                      </span>
+                                    </div>
+                                    <span className={`sentiment-badge ${fb.sentiment === 'POSITIVE' ? 'positive' : 'needs-clarity'}`} style={{ fontSize: '0.7rem' }}>
+                                      {fb.sentiment === 'POSITIVE' ? 'Clear & Engaging' : 'Needs Clarification'}
+                                    </span>
+                                  </div>
+
+                                  <p style={{ margin: '0.4rem 0', fontSize: '0.85rem', color: '#0f172a', lineHeight: 1.5 }}>
+                                    {fb.feedback_text}
+                                  </p>
+
+                                  {/* Response Action Box */}
+                                  {fb.action_taken ? (
+                                    <div style={{ background: '#ecfdf5', border: '1px solid #a7f3d0', borderRadius: '6px', padding: '0.5rem 0.75rem', marginTop: '0.5rem' }}>
+                                      <span style={{ fontSize: '0.72rem', fontWeight: 700, color: '#065f46', display: 'block', marginBottom: '2px' }}>
+                                        ✓ Clarification Provided to Class:
+                                      </span>
+                                      <span style={{ fontSize: '0.8rem', color: '#047857' }}>{fb.action_taken}</span>
+                                    </div>
+                                  ) : (
+                                    <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
+                                      <input
+                                        type="text"
+                                        placeholder="Post a clarification or recap note for this student/section..."
+                                        value={replyText[fb.feedback_id] || ''}
+                                        onChange={e => setReplyText({ ...replyText, [fb.feedback_id]: e.target.value })}
+                                        style={{ flex: 1, padding: '0.35rem 0.6rem', fontSize: '0.8rem', borderRadius: '6px', border: '1px solid #cbd5e1' }}
+                                      />
+                                      <button
+                                        type="button"
+                                        className="btn-submit-primary"
+                                        disabled={replying[fb.feedback_id] || !replyText[fb.feedback_id]?.trim()}
+                                        onClick={() => handleReplySubmit(fb.feedback_id)}
+                                        style={{ width: 'auto', padding: '0.35rem 0.75rem', fontSize: '0.78rem', whiteSpace: 'nowrap' }}
+                                      >
+                                        {replying[fb.feedback_id] ? 'Saving…' : 'Send Clarification'}
+                                      </button>
+                                    </div>
+                                  )}
+                                </div>
+                              ))
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })
+          )}
+        </div>
+      )}
+
+      {/* 4. SUBJECT-WISE VIEW */}
+      {viewMode === 'subject' && (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1rem' }}>
+          {filteredSubjects.length === 0 ? (
+            <div className="card" style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '2rem', color: '#94a3b8' }}>
+              No subjects match your filter.
+            </div>
+          ) : (
+            filteredSubjects.map(sub => (
+              <div key={sub.course_code} className="card" style={{ borderLeft: `4px solid ${sub.clarity_pct >= 65 ? '#10b981' : '#f59e0b'}` }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
+                  <div>
+                    <span className="course-tag">{sub.course_code}</span>
+                    <h3 style={{ margin: '0.35rem 0 0.1rem 0', fontSize: '1.05rem', color: '#0f172a' }}>{sub.course_name}</h3>
+                  </div>
+                  <span className={`sentiment-badge ${sub.clarity_pct >= 65 ? 'positive' : 'needs-clarity'}`}>
+                    {sub.clarity_pct}% Clarity
+                  </span>
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem', flexWrap: 'wrap' }}>
+                  <span style={{ fontSize: '0.75rem', color: '#64748b' }}>Assigned Sections:</span>
+                  {sub.sections?.map(s => (
+                    <span key={s} style={{ fontSize: '0.72rem', background: '#eff6ff', color: '#2563eb', padding: '2px 8px', borderRadius: '999px', border: '1px solid #bfdbfe' }}>
+                      {s}
+                    </span>
+                  ))}
+                </div>
+
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '0.5rem', borderTop: '1px solid #f1f5f9', fontSize: '0.8rem', color: '#64748b' }}>
+                  <span>Total Submissions: <strong>{sub.submissions_count}</strong></span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setViewMode('section');
+                      if (sub.sections?.length > 0) setExpandedSection(sub.sections[0]);
+                    }}
+                    style={{ background: 'none', border: 'none', color: '#2563eb', fontWeight: 600, fontSize: '0.78rem', cursor: 'pointer' }}
+                  >
+                    Inspect Sections →
+                  </button>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+
 // ADMIN FACULTY PERFORMANCE & SUBJECT TEACHING ANALYTICS
 // ═══════════════════════════════════════════════════════
 function AdminFacultyWorkspace({
@@ -6074,7 +6603,7 @@ function AdminDashboard({ user, token, onLogout, onSwitchRole, addToast, onUserU
             <div className="header-title-wrap">
               <h1>
                 {activeTab === 'overview' && (isFaculty ? 'Faculty Classroom Insights & Student Trends' : 'Institutional Academic Overview & Student Trends')}
-                {activeTab === 'faculty-performance' && 'Faculty Performance & Subject Teaching Analytics'}
+                {activeTab === 'faculty-performance' && (isFaculty ? 'My Section Teaching Analytics' : 'Faculty Performance & Subject Teaching Analytics')}
                 {activeTab === 'feedback' && 'Student Feedback Oversight'}
                 {activeTab === 'curriculum' && 'Curriculum, Subjects & Timetable'}
                 {activeTab === 'modules' && 'Course Modules & Topic Clarity'}
@@ -6550,23 +7079,29 @@ function AdminDashboard({ user, token, onLogout, onSwitchRole, addToast, onUserU
           </div>
         )}
 
-        {/* FACULTY PERFORMANCE TAB (ADMIN ONLY) */}
+        {/* FACULTY PERFORMANCE TAB */}
         {activeTab === 'faculty-performance' && (
           <div className="tab-pane">
-            <div style={{ marginBottom: '1.25rem' }}>
-              <h2 style={{ margin: '0 0 0.25rem 0', fontSize: '1.25rem', color: '#0f172a' }}>
-                Faculty Performance & Subject Teaching Analytics
-              </h2>
-              <p style={{ margin: 0, fontSize: '0.85rem', color: '#64748b' }}>
-                Review individual faculty effectiveness, student satisfaction ratings, and subject-wise clarity trends across departments.
-              </p>
-            </div>
-            <AdminFacultyWorkspace
-              facultyData={facultyPerfData}
-              selectedFaculty={selectedFacultyDrilldown}
-              onSelectFaculty={setSelectedFacultyDrilldown}
-              onCloseDrilldown={() => setSelectedFacultyDrilldown(null)}
-            />
+            {isFaculty ? (
+              <FacultySectionTeachingWorkspace user={user} addToast={addToast} />
+            ) : (
+              <>
+                <div style={{ marginBottom: '1.25rem' }}>
+                  <h2 style={{ margin: '0 0 0.25rem 0', fontSize: '1.25rem', color: '#0f172a' }}>
+                    Faculty Performance & Subject Teaching Analytics
+                  </h2>
+                  <p style={{ margin: 0, fontSize: '0.85rem', color: '#64748b' }}>
+                    Review individual faculty effectiveness, student satisfaction ratings, and subject-wise clarity trends across departments.
+                  </p>
+                </div>
+                <AdminFacultyWorkspace
+                  facultyData={facultyPerfData}
+                  selectedFaculty={selectedFacultyDrilldown}
+                  onSelectFaculty={setSelectedFacultyDrilldown}
+                  onCloseDrilldown={() => setSelectedFacultyDrilldown(null)}
+                />
+              </>
+            )}
           </div>
         )}
 
