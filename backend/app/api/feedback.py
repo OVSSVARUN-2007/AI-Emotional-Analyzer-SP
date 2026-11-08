@@ -1711,6 +1711,58 @@ def respond_to_feedback(feedback_id: int, payload: FeedbackResponseCreate):
     realtime_events.publish("feedback.responded", {"feedback_id": feedback_id, "status": payload.status, "text": resp_text})
     return {"message": "Response recorded", "status": "SUCCESS"}
 
+class BroadcastLiveNotificationPayload(BaseModel):
+    title: str
+    message: str
+    course_code: Optional[str] = "AI501"
+    target_section: Optional[str] = "ALL"
+    sender_name: Optional[str] = "Faculty"
+    sender_role: Optional[str] = "FACULTY"
+    notification_type: Optional[str] = "TEACHER_CLARIFICATION"
+
+@router.post("/notifications/send", summary="Faculty or Admin broadcasts a live notification via WebSocket and database")
+def send_live_notification(payload: BroadcastLiveNotificationPayload):
+    import time
+    from datetime import datetime
+    notif_id = f"live-{int(time.time() * 1000)}"
+    notif_data = {
+        "id": notif_id,
+        "type": payload.notification_type or "TEACHER_CLARIFICATION",
+        "title": payload.title,
+        "message": payload.message,
+        "course_code": payload.course_code or "AI501",
+        "target_section": payload.target_section or "ALL",
+        "sender_name": payload.sender_name or "Faculty",
+        "sender_role": payload.sender_role or "FACULTY",
+        "time": "Just now",
+        "created_at": datetime.now().isoformat()
+    }
+
+    # 1. Broadcast to open WebSockets instantly
+    try:
+        realtime_events.publish("clarification.broadcast", notif_data)
+    except Exception as e:
+        print("WebSocket publish error:", e)
+
+    # 2. Store in clarification_broadcasts
+    with engine.begin() as conn:
+        conn.execute(text("""
+            INSERT INTO clarification_broadcasts (
+                course_code, course_name, topic, faculty_name, title, message, remedial_links, target_section
+            )
+            VALUES (:code, 'Campus Notification', :topic, :fname, :title, :msg, '', :sec)
+        """), {
+            "code": payload.course_code or "AI501",
+            "topic": payload.title,
+            "fname": payload.sender_name or "Faculty",
+            "title": payload.title,
+            "msg": payload.message,
+            "sec": payload.target_section or "ALL"
+        })
+
+    return {"status": "success", "message": "Live notification dispatched to student screens via WebSocket!", "notification": notif_data}
+
+
 @router.get("/notifications", summary="Fetch notifications for students or faculty")
 def get_notifications(
     role: Optional[str] = "STUDENT",
@@ -1763,7 +1815,28 @@ def get_notifications(
                     "complaint_id": c[0]
                 })
 
-        # 3. Workload alert
+        # 3. Clarification broadcasts
+        cb_q = "SELECT broadcast_id, course_code, topic, faculty_name, title, message, target_section, created_at FROM clarification_broadcasts WHERE 1=1"
+        cb_params = {}
+        if role_upper == "STUDENT" and section and section != "ALL":
+            cb_q += " AND (target_section = 'ALL' OR target_section = :csec)"
+            cb_params["csec"] = section
+        cb_q += " ORDER BY broadcast_id DESC LIMIT 4"
+        cb_rows = conn.execute(text(cb_q), cb_params).fetchall()
+        for cb in cb_rows:
+            notifs.append({
+                "id": f"broadcast-{cb[0]}",
+                "type": "TEACHER_CLARIFICATION",
+                "title": f"📢 {cb[4] or cb[2] or 'Clarification'}",
+                "message": f"[{cb[1]} - {cb[3]}]: {cb[5]}",
+                "course_code": cb[1],
+                "faculty_name": cb[3],
+                "target_section": cb[6],
+                "time": str(cb[7])[:16] if cb[7] else "Just now",
+                "broadcast_id": cb[0]
+            })
+
+        # 4. Workload alert
         notifs.append({
             "id": "alert-workload",
             "type": "ALERT",
@@ -2933,9 +3006,16 @@ def broadcast_clarification(payload: ClarificationBroadcastCreate):
         bid = ins.lastrowid
 
     realtime_events.publish("clarification.broadcast", {
+        "id": f"broadcast-{bid}",
         "topic": payload.topic,
+        "title": title or payload.topic or f"Clarification: {payload.course_code}",
+        "message": msg,
         "course_code": payload.course_code,
-        "faculty_name": payload.faculty_name,
+        "faculty_name": payload.faculty_name or "Faculty",
+        "sender_name": payload.faculty_name or "Faculty",
+        "target_section": payload.target_section or "ALL",
+        "time": "Just now",
+        "type": "TEACHER_CLARIFICATION"
     })
 
     return {
@@ -2978,32 +3058,117 @@ def react_to_clarification_endpoint(broadcast_id: int, payload: ClarificationRea
     return {"status": "success", "broadcast_id": broadcast_id, "helpful_count": h_cnt, "unclear_count": u_cnt}
 
 
-@router.get("/community/posts", summary="List anonymous campus pulse posts ranked by 'Me Too' upvotes")
-def get_community_posts():
+class CommunityCommentCreate(BaseModel):
+    author_name: Optional[str] = "Anonymous Student"
+    author_role: Optional[str] = "STUDENT"
+    comment_text: str
+
+class CommunityVotePayload(BaseModel):
+    delta: int = 1  # 1 for upvote, -1 for downvote
+
+@router.get("/community/posts", summary="List anonymous Reddit-style campus pulse posts")
+def get_community_posts(
+    category: Optional[str] = Query("ALL", description="Category / subreddit filter"),
+    sort_by: Optional[str] = Query("hot", description="Sort by hot, new, or top")
+):
+    cat_filter = category or "ALL"
+    sort_order = "upvotes DESC, post_id DESC"
+    if sort_by == "new":
+        sort_order = "post_id DESC"
+    elif sort_by == "top":
+        sort_order = "upvotes DESC"
+
     with engine.connect() as conn:
-        rows = conn.execute(text("""
-            SELECT post_id, author_name, author_role, class_section, category,
-                   title, content, upvotes, status, official_response, created_at
-            FROM community_posts
-            ORDER BY upvotes DESC, post_id DESC
-        """)).fetchall()
+        q = """
+            SELECT p.post_id, p.author_name, p.author_role, p.class_section, p.category,
+                   p.title, p.content, p.upvotes, p.status, p.official_response, p.created_at,
+                   COALESCE((SELECT COUNT(*) FROM community_comments c WHERE c.post_id = p.post_id), 0) as comment_count
+            FROM community_posts p
+        """
+        params = {}
+        if cat_filter != "ALL":
+            q += " WHERE p.category = :cat"
+            params["cat"] = cat_filter
+        q += f" ORDER BY {sort_order}"
+
+        rows = conn.execute(text(q), params).fetchall()
 
         results = []
         for r in rows:
             results.append({
                 "post_id": r[0],
                 "author_name": r[1] or "Anonymous Student",
-                "author_role": r[2],
-                "class_section": r[3],
-                "category": r[4],
+                "author_role": r[2] or "STUDENT",
+                "class_section": r[3] or "Section D",
+                "category": r[4] or "CAMPUS_LIFE",
                 "title": r[5],
                 "content": r[6],
-                "upvotes": r[7] or 1,
+                "upvotes": r[7] if r[7] is not None else 1,
                 "status": r[8] or "OPEN",
                 "official_response": r[9],
-                "created_at": str(r[10])[:16] if r[10] else "",
+                "created_at": str(r[10])[:16] if r[10] else "Recently",
+                "comment_count": r[11] or 0,
             })
     return {"posts": results}
+
+@router.get("/community/posts/{post_id}/comments", summary="Get all comments on a community post")
+def get_post_comments(post_id: int):
+    with engine.connect() as conn:
+        rows = conn.execute(text("""
+            SELECT comment_id, post_id, author_name, author_role, comment_text, upvotes, created_at
+            FROM community_comments
+            WHERE post_id = :pid
+            ORDER BY comment_id ASC
+        """), {"pid": post_id}).fetchall()
+        comments = []
+        for r in rows:
+            comments.append({
+                "comment_id": r[0],
+                "post_id": r[1],
+                "author_name": r[2],
+                "author_role": r[3],
+                "comment_text": r[4],
+                "upvotes": r[5] or 0,
+                "created_at": str(r[6])[:16] if r[6] else "Just now"
+            })
+    return {"comments": comments}
+
+@router.post("/community/posts/{post_id}/comments", summary="Post a comment or reply on a community post")
+def add_post_comment(post_id: int, payload: CommunityCommentCreate):
+    with engine.begin() as conn:
+        ins = conn.execute(text("""
+            INSERT INTO community_comments (post_id, author_name, author_role, comment_text, upvotes)
+            VALUES (:pid, :name, :role, :txt, 1)
+        """), {
+            "pid": post_id,
+            "name": payload.author_name or "Anonymous Student",
+            "role": payload.author_role or "STUDENT",
+            "txt": payload.comment_text,
+        })
+        cid = ins.lastrowid
+    return {
+        "status": "success",
+        "comment": {
+            "comment_id": cid,
+            "post_id": post_id,
+            "author_name": payload.author_name or "Anonymous Student",
+            "author_role": payload.author_role or "STUDENT",
+            "comment_text": payload.comment_text,
+            "upvotes": 1,
+            "created_at": "Just now"
+        }
+    }
+
+@router.post("/community/posts/{post_id}/vote", summary="Reddit upvote (+1) or downvote (-1) on a post")
+def vote_community_post(post_id: int, payload: CommunityVotePayload):
+    with engine.begin() as conn:
+        conn.execute(text("""
+            UPDATE community_posts
+            SET upvotes = MAX(0, upvotes + :d)
+            WHERE post_id = :pid
+        """), {"d": payload.delta, "pid": post_id})
+        val = conn.execute(text("SELECT upvotes FROM community_posts WHERE post_id = :pid"), {"pid": post_id}).scalar()
+    return {"status": "success", "post_id": post_id, "upvotes": val or 0}
 
 
 @router.post("/community/posts", summary="Create anonymous campus pulse community post")

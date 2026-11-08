@@ -2909,3 +2909,23 @@ a {
   70% { box-shadow: 0 0 0 6px rgba(147, 51, 234, 0); }
   100% { box-shadow: 0 0 0 0 rgba(147, 51, 234, 0); }
 }
+
+/* Real-Time WebSocket Notification Alert Pill Animations */
+@keyframes alertPillDrop {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -28px) scale(0.92);
+  }
+  60% {
+    opacity: 1;
+    transform: translate(-50%, 4px) scale(1.02);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(-50%, 0) scale(1);
+  }
+}
+
+.realtime-alert-pill {
+  animation: alertPillDrop 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}

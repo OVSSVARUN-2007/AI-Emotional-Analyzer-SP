@@ -1,6 +1,10 @@
 import { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import {
   Activity,
+  Bell,
+  ArrowUp,
+  ArrowDown,
+  MessageCircle,
   Award,
   BookOpen,
   CalendarDays,
@@ -1246,6 +1250,862 @@ function SpecialProjectsAdminTab({ addToast }) {
 }
 
 // ═══════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
+// REDDIT-STYLE CAMPUS DISCUSSIONS COMPONENT
+// Features:
+// - r/Subreddit categories (r/All, r/Academics, r/Course Doubts, r/Facilities, r/Career)
+// - Sorting: Hot, New, Top
+// - Reddit-style Karma voting (▲ / ▼)
+// - Create Post Modal (Title, Category, Content, Anonymous toggle)
+// - Threaded Commenting & Reply stream with Verified Faculty badges
+// ═══════════════════════════════════════════════════════
+
+function RedditCampusDiscussions({ user, addToast }) {
+  const [posts, setPosts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedCategory, setSelectedCategory] = useState('ALL');
+  const [sortBy, setSortBy] = useState('hot');
+  const [expandedComments, setExpandedComments] = useState({}); // { [postId]: comments[] }
+  const [loadingComments, setLoadingComments] = useState({});
+  const [commentInput, setCommentInput] = useState({});
+  const [submittingComment, setSubmittingComment] = useState({});
+  const [userVotes, setUserVotes] = useState({}); // { [postId]: 1 | -1 }
+
+  // Create Post Modal State
+  const [createPostOpen, setCreatePostOpen] = useState(false);
+  const [postForm, setPostForm] = useState({
+    title: '',
+    category: 'ACADEMICS',
+    content: '',
+    is_anonymous: true,
+  });
+  const [submittingPost, setSubmittingPost] = useState(false);
+
+  const categories = [
+    { id: 'ALL', label: 'r/All', icon: '🌐' },
+    { id: 'ACADEMICS', label: 'r/Academics', icon: '📚' },
+    { id: 'COURSE_DOUBTS', label: 'r/CourseDoubts', icon: '💡' },
+    { id: 'FACILITY', label: 'r/CampusLabs', icon: '🏛️' },
+    { id: 'CAREER', label: 'r/Placements', icon: '💼' },
+  ];
+
+  const loadPosts = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await fetch(`${API}/feedback/community/posts?category=${selectedCategory}&sort_by=${sortBy}`);
+      if (res.ok) {
+        const json = await res.json();
+        setPosts(json.posts || []);
+      }
+    } catch (e) {
+      console.error('Failed to load community posts:', e);
+    } finally {
+      setLoading(false);
+    }
+  }, [selectedCategory, sortBy]);
+
+  useEffect(() => {
+    loadPosts();
+  }, [loadPosts]);
+
+  const handleVote = async (postId, direction) => {
+    const curVote = userVotes[postId] || 0;
+    let delta = 0;
+    if (direction === 'up') {
+      delta = curVote === 1 ? -1 : (curVote === -1 ? 2 : 1);
+    } else {
+      delta = curVote === -1 ? 1 : (curVote === 1 ? -2 : -1);
+    }
+    const newVoteState = curVote === (direction === 'up' ? 1 : -1) ? 0 : (direction === 'up' ? 1 : -1);
+
+    // Optimistic UI update
+    setUserVotes(prev => ({ ...prev, [postId]: newVoteState }));
+    setPosts(prev => prev.map(p => p.post_id === postId ? { ...p, upvotes: Math.max(0, (p.upvotes || 0) + delta) } : p));
+
+    try {
+      await fetch(`${API}/feedback/community/posts/${postId}/vote`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ delta }),
+      });
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const toggleComments = async (postId) => {
+    if (expandedComments[postId]) {
+      setExpandedComments(prev => ({ ...prev, [postId]: null }));
+      return;
+    }
+    setLoadingComments(prev => ({ ...prev, [postId]: true }));
+    try {
+      const res = await fetch(`${API}/feedback/community/posts/${postId}/comments`);
+      if (res.ok) {
+        const json = await res.json();
+        setExpandedComments(prev => ({ ...prev, [postId]: json.comments || [] }));
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoadingComments(prev => ({ ...prev, [postId]: false }));
+    }
+  };
+
+  const handlePostComment = async (postId) => {
+    const text = (commentInput[postId] || '').trim();
+    if (!text) return;
+    setSubmittingComment(prev => ({ ...prev, [postId]: true }));
+    try {
+      const res = await fetch(`${API}/feedback/community/posts/${postId}/comments`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          author_name: user?.name || 'Anonymous Student',
+          author_role: user?.role || 'STUDENT',
+          comment_text: text,
+        }),
+      });
+      if (res.ok) {
+        const json = await res.json();
+        setExpandedComments(prev => ({
+          ...prev,
+          [postId]: [...(prev[postId] || []), json.comment]
+        }));
+        setPosts(prev => prev.map(p => p.post_id === postId ? { ...p, comment_count: (p.comment_count || 0) + 1 } : p));
+        setCommentInput(prev => ({ ...prev, [postId]: '' }));
+        addToast?.({ title: 'Comment Posted', message: 'Your reply was published to the thread.', type: 'success' });
+      }
+    } catch (e) {
+      addToast?.({ title: 'Error', message: 'Failed to post comment', type: 'error' });
+    } finally {
+      setSubmittingComment(prev => ({ ...prev, [postId]: false }));
+    }
+  };
+
+  const handleCreatePost = async (e) => {
+    e.preventDefault();
+    if (!postForm.title.trim() || !postForm.content.trim()) {
+      addToast?.({ title: 'Required Fields', message: 'Please enter both a title and details.', type: 'warning' });
+      return;
+    }
+    setSubmittingPost(true);
+    try {
+      const res = await fetch(`${API}/feedback/community/posts`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: postForm.title,
+          content: postForm.content,
+          category: postForm.category,
+          author_name: postForm.is_anonymous ? 'Anonymous Student' : (user?.name || 'Student'),
+          class_section: user?.class_section || 'Section D',
+          is_anonymous: postForm.is_anonymous,
+        }),
+      });
+      if (res.ok) {
+        addToast?.({ title: 'Post Published!', message: 'Your post is now live in the campus discussion feed.', type: 'success' });
+        setCreatePostOpen(false);
+        setPostForm({ title: '', category: 'ACADEMICS', content: '', is_anonymous: true });
+        loadPosts();
+      }
+    } catch (e) {
+      addToast?.({ title: 'Error', message: 'Failed to publish post', type: 'error' });
+    } finally {
+      setSubmittingPost(false);
+    }
+  };
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', maxWidth: '860px', margin: '0 auto' }}>
+      {/* 1. Header & Community Subreddit Banner */}
+      <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '1rem 1.25rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem' }}>
+        <div>
+          <h2 style={{ margin: 0, fontSize: '1.2rem', color: '#0f172a', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <span>🏛️</span>
+            <span>r/CampusDiscussions</span>
+            <span style={{ fontSize: '0.72rem', background: '#eff6ff', color: '#2563eb', padding: '2px 8px', borderRadius: '999px', border: '1px solid #bfdbfe', fontWeight: 600 }}>
+              Reddit Mode
+            </span>
+          </h2>
+          <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.82rem', color: '#64748b' }}>
+            Anonymous student & faculty town hall. Upvote real blockers, share course questions, and get verified faculty responses.
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={() => setCreatePostOpen(true)}
+          style={{ background: '#ff4500', color: '#ffffff', border: 'none', padding: '0.45rem 1rem', borderRadius: '999px', fontSize: '0.82rem', fontWeight: 700, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.4rem', boxShadow: '0 2px 4px rgba(255, 69, 0, 0.25)' }}
+        >
+          <Plus size={15} /> Create Post
+        </button>
+      </div>
+
+      {/* 2. Subreddit Filter Tabs & Sort Controls */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem', background: '#f8fafc', padding: '0.5rem 0.75rem', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
+        {/* Category Flairs */}
+        <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
+          {categories.map((cat) => (
+            <button
+              key={cat.id}
+              type="button"
+              onClick={() => setSelectedCategory(cat.id)}
+              style={{
+                background: selectedCategory === cat.id ? '#0f172a' : '#ffffff',
+                color: selectedCategory === cat.id ? '#ffffff' : '#475569',
+                border: '1px solid #e2e8f0',
+                borderRadius: '999px',
+                padding: '4px 12px',
+                fontSize: '0.78rem',
+                fontWeight: 600,
+                cursor: 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '4px',
+                transition: 'all 0.15s ease'
+              }}
+            >
+              <span>{cat.icon}</span> {cat.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Sort: Hot / New / Top */}
+        <div style={{ display: 'inline-flex', background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '2px' }}>
+          <button
+            type="button"
+            onClick={() => setSortBy('hot')}
+            style={{
+              background: sortBy === 'hot' ? '#eff6ff' : 'transparent',
+              color: sortBy === 'hot' ? '#2563eb' : '#64748b',
+              border: 'none',
+              borderRadius: '6px',
+              padding: '3px 10px',
+              fontSize: '0.75rem',
+              fontWeight: 600,
+              cursor: 'pointer'
+            }}
+          >
+            🔥 Hot
+          </button>
+          <button
+            type="button"
+            onClick={() => setSortBy('new')}
+            style={{
+              background: sortBy === 'new' ? '#eff6ff' : 'transparent',
+              color: sortBy === 'new' ? '#2563eb' : '#64748b',
+              border: 'none',
+              borderRadius: '6px',
+              padding: '3px 10px',
+              fontSize: '0.75rem',
+              fontWeight: 600,
+              cursor: 'pointer'
+            }}
+          >
+            ✨ New
+          </button>
+          <button
+            type="button"
+            onClick={() => setSortBy('top')}
+            style={{
+              background: sortBy === 'top' ? '#eff6ff' : 'transparent',
+              color: sortBy === 'top' ? '#2563eb' : '#64748b',
+              border: 'none',
+              borderRadius: '6px',
+              padding: '3px 10px',
+              fontSize: '0.75rem',
+              fontWeight: 600,
+              cursor: 'pointer'
+            }}
+          >
+            🔝 Top
+          </button>
+        </div>
+      </div>
+
+      {/* 3. Post Feed (Reddit Style) */}
+      {loading ? (
+        <div style={{ textAlign: 'center', padding: '3rem', color: '#94a3b8' }}>
+          Loading community threads...
+        </div>
+      ) : posts.length === 0 ? (
+        <div className="card" style={{ textAlign: 'center', padding: '3rem', color: '#94a3b8' }}>
+          <div style={{ fontSize: '2.5rem', marginBottom: '0.5rem' }}>💬</div>
+          <h3>No posts found in this category</h3>
+          <p style={{ fontSize: '0.85rem' }}>Be the first to share a question or start a discussion!</p>
+        </div>
+      ) : (
+        posts.map((post) => {
+          const userVote = userVotes[post.post_id] || 0;
+          const isCommentsOpen = !!expandedComments[post.post_id];
+          const commentsList = expandedComments[post.post_id] || [];
+
+          return (
+            <div key={post.post_id} className="card" style={{ padding: '0', overflow: 'hidden', border: '1px solid #e2e8f0', display: 'flex' }}>
+              {/* Left Column: Reddit Upvote/Karma/Downvote */}
+              <div style={{ background: '#f8fafc', width: '48px', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '0.75rem 0', borderRight: '1px solid #f1f5f9' }}>
+                <button
+                  type="button"
+                  onClick={() => handleVote(post.post_id, 'up')}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    color: userVote === 1 ? '#ff4500' : '#94a3b8',
+                    fontSize: '1.1rem',
+                    lineHeight: 1,
+                    padding: '2px 6px',
+                    transition: 'color 0.15s ease'
+                  }}
+                  title="Upvote (+1)"
+                >
+                  ▲
+                </button>
+                <span style={{ fontSize: '0.8rem', fontWeight: 700, color: userVote === 1 ? '#ff4500' : (userVote === -1 ? '#7193ff' : '#0f172a'), margin: '3px 0' }}>
+                  {post.upvotes || 0}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => handleVote(post.post_id, 'down')}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    color: userVote === -1 ? '#7193ff' : '#94a3b8',
+                    fontSize: '1.1rem',
+                    lineHeight: 1,
+                    padding: '2px 6px',
+                    transition: 'color 0.15s ease'
+                  }}
+                  title="Downvote (-1)"
+                >
+                  ▼
+                </button>
+              </div>
+
+              {/* Right Column: Post Body, Official Responses, Comments */}
+              <div style={{ flex: 1, padding: '1rem' }}>
+                {/* Meta header */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.4rem', fontSize: '0.74rem', color: '#64748b' }}>
+                  <span style={{ fontWeight: 700, color: '#ff4500', background: '#fff5f0', padding: '1px 6px', borderRadius: '4px' }}>
+                    r/{post.category || 'General'}
+                  </span>
+                  <span>•</span>
+                  <span>Posted by <strong>{post.author_name}</strong></span>
+                  <span>•</span>
+                  <span>{post.created_at}</span>
+                  {post.class_section && (
+                    <span style={{ background: '#f1f5f9', padding: '1px 5px', borderRadius: '4px' }}>
+                      {post.class_section}
+                    </span>
+                  )}
+                  {post.status === 'RESOLVED' && (
+                    <span style={{ marginLeft: 'auto', background: '#ecfdf5', color: '#059669', fontWeight: 600, padding: '1px 6px', borderRadius: '4px', border: '1px solid #a7f3d0' }}>
+                      ✓ Resolved
+                    </span>
+                  )}
+                </div>
+
+                {/* Title & Body */}
+                <h3 style={{ margin: '0 0 0.4rem 0', fontSize: '1.05rem', color: '#0f172a', fontWeight: 700, lineHeight: 1.4 }}>
+                  {post.title}
+                </h3>
+                <p style={{ margin: 0, fontSize: '0.85rem', color: '#334155', lineHeight: 1.5, whiteSpace: 'pre-wrap' }}>
+                  {post.content}
+                </p>
+
+                {/* Official Verified Response if present */}
+                {post.official_response && (
+                  <div style={{ marginTop: '0.75rem', background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '8px', padding: '0.65rem 0.85rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.75rem', fontWeight: 700, color: '#15803d', marginBottom: '2px' }}>
+                      <span>✓</span> Official Faculty / Admin Action Taken:
+                    </div>
+                    <p style={{ margin: 0, fontSize: '0.8rem', color: '#166534', lineHeight: 1.4 }}>
+                      {post.official_response}
+                    </p>
+                  </div>
+                )}
+
+                {/* Action footer */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginTop: '0.75rem', paddingTop: '0.5rem', borderTop: '1px solid #f1f5f9', fontSize: '0.78rem' }}>
+                  <button
+                    type="button"
+                    onClick={() => toggleComments(post.post_id)}
+                    style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.35rem', fontWeight: 600, padding: 0 }}
+                  >
+                    <span>💬</span>
+                    <span>{post.comment_count || commentsList.length || 0} Comments</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      navigator.clipboard?.writeText(window.location.href);
+                      addToast?.({ title: 'Link Copied', message: 'Thread link copied to clipboard.', type: 'info' });
+                    }}
+                    style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.35rem', fontWeight: 600, padding: 0 }}
+                  >
+                    <span>🔗</span> Share
+                  </button>
+                </div>
+
+                {/* Comment Thread (Expanded) */}
+                {isCommentsOpen && (
+                  <div style={{ marginTop: '0.75rem', paddingTop: '0.75rem', borderTop: '1px solid #e2e8f0', display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
+                    {/* Add Comment Input */}
+                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                      <input
+                        type="text"
+                        placeholder={`Comment as ${user?.name || 'Anonymous'}...`}
+                        value={commentInput[post.post_id] || ''}
+                        onChange={(e) => setCommentInput(prev => ({ ...prev, [post.post_id]: e.target.value }))}
+                        onKeyDown={(e) => { if (e.key === 'Enter') handlePostComment(post.post_id); }}
+                        style={{ flex: 1, padding: '0.45rem 0.75rem', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.82rem' }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => handlePostComment(post.post_id)}
+                        disabled={submittingComment[post.post_id]}
+                        style={{ background: '#2563eb', color: '#ffffff', border: 'none', padding: '0.45rem 0.85rem', borderRadius: '6px', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer' }}
+                      >
+                        {submittingComment[post.post_id] ? 'Posting...' : 'Reply'}
+                      </button>
+                    </div>
+
+                    {/* Comments Stream */}
+                    {loadingComments[post.post_id] ? (
+                      <div style={{ fontSize: '0.78rem', color: '#94a3b8', padding: '0.5rem' }}>Loading comments...</div>
+                    ) : commentsList.length === 0 ? (
+                      <div style={{ fontSize: '0.78rem', color: '#94a3b8', padding: '0.5rem' }}>No comments yet. Be the first to reply!</div>
+                    ) : (
+                      commentsList.map((c) => (
+                        <div key={c.comment_id} style={{ background: '#f8fafc', padding: '0.55rem 0.75rem', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '2px', fontSize: '0.72rem' }}>
+                            <strong style={{ color: '#0f172a' }}>{c.author_name}</strong>
+                            {c.author_role === 'FACULTY' && (
+                              <span style={{ background: '#dcfce7', color: '#15803d', fontWeight: 700, padding: '0 4px', borderRadius: '3px', fontSize: '0.68rem' }}>
+                                Faculty ✓
+                              </span>
+                            )}
+                            {c.author_role === 'ADMIN' && (
+                              <span style={{ background: '#fef3c7', color: '#b45309', fontWeight: 700, padding: '0 4px', borderRadius: '3px', fontSize: '0.68rem' }}>
+                                Admin 🛡️
+                              </span>
+                            )}
+                            <span style={{ color: '#94a3b8' }}>• {c.created_at}</span>
+                          </div>
+                          <p style={{ margin: 0, fontSize: '0.8rem', color: '#334155', lineHeight: 1.4 }}>
+                            {c.comment_text}
+                          </p>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        })
+      )}
+
+      {/* 4. Create Post Modal */}
+      {createPostOpen && (
+        <div className="modal-backdrop" onClick={() => setCreatePostOpen(false)}>
+          <div className="modal-card" style={{ maxWidth: '540px' }} onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3 style={{ margin: 0, fontSize: '1.1rem', color: '#0f172a' }}>Create Campus Discussion Post</h3>
+              <button type="button" className="btn-close-modal" onClick={() => setCreatePostOpen(false)}>✕</button>
+            </div>
+            <form onSubmit={handleCreatePost} style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem', marginTop: '1rem' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#475569', marginBottom: '4px' }}>Community Flair</label>
+                <select
+                  value={postForm.category}
+                  onChange={(e) => setPostForm(prev => ({ ...prev, category: e.target.value }))}
+                  style={{ width: '100%', padding: '0.5rem', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.82rem' }}
+                >
+                  <option value="ACADEMICS">r/Academics (Coursework, Pacing, Exams)</option>
+                  <option value="COURSE_DOUBTS">r/CourseDoubts (Theoretical & Coding Questions)</option>
+                  <option value="FACILITY">r/CampusLabs (GPU Server, Library, Facilities)</option>
+                  <option value="CAREER">r/Placements (Internships, Interviews, Resumes)</option>
+                  <option value="CAMPUS_LIFE">r/General (Campus Pulse & Culture)</option>
+                </select>
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#475569', marginBottom: '4px' }}>Title</label>
+                <input
+                  type="text"
+                  placeholder="Interesting, concise headline..."
+                  value={postForm.title}
+                  onChange={(e) => setPostForm(prev => ({ ...prev, title: e.target.value }))}
+                  style={{ width: '100%', padding: '0.5rem', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.85rem' }}
+                  required
+                />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#475569', marginBottom: '4px' }}>Details / Question</label>
+                <textarea
+                  rows={4}
+                  placeholder="Share details, context, or code questions..."
+                  value={postForm.content}
+                  onChange={(e) => setPostForm(prev => ({ ...prev, content: e.target.value }))}
+                  style={{ width: '100%', padding: '0.5rem', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.85rem', resize: 'vertical' }}
+                  required
+                />
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <input
+                  type="checkbox"
+                  id="anon_chk"
+                  checked={postForm.is_anonymous}
+                  onChange={(e) => setPostForm(prev => ({ ...prev, is_anonymous: e.target.checked }))}
+                />
+                <label htmlFor="anon_chk" style={{ fontSize: '0.8rem', color: '#475569', cursor: 'pointer' }}>
+                  Post anonymously (Identity protected from peers & faculty)
+                </label>
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.6rem', marginTop: '0.5rem' }}>
+                <button
+                  type="button"
+                  onClick={() => setCreatePostOpen(false)}
+                  style={{ background: '#f1f5f9', border: '1px solid #cbd5e1', padding: '0.45rem 1rem', borderRadius: '6px', fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer' }}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={submittingPost}
+                  style={{ background: '#ff4500', color: '#ffffff', border: 'none', padding: '0.45rem 1.25rem', borderRadius: '6px', fontSize: '0.82rem', fontWeight: 700, cursor: 'pointer' }}
+                >
+                  {submittingPost ? 'Publishing...' : 'Post to Community'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+
+// ═══════════════════════════════════════════════════════
+// NOTIFICATION CENTER, WEBSOCKET LISTENER & LIVE BROADCAST
+// ═══════════════════════════════════════════════════════
+
+function NotificationCenterDrawer({ user, isOpen, onClose, onNavigate, addToast }) {
+  const [notifications, setNotifications] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [broadcastModalOpen, setBroadcastModalOpen] = useState(false);
+  const [broadcastForm, setBroadcastForm] = useState({
+    title: '',
+    message: '',
+    course_code: 'AI501',
+    target_section: 'Section D',
+  });
+  const [broadcasting, setBroadcasting] = useState(false);
+
+  const canBroadcast = user?.role === 'FACULTY' || user?.role === 'ADMIN';
+
+  const loadNotifications = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await fetch(`${API}/feedback/notifications?role=${user?.role || 'STUDENT'}&section=${user?.class_section || 'ALL'}`);
+      if (res.ok) {
+        const json = await res.json();
+        setNotifications(json.notifications || []);
+      }
+    } catch (e) {
+      console.error('Failed to load notifications:', e);
+    } finally {
+      setLoading(false);
+    }
+  }, [user?.role, user?.class_section]);
+
+  useEffect(() => {
+    if (isOpen) {
+      loadNotifications();
+    }
+  }, [isOpen, loadNotifications]);
+
+  const handleMarkAllRead = () => {
+    setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+    addToast?.({ title: 'Notifications Cleared', message: 'All notifications marked as read.', type: 'info' });
+  };
+
+  const handleNotificationClick = (notif) => {
+    setNotifications(prev => prev.map(n => n.id === notif.id ? { ...n, read: true } : n));
+    onClose();
+    if (notif.type === 'FEEDBACK_REQUEST' || notif.type === 'TEACHER_CLARIFICATION') {
+      onNavigate?.('submit');
+    } else if (notif.type === 'COMPLAINT') {
+      onNavigate?.('grievances');
+    } else if (notif.type === 'COMMUNITY') {
+      onNavigate?.('community');
+    } else if (notif.type === 'SPECIAL_PROJECT') {
+      onNavigate?.('special-project');
+    }
+  };
+
+  const handleSendBroadcast = async (e) => {
+    e.preventDefault();
+    if (!broadcastForm.title.trim() || !broadcastForm.message.trim()) {
+      addToast?.({ title: 'Validation Error', message: 'Please provide both title and message.', type: 'warning' });
+      return;
+    }
+    setBroadcasting(true);
+    try {
+      const res = await fetch(`${API}/feedback/notifications/send`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: broadcastForm.title,
+          message: broadcastForm.message,
+          course_code: broadcastForm.course_code,
+          target_section: broadcastForm.target_section,
+          sender_name: user?.name || 'Faculty',
+          sender_role: user?.role || 'FACULTY',
+        }),
+      });
+      if (res.ok) {
+        addToast?.({
+          title: 'Broadcast Dispatched!',
+          message: 'Live notification transmitted to all student screens via WebSocket.',
+          type: 'success',
+        });
+        setBroadcastModalOpen(false);
+        setBroadcastForm({ title: '', message: '', course_code: 'AI501', target_section: 'Section D' });
+        loadNotifications();
+      }
+    } catch (err) {
+      addToast?.({ title: 'Error', message: 'Failed to dispatch broadcast', type: 'error' });
+    } finally {
+      setBroadcasting(false);
+    }
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <>
+      <div
+        className="modal-backdrop"
+        style={{ zIndex: 9998, background: 'rgba(15, 23, 42, 0.4)' }}
+        onClick={onClose}
+      >
+        <div
+          onClick={(e) => e.stopPropagation()}
+          style={{
+            position: 'fixed',
+            top: '4.5rem',
+            right: '1.5rem',
+            width: '380px',
+            maxWidth: 'calc(100vw - 3rem)',
+            maxHeight: '80vh',
+            background: '#ffffff',
+            borderRadius: '12px',
+            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.15), 0 8px 10px -6px rgba(0, 0, 0, 0.1)',
+            border: '1px solid #e2e8f0',
+            display: 'flex',
+            flexDirection: 'column',
+            overflow: 'hidden',
+            zIndex: 9999,
+          }}
+        >
+          {/* Header */}
+          <div style={{ padding: '0.85rem 1rem', borderBottom: '1px solid #f1f5f9', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <span style={{ fontSize: '1rem' }}>🔔</span>
+              <strong style={{ fontSize: '0.95rem', color: '#0f172a' }}>Real-Time Notifications</strong>
+              <span style={{ fontSize: '0.7rem', background: '#eff6ff', color: '#2563eb', fontWeight: 700, padding: '1px 6px', borderRadius: '999px' }}>
+                {notifications.filter(n => !n.read).length} new
+              </span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <button
+                type="button"
+                onClick={handleMarkAllRead}
+                style={{ background: 'none', border: 'none', color: '#2563eb', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer', padding: 0 }}
+              >
+                Mark all read
+              </button>
+              <button
+                type="button"
+                onClick={onClose}
+                style={{ background: 'none', border: 'none', color: '#94a3b8', fontSize: '1rem', cursor: 'pointer', padding: '0 4px', lineHeight: 1 }}
+              >
+                ✕
+              </button>
+            </div>
+          </div>
+
+          {/* Action Button for Faculty & Admin to send broadcast */}
+          {canBroadcast && (
+            <div style={{ padding: '0.5rem 1rem', background: '#f8fafc', borderBottom: '1px solid #f1f5f9' }}>
+              <button
+                type="button"
+                onClick={() => setBroadcastModalOpen(true)}
+                style={{
+                  width: '100%',
+                  background: '#2563eb',
+                  color: '#ffffff',
+                  border: 'none',
+                  borderRadius: '6px',
+                  padding: '0.45rem',
+                  fontSize: '0.78rem',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '0.4rem',
+                }}
+              >
+                <span>📢</span> Send Live Notification to Students
+              </button>
+            </div>
+          )}
+
+          {/* Notifications List */}
+          <div style={{ overflowY: 'auto', flex: 1, padding: '0.5rem', display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+            {loading ? (
+              <div style={{ textAlign: 'center', padding: '2rem', color: '#94a3b8', fontSize: '0.82rem' }}>
+                Checking real-time alerts...
+              </div>
+            ) : notifications.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '2.5rem 1rem', color: '#94a3b8' }}>
+                <div style={{ fontSize: '2rem', marginBottom: '0.25rem' }}>✨</div>
+                <div style={{ fontSize: '0.85rem', fontWeight: 600, color: '#475569' }}>All caught up!</div>
+                <div style={{ fontSize: '0.75rem' }}>No new notifications at this time.</div>
+              </div>
+            ) : (
+              notifications.map((notif) => {
+                const isUnread = !notif.read;
+                return (
+                  <div
+                    key={notif.id}
+                    onClick={() => handleNotificationClick(notif)}
+                    style={{
+                      padding: '0.65rem 0.75rem',
+                      borderRadius: '8px',
+                      background: isUnread ? '#f0f9ff' : '#f8fafc',
+                      border: isUnread ? '1px solid #bae6fd' : '1px solid #f1f5f9',
+                      cursor: 'pointer',
+                      transition: 'all 0.15s ease',
+                      position: 'relative',
+                    }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2px' }}>
+                      <strong style={{ fontSize: '0.82rem', color: '#0f172a' }}>
+                        {notif.title}
+                      </strong>
+                      <span style={{ fontSize: '0.68rem', color: '#94a3b8' }}>{notif.time || 'Recently'}</span>
+                    </div>
+                    <p style={{ margin: 0, fontSize: '0.76rem', color: '#475569', lineHeight: 1.4 }}>
+                      {notif.message}
+                    </p>
+                    {isUnread && (
+                      <span style={{ position: 'absolute', top: '8px', right: '8px', width: '6px', height: '6px', borderRadius: '50%', background: '#0284c7' }} />
+                    )}
+                  </div>
+                );
+              })
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Broadcast Modal for Faculty & Admin */}
+      {broadcastModalOpen && (
+        <div className="modal-backdrop" style={{ zIndex: 10000 }} onClick={() => setBroadcastModalOpen(false)}>
+          <div className="modal-card" style={{ maxWidth: '480px' }} onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3 style={{ margin: 0, fontSize: '1.05rem', color: '#0f172a' }}>📢 Broadcast Live Notification</h3>
+              <button type="button" className="btn-close-modal" onClick={() => setBroadcastModalOpen(false)}>✕</button>
+            </div>
+            <p style={{ fontSize: '0.8rem', color: '#64748b', margin: '0.25rem 0 0.75rem 0' }}>
+              Transmits an immediate animated alert pill to students currently on the portal via WebSockets.
+            </p>
+            <form onSubmit={handleSendBroadcast} style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: '#475569', marginBottom: '2px' }}>Course</label>
+                <input
+                  type="text"
+                  placeholder="e.g. AI501 - NLP"
+                  value={broadcastForm.course_code}
+                  onChange={(e) => setBroadcastForm(prev => ({ ...prev, course_code: e.target.value }))}
+                  style={{ width: '100%', padding: '0.45rem', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.82rem' }}
+                />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: '#475569', marginBottom: '2px' }}>Target Section</label>
+                <select
+                  value={broadcastForm.target_section}
+                  onChange={(e) => setBroadcastForm(prev => ({ ...prev, target_section: e.target.value }))}
+                  style={{ width: '100%', padding: '0.45rem', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.82rem' }}
+                >
+                  <option value="ALL">All Enrolled Sections</option>
+                  <option value="Section D">Section D</option>
+                  <option value="Section A">Section A</option>
+                  <option value="Section B">Section B</option>
+                  <option value="Section C">Section C</option>
+                </select>
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: '#475569', marginBottom: '2px' }}>Notification Headline</label>
+                <input
+                  type="text"
+                  placeholder="e.g. Extra Lab Review / Clarification Uploaded"
+                  value={broadcastForm.title}
+                  onChange={(e) => setBroadcastForm(prev => ({ ...prev, title: e.target.value }))}
+                  style={{ width: '100%', padding: '0.45rem', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.82rem' }}
+                  required
+                />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: '#475569', marginBottom: '2px' }}>Message</label>
+                <textarea
+                  rows={3}
+                  placeholder="Enter message for students..."
+                  value={broadcastForm.message}
+                  onChange={(e) => setBroadcastForm(prev => ({ ...prev, message: e.target.value }))}
+                  style={{ width: '100%', padding: '0.45rem', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.82rem', resize: 'vertical' }}
+                  required
+                />
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem', marginTop: '0.25rem' }}>
+                <button
+                  type="button"
+                  onClick={() => setBroadcastModalOpen(false)}
+                  style={{ background: '#f1f5f9', border: '1px solid #cbd5e1', padding: '0.4rem 0.85rem', borderRadius: '6px', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer' }}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={broadcasting}
+                  style={{ background: '#2563eb', color: '#ffffff', border: 'none', padding: '0.4rem 1.15rem', borderRadius: '6px', fontSize: '0.8rem', fontWeight: 700, cursor: 'pointer' }}
+                >
+                  {broadcasting ? 'Transmitting...' : 'Dispatch Live'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
+
+
 // FACULTY SECTION-WISE TEACHING ANALYTICS WORKSPACE
 // Built according to user wireframe sketch:
 // - Overall faculty metrics
@@ -4860,6 +5720,46 @@ function getISOWeek(date) {
 // ═══════════════════════════════════════════════════════
 function StudentDashboard({ user, token, onLogout, onSwitchRole, addToast, onUserUpdated }) {
   const [profileModalOpen, setProfileModalOpen] = useState(false);
+  const [notifDrawerOpen, setNotifDrawerOpen] = useState(false);
+  const [unreadNotifsCount, setUnreadNotifsCount] = useState(3);
+  const [activeAlertPill, setActiveAlertPill] = useState(null);
+
+  useEffect(() => {
+    let ws = null;
+    let timer = null;
+    try {
+      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      const wsUrl = `${protocol}//${window.location.host}/ws/notifications`;
+      ws = new WebSocket(wsUrl);
+      ws.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          if (data.type === 'pong') return;
+          const payload = data.payload || data;
+          const notif = {
+            id: payload.id || `live-${Date.now()}`,
+            title: payload.title || payload.topic || 'New Campus Notification',
+            message: payload.message || payload.clarification_text || 'A new update was published.',
+            sender_name: payload.faculty_name || payload.sender_name || 'Faculty',
+            time: 'Just now',
+          };
+          setActiveAlertPill(notif);
+          setUnreadNotifsCount(prev => prev + 1);
+          addToast?.({
+            title: '📢 ' + notif.title,
+            message: `${notif.sender_name}: ${notif.message}`,
+            type: 'info',
+            duration: 5000,
+          });
+          timer = setTimeout(() => setActiveAlertPill(null), 8000);
+        } catch (_) {}
+      };
+    } catch (_) {}
+    return () => {
+      if (timer) clearTimeout(timer);
+      if (ws) ws.close();
+    };
+  }, [addToast]);
   const [systemMode, setSystemMode] = useState(() => localStorage.getItem('sentio_system_mode') || 'LIVE_EVAL');
   const [activeTab, setActiveTab] = useState('submit'); // 'submit' | 'courses' | 'wellbeing' | 'community' | 'grievance' | 'special-project'
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -5475,6 +6375,35 @@ function StudentDashboard({ user, token, onLogout, onSwitchRole, addToast, onUse
             <span style={{ fontSize: '0.8rem', color: '#64748b', fontWeight: 600 }}>
               {user.class_section || 'Section D'}
             </span>
+            <button
+              type="button"
+              className="btn-header-action"
+              onClick={() => setNotifDrawerOpen(prev => !prev)}
+              title="Real-Time Notifications"
+              style={{
+                position: 'relative',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.35rem',
+                padding: '0.35rem 0.65rem',
+                borderRadius: '8px',
+              }}
+            >
+              <Bell size={15} color={unreadNotifsCount > 0 ? '#2563eb' : '#64748b'} />
+              {unreadNotifsCount > 0 && (
+                <span style={{
+                  background: '#ef4444',
+                  color: '#ffffff',
+                  fontSize: '0.65rem',
+                  fontWeight: 700,
+                  padding: '1px 5px',
+                  borderRadius: '999px',
+                  lineHeight: 1
+                }}>
+                  {unreadNotifsCount}
+                </span>
+              )}
+            </button>
             <button
               type="button"
               className="btn-header-action"
@@ -6212,59 +7141,7 @@ function StudentDashboard({ user, token, onLogout, onSwitchRole, addToast, onUse
         {/* 4. TAB: CAMPUS DISCUSSIONS */}
         {activeTab === 'community' && (
           <div className="tab-pane">
-            <div className="grid-2col">
-              {/* Study Pods */}
-              <div className="card">
-                <h3 style={{ margin: '0 0 0.5rem 0', color: '#0f172a' }}>Peer Study Groups</h3>
-                <p style={{ fontSize: '0.85rem', color: '#64748b', margin: '0 0 1rem 0' }}>
-                  Collaborate with classmates on challenging modules and revision questions.
-                </p>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                  {studyPods.map((pod) => (
-                    <div key={pod.pod_id} style={{ background: '#f8fafc', padding: '0.85rem', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
-                        <strong>{pod.course_code} · {pod.topic}</strong>
-                        <span style={{ fontSize: '0.75rem', color: '#64748b' }}>{pod.current_members} Members</span>
-                      </div>
-                      <p style={{ fontSize: '0.8rem', color: '#64748b', margin: '0 0 0.5rem 0' }}>Section: {pod.class_section}</p>
-                      <button
-                        type="button"
-                        className="btn-review-lecture"
-                        onClick={() => addToast?.({ title: 'Joined Pod', message: `Connected to ${pod.topic} study group.`, type: 'success' })}
-                      >
-                        Join Group
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Discussion Feed */}
-              <div className="card">
-                <h3 style={{ margin: '0 0 0.5rem 0', color: '#0f172a' }}>Classroom Questions</h3>
-                <p style={{ fontSize: '0.85rem', color: '#64748b', margin: '0 0 1rem 0' }}>
-                  Upvote topics your classmates raised so professors know what to review.
-                </p>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                  {communityPosts.slice(0, 5).map((p) => (
-                    <div key={p.post_id} style={{ padding: '0.85rem', borderBottom: '1px solid #f1f5f9' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                        <span style={{ fontWeight: 600, fontSize: '0.9rem', color: '#0f172a' }}>{p.title}</span>
-                        <button
-                          type="button"
-                          className="btn-header-action"
-                          style={{ padding: '0.2rem 0.5rem' }}
-                          onClick={() => addToast?.({ title: 'Upvoted', message: 'Upvoted question.', type: 'info' })}
-                        >
-                          <ThumbsUp size={12} /> {p.upvotes || 0}
-                        </button>
-                      </div>
-                      <p style={{ fontSize: '0.825rem', color: '#475569', margin: '0.35rem 0 0 0' }}>{p.content}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
+            <RedditCampusDiscussions user={user} addToast={addToast} />
           </div>
         )}
 
@@ -6505,6 +7382,82 @@ Example:
         )}
       </main>
 
+      {/* Real-Time WebSocket Floating Alert Pill */}
+      {activeAlertPill && (
+        <div
+          className="realtime-alert-pill"
+          style={{
+            position: 'fixed',
+            top: '1.25rem',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            zIndex: 10000,
+            background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
+            color: '#ffffff',
+            padding: '0.65rem 1.25rem',
+            borderRadius: '999px',
+            boxShadow: '0 12px 30px -4px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(59, 130, 246, 0.3)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.75rem',
+            fontSize: '0.82rem',
+            maxWidth: '92vw',
+            backdropFilter: 'blur(8px)',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: '#60a5fa', fontWeight: 600 }}>
+            <span style={{ fontSize: '1.1rem' }}>📢</span>
+            <span>Teacher Clarification</span>
+          </div>
+          <div style={{ width: '1px', height: '16px', background: '#334155' }} />
+          <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '350px' }}>
+            <strong style={{ color: '#f8fafc' }}>{activeAlertPill.title}</strong>
+            <span style={{ color: '#94a3b8', marginLeft: '6px' }}>— {activeAlertPill.message}</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              setNotifDrawerOpen(true);
+              setActiveAlertPill(null);
+            }}
+            style={{
+              background: '#2563eb',
+              color: '#ffffff',
+              border: 'none',
+              padding: '4px 12px',
+              borderRadius: '999px',
+              fontSize: '0.75rem',
+              fontWeight: 700,
+              cursor: 'pointer',
+              flexShrink: 0,
+              boxShadow: '0 2px 4px rgba(37, 99, 235, 0.4)',
+            }}
+          >
+            View
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveAlertPill(null)}
+            style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: '1rem', lineHeight: 1, padding: '0 2px' }}
+            title="Dismiss"
+          >
+            ✕
+          </button>
+        </div>
+      )}
+
+      {/* Real-Time Notification Center Drawer */}
+      <NotificationCenterDrawer
+        user={user}
+        isOpen={notifDrawerOpen}
+        onClose={() => setNotifDrawerOpen(false)}
+        onNavigate={(tab) => {
+          setActiveTab(tab);
+          setNotifDrawerOpen(false);
+        }}
+        addToast={addToast}
+      />
+
       {/* Profile Settings Modal */}
       <ProfileSettingsModal
         isOpen={profileModalOpen}
@@ -6534,6 +7487,46 @@ Example:
 // ═══════════════════════════════════════════════════════
 function AdminDashboard({ user, token, onLogout, onSwitchRole, addToast, onUserUpdated }) {
   const [profileModalOpen, setProfileModalOpen] = useState(false);
+  const [notifDrawerOpen, setNotifDrawerOpen] = useState(false);
+  const [unreadNotifsCount, setUnreadNotifsCount] = useState(2);
+  const [activeAlertPill, setActiveAlertPill] = useState(null);
+
+  useEffect(() => {
+    let ws = null;
+    let timer = null;
+    try {
+      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      const wsUrl = `${protocol}//${window.location.host}/ws/notifications`;
+      ws = new WebSocket(wsUrl);
+      ws.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          if (data.type === 'pong') return;
+          const payload = data.payload || data;
+          const notif = {
+            id: payload.id || `live-${Date.now()}`,
+            title: payload.title || payload.topic || 'New Campus Notification',
+            message: payload.message || payload.clarification_text || 'A new update was published.',
+            sender_name: payload.faculty_name || payload.sender_name || 'Faculty',
+            time: 'Just now',
+          };
+          setActiveAlertPill(notif);
+          setUnreadNotifsCount(prev => prev + 1);
+          addToast?.({
+            title: '📢 ' + notif.title,
+            message: `${notif.sender_name}: ${notif.message}`,
+            type: 'info',
+            duration: 5000,
+          });
+          timer = setTimeout(() => setActiveAlertPill(null), 8000);
+        } catch (_) {}
+      };
+    } catch (_) {}
+    return () => {
+      if (timer) clearTimeout(timer);
+      if (ws) ws.close();
+    };
+  }, [addToast]);
   const [systemMode, setSystemMode] = useState(() => localStorage.getItem('sentio_system_mode') || 'LIVE_EVAL');
   const [accreditationModalOpen, setAccreditationModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('overview'); // 'overview' | 'feedback' | 'curriculum' | 'modules' | 'grievances' | 'special-projects' | 'settings'
@@ -7004,6 +7997,35 @@ function AdminDashboard({ user, token, onLogout, onSwitchRole, addToast, onUserU
               <Award size={14} /> Summary Report
             </button>
 
+            <button
+              type="button"
+              className="btn-header-action"
+              onClick={() => setNotifDrawerOpen(prev => !prev)}
+              title="Real-Time Notifications"
+              style={{
+                position: 'relative',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.35rem',
+                padding: '0.35rem 0.65rem',
+                borderRadius: '8px',
+              }}
+            >
+              <Bell size={15} color={unreadNotifsCount > 0 ? '#2563eb' : '#64748b'} />
+              {unreadNotifsCount > 0 && (
+                <span style={{
+                  background: '#ef4444',
+                  color: '#ffffff',
+                  fontSize: '0.65rem',
+                  fontWeight: 700,
+                  padding: '1px 5px',
+                  borderRadius: '999px',
+                  lineHeight: 1
+                }}>
+                  {unreadNotifsCount}
+                </span>
+              )}
+            </button>
             <button
               type="button"
               className="btn-header-action"
@@ -8051,6 +9073,81 @@ function AdminDashboard({ user, token, onLogout, onSwitchRole, addToast, onUserU
           </div>
         </div>
       )}
+
+      {/* Real-Time WebSocket Floating Alert Pill */}
+      {activeAlertPill && (
+        <div
+          className="realtime-alert-pill"
+          style={{
+            position: 'fixed',
+            top: '1.25rem',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            zIndex: 10000,
+            background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
+            color: '#ffffff',
+            padding: '0.65rem 1.25rem',
+            borderRadius: '999px',
+            boxShadow: '0 12px 30px -4px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(59, 130, 246, 0.3)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.75rem',
+            fontSize: '0.82rem',
+            maxWidth: '92vw',
+            backdropFilter: 'blur(8px)',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: '#60a5fa', fontWeight: 600 }}>
+            <span style={{ fontSize: '1.1rem' }}>📢</span>
+            <span>Live Alert</span>
+          </div>
+          <div style={{ width: '1px', height: '16px', background: '#334155' }} />
+          <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '350px' }}>
+            <strong style={{ color: '#f8fafc' }}>{activeAlertPill.title}</strong>
+            <span style={{ color: '#94a3b8', marginLeft: '6px' }}>— {activeAlertPill.message}</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              setNotifDrawerOpen(true);
+              setActiveAlertPill(null);
+            }}
+            style={{
+              background: '#2563eb',
+              color: '#ffffff',
+              border: 'none',
+              padding: '4px 12px',
+              borderRadius: '999px',
+              fontSize: '0.75rem',
+              fontWeight: 700,
+              cursor: 'pointer',
+              flexShrink: 0,
+            }}
+          >
+            View
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveAlertPill(null)}
+            style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: '1rem', lineHeight: 1, padding: '0 2px' }}
+            title="Dismiss"
+          >
+            ✕
+          </button>
+        </div>
+      )}
+
+      {/* Real-Time Notification Center Drawer */}
+      <NotificationCenterDrawer
+        user={user}
+        isOpen={notifDrawerOpen}
+        onClose={() => setNotifDrawerOpen(false)}
+        onNavigate={(tab) => {
+          setActiveTab(tab);
+          setNotifDrawerOpen(false);
+        }}
+        addToast={addToast}
+      />
 
       {/* Profile & Accreditation Modals */}
       <ProfileSettingsModal

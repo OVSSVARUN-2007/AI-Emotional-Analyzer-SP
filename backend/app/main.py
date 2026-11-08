@@ -70,6 +70,7 @@ app.include_router(feedback_router)
 app.include_router(auth_router)
 
 
+@app.websocket("/ws/notifications")
 @app.websocket("/ws/events")
 async def realtime_event_socket(websocket: WebSocket) -> None:
     """Push feedback, request, and complaint updates to open dashboards."""
